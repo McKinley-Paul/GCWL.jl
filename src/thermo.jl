@@ -34,7 +34,7 @@ function ideal_gas_logQNVT(N::Int,V::Float64,Λ::Float64)::Float64
             logQ(N,V,T) = N log (V/Λ^3) + log(1/N!)
                         = N log (V/Λ^3) + log(1) - log(N!)
                         now stirling approx:
-                        = N log (V/Λ^3) - N log(N) - N
+                        = N log (V/Λ^3) - N log(N) + N
 
         make sure that V and Λ^3 have the same units!!!
 
@@ -48,6 +48,31 @@ function ideal_gas_logQNVT(N::Int,V::Float64,Λ::Float64)::Float64
     if N == 0
         return(0.0) #  Q(N=0) = (1/0!) (V/Λ^3)^0 = 1*1 thus log(1) = 0
     end
-    logQ_id = N*log(V/ (Λ^3) ) - N*log(N) - N 
+    logQ_id = N*log(V/ (Λ^3) ) - N*log(N) + N 
     return(logQ_id)
 end # ideal_gas_logQNVT
+
+
+function ideal_gas_logQ_loggamma(N::Int, V::Float64, Λ::Float64)::Float64
+    #= computes the ideal gas partition function Q(N,V,T) exactly:
+
+            Q(N,V,T) = 1/N! (V/Λ^3)^N
+
+            logQ(N,V,T) = N log (V/Λ^3) - log(N!)
+                        = N log (V/Λ^3) - loggamma(N+1)   [exact, no Stirling approximation]
+
+        make sure that V and Λ^3 have the same units!!!
+
+        Inputs:
+        - N = number of particles
+        - V = volume
+        - Λ = thermal debroglie wavelength: Λ = (h^2/[2 π m k_B T])^1/2
+        Outputs:
+        - logQ_id = ideal gas partition function (exact)
+    =#
+    if N == 0
+        return(0.0)
+    end
+    logQ_id = N*log(V / (Λ^3)) - loggamma(Float64(N+1))
+    return(logQ_id)
+end # ideal_gas_logQ_loggamma

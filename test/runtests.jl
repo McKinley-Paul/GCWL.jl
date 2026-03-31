@@ -1,327 +1,433 @@
 using Test
 using StaticArrays
 using Random
+using Plots
 
 import Pkg
 Pkg.activate(joinpath(@__DIR__, ".."))
 using segc_wl   
 
-# These Unit Tests Have Not Been Updated Since Code Base Has Been Changed To Optimize For Speed, 
-# since before introduction of cache variables and stuff like that, they were used to make sure physics and expected behavior
-# were intially programmed correct to get to the point where the package could run and compute partition functions
-# now that we are well past that point, we are assuming that if the system wide physics tests are correct
-# compared to analytic results, then  all of the units that make up those computations are correct as each unit is probably 
-# called millions of times during those system wide calculations
+println("")
+println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Running Function Unit Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+println("")
 
-# println("")
-# println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Running Function Unit Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-# println("")
+############ Tests for things in utils_module ############
+@testset "Utils" begin
+    rng = MersenneTwister(42)
+    r1 = MVector{3,Float64}(100*rand(rng, 3))
+    r2 = MVector{3,Float64}(100*rand(rng, 3))
+    @test euclidean_distance(r1, r2) ≈ sqrt(sum((r1 .- r2).^2))
 
-# ############ Tests for things in utils_module ############
-# @testset "Utils" begin
-#     r1 = 100*rand(3)
-#     r2 = 100*rand(3)
-#     @test euclidean_distance(r1,r2) ≈ sqrt(sum((r1.-r2).^2))
-#     r1_box = [0,0,0.4] 
-#     r2_box = [0,0,-0.4]
-#     @test euclidean_distance_squared_pbc(r1_box,r2_box) ≈ 0.04
+    r1_box = MVector{3,Float64}(0, 0, 0.4)
+    r2_box = MVector{3,Float64}(0, 0, -0.4)
+    @test euclidean_distance_squared_pbc(r1_box, r2_box) ≈ 0.04
 
-#     r = [0.0,0.0,0.0]
-#     r1 = translate_by_random_vector(r,0.1)
-#     @test sqrt(sum((r1).^2)) ≤ sqrt(3)*0.1 # test that it moves it by no more than \sqrt(3)*δr_max_box from sqrt(0.1^2 + 0.1^2 + 0.1^2)
+    # translate_by_random_vector! is now in-place and requires a SimCache
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim_u = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                             λ_max=99, r_cut_σ=3.0,
+                             input_filename=input_path,
+                             save_directory_path=@__DIR__,
+                             rng=MersenneTwister(1))
+    μ_u = init_microstate(sim=sim_u, filename=input_path)
+    c_u = init_cache(sim_u, μ_u)
 
-# end
+    r = MVector{3,Float64}(0.0, 0.0, 0.0)
+    translate_by_random_vector!(r, 0.1, sim_u.rng, c_u)
+    @test sqrt(sum(r.^2)) ≤ sqrt(3)*0.1 # test that it moves by no more than √3*δr_max from sqrt(0.1^2 + 0.1^2 + 0.1^2)
+end
 
-# @testset "Utils Metropolis acceptance rates" begin
-#     @test metropolis(100.0,1.0) == false # reject large increase
-#     @test metropolis(-0.1,1.0) == true # accept downhill move
-#     @test metropolis(0.0,1.0) == true # accept neutral move
+@testset "Utils Metropolis acceptance rates" begin
+    @test metropolis(100.0, 1.0) == false # reject large increase
+    @test metropolis(-0.1,  1.0) == true  # accept downhill move
+    @test metropolis(0.0,   1.0) == true  # accept neutral move
 
-#     rng = MersenneTwister(1234) # now we test acceptance of slightly uphill move
-    
-#     # For ΔE/T = 1, acceptance should be ≈ exp(-1) ≈ 36.8%
-#     ΔE = 1.0
-#     T_σ = 1.0
-#     n_trials = 10000
-#     n_accepted = sum(metropolis(ΔE, T_σ, rng) for _ in 1:n_trials)
-#     acceptance_rate = n_accepted / n_trials
-#     expected_rate = exp(-ΔE / T_σ)
-    
-#     # Test within reasonable statistical bounds (±3σ for binomial)
-#     #σ = sqrt(n*p*(1-p)) / n
-#     σ = sqrt(n_trials * expected_rate * (1 - expected_rate)) / n_trials
-#     # @test acceptance_rate ≈ expected_rate atol=3*σ
-#     @test acceptance_rate ≈ expected_rate atol = 2*σ
-#     #println("Regular metropolis testing: ΔE/T=1: Expected $(expected_rate*100)% acceptance rate, Got $(acceptance_rate*100)%")
-# end
+    rng = MersenneTwister(1234) # now we test acceptance of slightly uphill move
 
-# ############ Tests for things in lj_module ############
-# @testset "LJ_module" begin
-#     @test argon_deBroglie(2.0) ≈ 0.0530973 atol=0.000001 # verified against /test/mathematica_verification.nb
+    # For ΔE/T = 1, acceptance should be ≈ exp(-1) ≈ 36.8%
+    ΔE = 1.0
+    T_σ = 1.0
+    n_trials = 10000
+    n_accepted = sum(metropolis(ΔE, T_σ, rng) for _ in 1:n_trials)
+    acceptance_rate = n_accepted / n_trials
+    expected_rate = exp(-ΔE / T_σ)
 
-#     @test E_12_frac_LJ(2.,0,99) == 0
-#     fracs = []
+    # Test within reasonable statistical bounds (±3σ for binomial)
+    σ = sqrt(n_trials * expected_rate * (1 - expected_rate)) / n_trials
+    @test acceptance_rate ≈ expected_rate atol = 2*σ
+end
 
-#     for r2 in [0.0001,1.,2.,10.,30.,5.6,100000000000.0] #testing distances
-#         push!(fracs,E_12_frac_LJ(r2,3,99))
-#     end
-#     mathematica= [3.355811e19 , -0.0064247, -0.000806758, -6.45823*10^-6, -2.39195*10^-7, -0.0000367738, -6.45826*10^-36]
-#     # println(mathematica[1]) # issue if you write 355811 * 10^19 because goes 10^19 goes over int64 or something?
-#     @test fracs[1] ≈ mathematica[1] atol=10^15
-#     @test all(isapprox.(fracs[2:end], mathematica[2:end];atol=1e-6)) # tests E_12_frac_Lj
-    
-#     # tested against allen and tildesly's potential_1 from mc_lj_module.py:
-#     cfg = joinpath(@__DIR__, "cnf_default.inp")
-#     N,L_σ,r_σ = load_configuration(cfg)
-#     r_box = r_σ./L_σ
-#     test_idx = 1 .+[0,2,3,56,100,34,222,255,78,89]
-#     E_test = []
-#     for idx in test_idx
-#         r_test = @view r_box[:,idx]
-#         push!(E_test,potential_1_normal(r_box,r_test,idx,[0.0,0.,0.],0,99,size(r_box,2),L_σ^2,(3/L_σ)^2))
-#     end
-#     allen_tildesly_results = [-11.932319723716308 -11.932319753958657 -11.932319753958655 -11.932319756099865 -11.9323197764367 -11.932319756566486 -11.932319756099865 -11.932319738837482 -11.932319771221039 -11.9323197764367]
-#     @test all(E_test .≈ allen_tildesly_results) # this tests E_12_LJ,euclidean_distance_squared_pbc, the non-fractional-part of potential_1_normal
-# end
+############ Tests for things in lj_module ############
+@testset "LJ_module" begin
+    @test argon_deBroglie(2.0) ≈ 0.0530973 atol=0.000001 # verified against /test/mathematica_verification.nb
 
-# println("")
+    # λ=0 means zero coupling → ϵ_ξ=0, σ_ξ_squared=0 → no fractional energy
+    @test E_12_frac_LJ(2., 0, 99, 0.0, 0.0) == 0
 
-# @testset "λ_metropolis" begin
-# # initializing some dummy inputs for testing
-#     r_σ = [-1  1  1  -1  -1 -1  1  1;  
-#             -1 -1  1   1   1 -1 -1  1;
-#             1  1  1   1  -1 -1 -1  -1  ] # 8 particles on in cube of sidelength 2 centered at (0,0,0), lets just say "box" is sidelength 5
-#     L_σ = 5.0
-#     V_σ = L_σ^3
-#     T_σ=1.
-#     Λ_σ=argon_deBroglie(T_σ)
-#     r_box = r_σ ./ L_σ
-#     r_box .= r_box .- round.(r_box)
-#     N = size(r_box,2)
-#     λ_max = 99
-#     N_max = 450
-#     logQ_λN = zeros(λ_max+1,N_max+1)
-#     r_frac_box = [0.,0.,0.,]
+    # E_12_frac_LJ now takes precomputed ϵ_ξ and σ_ξ_squared (previously computed internally)
+    λ_t = 3; λ_max_t = 99; M_t = λ_max_t + 1
+    ϵ_ξ_t    = (λ_t / M_t)^(1/3)
+    σ_ξ_sq_t = (λ_t / M_t)^(1/2)
+    fracs = [E_12_frac_LJ(r2, λ_t, λ_max_t, ϵ_ξ_t, σ_ξ_sq_t)
+             for r2 in [0.0001, 1., 2., 10., 30., 5.6, 100000000000.0]]
+    mathematica = [3.355811e19, -0.0064247, -0.000806758, -6.45823*10^-6, -2.39195*10^-7, -0.0000367738, -6.45826*10^-36]
+    @test fracs[1] ≈ mathematica[1] atol=10^15
+    @test all(isapprox.(fracs[2:end], mathematica[2:end]; atol=1e-6)) # tests E_12_frac_LJ
 
-#     L_squared_σ = L_σ^2
-#     r_cut_σ=3
-#     r_cut_squared_σ=r_cut_σ^2
-#     r_cut_squared_box = r_cut_squared_σ/(L_σ^2)
+    # tested against allen and tildesly's potential_1 from mc_lj_module.py:
+    # r_box is now Vector{MVector{3,Float64}} instead of a matrix; r_frac_box is MVector;
+    # potential_1_normal now takes ϵ_ξ and σ_ξ_squared as extra args (0.0 since λ=0)
+    cfg = joinpath(@__DIR__, "cnf_default.inp")
+    N, L_σ, r_σ = load_configuration(cfg)
+    r_box = r_σ ./ L_σ
+    r_frac_box = @MVector [0.0, 0.0, 0.0]
+    test_idx = 1 .+ [0, 2, 3, 56, 100, 34, 222, 255, 78, 89]
+    E_test = [potential_1_normal(r_box, r_box[idx], idx, r_frac_box, 0, 99, N, L_σ^2, (3/L_σ)^2, 0.0, 0.0)
+              for idx in test_idx]
+    allen_tildesly_results = [-11.932319723716308, -11.932319753958657, -11.932319753958655,
+                               -11.932319756099865, -11.9323197764367,   -11.932319756566486,
+                               -11.932319756099865, -11.932319738837482, -11.932319771221039,
+                               -11.9323197764367]
+    @test all(E_test .≈ allen_tildesly_results) # this tests E_12_LJ, euclidean_distance_squared_pbc, the non-fractional-part of potential_1_normal
+end
 
-#     # first lets handle the situation where only λ changes within the range s.t. N doesn't change
-#     # and there is no partition function bias 
+println("")
 
-#     λ = 34
-#     λ_proposed = 33 # energy goes down in this configuration so always accepts if propose 35
-#     # first with no bias from WL and keeping logQ(λ,N) the same for each
-#     # should have the same probability as metropolis()
-#     rng = MersenneTwister()
-#     ΔE = potential_1_frac(r_box,r_frac_box,  λ_proposed  ,λ_max,N,L_squared_σ,r_cut_squared_box) -  potential_1_frac(r_box,r_frac_box,   λ   ,λ_max,N,L_squared_σ,r_cut_squared_box)
-#     n_trials = 10000
-#     n_accepted = sum(metropolis(ΔE, T_σ, rng) for _ in 1:n_trials)
-#     acceptance_rate = n_accepted / n_trials
-#     expected_rate = exp(-ΔE / T_σ)
-#     #println("When N does not change, metropolis() has acceptance probability: ",acceptance_rate )
+@testset "λ_metropolis" begin
+    # λ_metropolis_pm1 now takes (μ, μ_prop, idx_deleted, wl, sim) instead of many positional args.
+    # Build structs using init functions; use cache to get a properly allocated μ_prop.
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0; Λ_σ = argon_deBroglie(T_σ); λ_max = 99; M = λ_max + 1
 
-#     n_trials = 10000
-#     n_accepted = sum(λ_metropolis_pm1(λ,N,r_box,r_frac_box,
-#                         λ_proposed, N, r_box, r_frac_box,0,
-#                         logQ_λN, Λ_σ,V_σ,T_σ,
-#                         λ_max,L_squared_σ,r_cut_squared_box, rng) for _ in 1:n_trials)
-#     acceptance_rate = n_accepted / n_trials
-#         # Test within reasonable statistical bounds (±3σ for binomial)
-#     #σ = sqrt(n*p*(1-p)) / n
-#     #println("When N does not change, and logQ is equal for each state, λ_metropolis_pm1() has acceptance probability: ",acceptance_rate )
-#     σ = sqrt(n_trials * expected_rate * (1 - expected_rate)) / n_trials
-#     # @test acceptance_rate ≈ expected_rate atol=3*σ
-#     @test acceptance_rate ≈ expected_rate atol = 3*σ
+    sim = SimulationParams(N_max=450, N_min=0, T_σ=T_σ, Λ_σ=Λ_σ,
+                           λ_max=λ_max, r_cut_σ=3.0,
+                           input_filename=input_path,
+                           save_directory_path=@__DIR__,
+                           rng=MersenneTwister())
 
-#     # BUT NOW LETS BIAS WANG LANDAU 
-#     logQ_λN[λ+1,N+1] = 2
-#     logQ_λN[λ_proposed+1,N+1] = 3
+    # first lets handle the situation where only λ changes within the range s.t. N doesn't change
+    # and there is no partition function bias
+    λ = 34
+    λ_proposed = 33 # energy goes down in this configuration so always accepts if propose 35
+    μ = init_microstate(sim=sim, filename=input_path, λ=λ)
+    c = init_cache(sim, μ)
+    wl = init_WangLandauVars(sim)
 
-#         n_accepted = sum(λ_metropolis_pm1(λ,N,r_box,r_frac_box,
-#                         λ_proposed, N, r_box, r_frac_box,0,
-#                         logQ_λN, Λ_σ,V_σ,T_σ,
-#                         λ_max,L_squared_σ,r_cut_squared_box, rng) for _ in 1:n_trials)
-#     acceptance_rate_biased = n_accepted / n_trials
+    copy_microstate!(c.μ_prop, μ)
+    c.μ_prop.λ           = λ_proposed
+    c.μ_prop.ϵ_ξ         = (λ_proposed / M)^(1/3)
+    c.μ_prop.σ_ξ_squared = (λ_proposed / M)^(1/2)
 
-#     #println("However, when there is a bias in logQ to stay at current state, λ_metropolis_pm1() accepts with prob ", acceptance_rate_biased)
-#     #println("expect biased prob to be " , round(exp(2)/exp(3),sigdigits=2)," % of other one")
+    # should have the same probability as metropolis()
+    ΔE = potential_1_frac(μ.r_box, μ.r_frac_box, λ_proposed, λ_max, μ.N,
+                           sim.L_squared_σ, sim.r_cut_squared_box,
+                           c.μ_prop.ϵ_ξ, c.μ_prop.σ_ξ_squared) -
+         potential_1_frac(μ.r_box, μ.r_frac_box, λ, λ_max, μ.N,
+                           sim.L_squared_σ, sim.r_cut_squared_box,
+                           μ.ϵ_ξ, μ.σ_ξ_squared)
+    n_trials = 10000
+    expected_rate = exp(-ΔE / T_σ)
+    n_accepted = sum(λ_metropolis_pm1(μ, c.μ_prop, 0, wl, sim) for _ in 1:n_trials)
+    acceptance_rate = n_accepted / n_trials
+    σ = sqrt(n_trials * expected_rate * (1 - expected_rate)) / n_trials
+    @test acceptance_rate ≈ expected_rate atol = 3*σ
 
-#     @test acceptance_rate_biased < acceptance_rate
-#     @test acceptance_rate_biased ≈ exp(2)/exp(3)*acceptance_rate atol = 0.1
+    # BUT NOW LETS BIAS WANG LANDAU
+    wl.logQ_λN[λ+1,      μ.N+1] = 2
+    wl.logQ_λN[λ_proposed+1, μ.N+1] = 3
 
+    n_accepted = sum(λ_metropolis_pm1(μ, c.μ_prop, 0, wl, sim) for _ in 1:n_trials)
+    acceptance_rate_biased = n_accepted / n_trials
+    @test acceptance_rate_biased < acceptance_rate
+    @test acceptance_rate_biased ≈ exp(2)/exp(3)*acceptance_rate atol = 0.1
 
+    # particle created, no partition bias should accept because having particle at 0,0,0 is lower energy for this config
+    wl2 = init_WangLandauVars(sim)
+    μ2 = init_microstate(sim=sim, filename=input_path, λ=λ_max)
+    c2 = init_cache(sim, μ2)
+    μ2.r_frac_box .= MVector{3,Float64}(0.0, 0.0, 0.0)
 
-#     #particle created, no partition bias should accept because having particle at 0,0,0 is lower energy for this config
+    copy_microstate!(c2.μ_prop, μ2)
+    c2.μ_prop.N                   = μ2.N + 1
+    c2.μ_prop.r_box[c2.μ_prop.N] .= μ2.r_frac_box  # promote ghost → full particle
+    c2.μ_prop.r_frac_box          .= MVector{3,Float64}(0.1, 0.2, -0.3)
+    c2.μ_prop.λ                   = 0
+    c2.μ_prop.ϵ_ξ                 = 0.0
+    c2.μ_prop.σ_ξ_squared         = 0.0
 
-#     logQ_λN = zeros(λ_max+1,N_max+1)    
-#     λ = λ_max
-#     λ_proposed = 0
-#     N_proposed = N+1
-#     r_proposed_box = hcat(r_box,[0.,0.,0.])
-#     r_proposed_frac_box = [0.1,0.2,-0.3,]
+    N_proposed = c2.μ_prop.N
+    E_old = potential_1_frac(μ2.r_box, μ2.r_frac_box, λ_max, λ_max, μ2.N,
+                              sim.L_squared_σ, sim.r_cut_squared_box, μ2.ϵ_ξ, μ2.σ_ξ_squared)
+    E_new = potential_1_normal(c2.μ_prop.r_box, c2.μ_prop.r_box[N_proposed], N_proposed,
+                                c2.μ_prop.r_frac_box, 0, λ_max, N_proposed,
+                                sim.L_squared_σ, sim.r_cut_squared_box, 0.0, 0.0)
+    ΔE = E_new - E_old
+    # V_Λ_prefactor = V^(N_prop - N - 1) * Λ^(3(N+1) - 3*N_prop) = 1 for this transition
+    prefactor = (sim.V_σ^N_proposed / sim.V_σ^(μ2.N+1)) * (1/N_proposed) * (Λ_σ^(3*μ2.N + 3) / Λ_σ^(3*N_proposed))
+    n_trials = 1000
+    n_accepted = sum(λ_metropolis_pm1(μ2, c2.μ_prop, 0, wl2, sim) for _ in 1:n_trials)
+    acceptance_rate = n_accepted / n_trials
+    @test acceptance_rate ≈ prefactor*exp(-1*ΔE/T_σ) atol = 0.02
 
-#     E_old = potential_1_frac(r_box,[0.,0.,0.],λ,λ_max,N,L_squared_σ,r_cut_squared_box)
-#     E_new = potential_1_normal(r_proposed_box,[0.,0.,0.,],N_proposed,r_proposed_frac_box,λ_proposed,λ_max,N_proposed,L_squared_σ,r_cut_squared_box)
-#     ΔE = E_new-E_old
-#     #println("The config. energy is downhill so metropolis would accept: ΔE particle created= ",ΔE)
-#     prefactor = ( (V_σ^N_proposed)/(V_σ^(N+1)) )* (1/N_proposed)*((Λ_σ^(3*N + 3))/(Λ_σ^(3*N_proposed)))
-#    # println("However, the prefactor here is ", prefactor, " which is just = 1/N_proposed")
-#    # println("Thus we expect acceptance prob of ", prefactor*exp(-1*ΔE/T_σ))
-#     n_trials=1000
+    # Particle DESTROYED
+    wl3 = init_WangLandauVars(sim)
+    μ3 = init_microstate(sim=sim, filename=input_path, λ=0)
+    c3 = init_cache(sim, μ3)
+    idx_deleted = 3 # just picked randomly
+    μ3.r_frac_box .= MVector{3,Float64}(-0.08, 0.1, 0.1)
 
-#     n_accepted = sum(λ_metropolis_pm1(λ,N,r_box,r_frac_box,
-#                         λ_proposed, N_proposed, r_proposed_box, r_proposed_frac_box,0,
-#                         logQ_λN, Λ_σ,V_σ,T_σ,
-#                         λ_max,L_squared_σ,r_cut_squared_box, MersenneTwister()) for _ in 1:n_trials)
-#     acceptance_rate= n_accepted / n_trials
-#     #println("ACCEPTANCE rate: ", acceptance_rate)
-#     @test acceptance_rate ≈ prefactor*exp(-1*ΔE/T_σ) atol = 0.02
+    copy_microstate!(c3.μ_prop, μ3)
+    c3.μ_prop.N = μ3.N - 1
+    if idx_deleted != μ3.N
+        c3.μ_prop.r_box[idx_deleted] .= μ3.r_box[μ3.N]  # swap last particle into deleted slot
+    end
+    c3.μ_prop.r_frac_box  .= μ3.r_frac_box
+    c3.μ_prop.λ            = λ_max
+    c3.μ_prop.ϵ_ξ          = (λ_max / M)^(1/3)
+    c3.μ_prop.σ_ξ_squared  = (λ_max / M)^(1/2)
 
-#     # Particle DESTROYED
-#     logQ_λN = zeros(λ_max+1,N_max+1)   
-#     λ = 0
-#     λ_proposed = λ_max
-#     N_proposed = N-1
-#     idx_deleted = 3 # just picked randomly
-#     keepers = [1:idx_deleted-1; idx_deleted+1:size(r_box,2)]
-#     r_proposed_box = @view r_box[:,keepers]
-#     r_frac_proposed_box = [-0.08,0.1,0.1]
-#     r_frac_box = r_frac_proposed_box
+    E_old = potential_1_normal(μ3.r_box, μ3.r_box[idx_deleted], idx_deleted,
+                                μ3.r_frac_box, 0, λ_max, μ3.N,
+                                sim.L_squared_σ, sim.r_cut_squared_box, μ3.ϵ_ξ, μ3.σ_ξ_squared)
+    E_new = potential_1_frac(c3.μ_prop.r_box, c3.μ_prop.r_frac_box, λ_max, λ_max, c3.μ_prop.N,
+                              sim.L_squared_σ, sim.r_cut_squared_box, c3.μ_prop.ϵ_ξ, c3.μ_prop.σ_ξ_squared)
+    ΔE = E_new - E_old
+    metrop_prob = exp(-ΔE/T_σ)
+    # V_Λ_prefactor = V^(N_prop+1 - N) * Λ^(3N - 3(N_prop+1)) = 1 for this transition
+    prefactor = (sim.V_σ^(c3.μ_prop.N+1 - μ3.N)) * (Λ_σ^(3*μ3.N - 3*c3.μ_prop.N - 3))
+    factorial_prefactor = μ3.N
+    expected_prob = metrop_prob * factorial_prefactor * prefactor
 
-    
-#     E_old = potential_1_normal(r_box,r_box[:,idx_deleted],idx_deleted,r_frac_box,λ,λ_max,N,L_squared_σ,r_cut_squared_box )
+    n_trials = 10000
+    n_accepted = sum(λ_metropolis_pm1(μ3, c3.μ_prop, idx_deleted, wl3, sim) for _ in 1:n_trials)
+    acceptance_rate = n_accepted / n_trials
+    σ = sqrt(n_trials * expected_prob * (1 - expected_prob)) / n_trials
+    @test acceptance_rate ≈ expected_prob atol = 3*σ
+end
 
-#     E_new = potential_1_frac(r_proposed_box,r_frac_proposed_box,λ_proposed,λ_max,N_proposed,L_squared_σ,r_cut_squared_box)
+@testset "translation_move!() tests" begin
+    # translation_move! now takes a SimCache as a 4th argument
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0; Λ_σ = argon_deBroglie(T_σ); λ_max = 99
 
-#     ΔE = E_new-E_old # 3.1378182749795753 
-#     # metropolis would accept 
-#     metrop_prob = exp(-ΔE/T_σ) # .0433
-    
-#     prefactor = (V_σ^(N_proposed+1 - N) )*( Λ_σ^(3*N - 3N_proposed-3)  ) # = 1.0
-#     factorial_prefactor=N
-#     expected_prob = metrop_prob*factorial_prefactor*prefactor
+    sim = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=Λ_σ,
+                           λ_max=λ_max, r_cut_σ=3.0,
+                           input_filename=input_path,
+                           save_directory_path=@__DIR__,
+                           rng=MersenneTwister(1234),
+                           dynamic_δr_max_box=true)
+    # microstate and WangLandauVars now built via init functions instead of direct constructors
+    μ = init_microstate(sim=sim, filename=input_path, λ=34)
+    wl = init_WangLandauVars(sim)
+    c = init_cache(sim, μ)
 
-#     n_trials=10000
+    old_proposed = wl.translation_moves_proposed
+    old_r_frac = deepcopy(μ.r_frac_box)
+    old_r = deepcopy(μ.r_box)
+    translation_move!(sim, μ, wl, c)
+    @test wl.translation_moves_proposed == old_proposed + 1  # counter always increments
 
-#     n_accepted = sum(λ_metropolis_pm1(λ,N,r_box,r_frac_box,
-#                         λ_proposed, N_proposed, r_proposed_box, r_frac_proposed_box,idx_deleted,
-#                         logQ_λN, Λ_σ,V_σ,T_σ,
-#                         λ_max,L_squared_σ,r_cut_squared_box, MersenneTwister()) for _ in 1:n_trials)
-#     acceptance_rate= n_accepted / n_trials
-#     σ = sqrt(n_trials * expected_prob * (1 - expected_prob)) / n_trials
-#    #println(acceptance_rate,expected_prob)
-#     @test acceptance_rate ≈ expected_prob atol=3*σ
+    # making sure δr_max gets updated properly — capture value before each call
+    wl.translation_moves_accepted = 2
+    wl.translation_moves_proposed = 3
+    δr_before = wl.δr_max_box
+    translation_move!(sim, μ, wl, c) # ratio after: ≥ 2/4 = 0.5, either way stays > 0.45, check increase condition
+    # accepted = 2 or 3, proposed = 4: ratio is 0.5 or 0.75; 0.5 is in (0.45, 0.55) → no change only if exactly 0.5
+    # to make this test deterministic: set counts so ratio is always > 0.55 regardless of accept/reject
+    wl.translation_moves_accepted = 10
+    wl.translation_moves_proposed = 15
+    δr_before = wl.δr_max_box
+    translation_move!(sim, μ, wl, c) # 10/16 or 11/16, both > 0.55 → δr_max increases
+    @test wl.δr_max_box == δr_before * 1.05
 
+    wl.δr_max_box = 0.15
+    wl.translation_moves_accepted = 1
+    wl.translation_moves_proposed = 10
+    δr_before = wl.δr_max_box
+    translation_move!(sim, μ, wl, c) # 1/11 or 2/11, both < 0.45 → δr_max decreases
+    @test wl.δr_max_box == δr_before * 0.95
+end
 
+println("")
+println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now Running SimCache Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+println("")
 
-# end
+############ SimCache Tests ############
 
-# @testset "translation_move!() tests" begin
-#     # initializing some vars for a test
-#     r_σ = [-1  1  1  -1  -1 -1  1  1;  
-#             -1 -1  1   1   1 -1 -1  1;
-#             1  1  1   1  -1 -1 -1  -1  ] # 8 particles on in cube of sidelength 2 centered at (0,0,0), lets just say "box" is sidelength 5
-#     T_σ=1.
-#     Λ_σ=argon_deBroglie(T_σ)
-#     L_σ=5.
-#     r_box = r_σ ./ L_σ
-#     r_box .= r_box .- round.(r_box)
-#     N = size(r_box,2)
-#     λ_max = 99
-#     N_max = 450
-#     logQ_λN = zeros(λ_max+1,N_max+1)
-#     r_frac_box = [0.,0.,0.,]
+@testset "SimCache: init_cache correctness" begin
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim_c = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                             λ_max=99, r_cut_σ=3.0,
+                             input_filename=input_path,
+                             save_directory_path=@__DIR__,
+                             rng=MersenneTwister(42))
+    μ_c = init_microstate(sim=sim_c, filename=input_path, λ=5)
+    c = init_cache(sim_c, μ_c)
 
-#     L_squared_σ = L_σ^2
-#     r_cut_σ=3
-#     r_cut_squared_σ=r_cut_σ^2
-#     r_cut_squared_box = r_cut_squared_σ/(L_σ^2)
-#     input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    # Scalar fields match μ after init
+    @test c.μ_prop.N == μ_c.N
+    @test c.μ_prop.λ == μ_c.λ
+    @test c.μ_prop.ϵ_ξ == μ_c.ϵ_ξ
+    @test c.μ_prop.σ_ξ_squared == μ_c.σ_ξ_squared
 
-#     sim = SimulationParams(N_max=450,N_min=0,T_σ=T_σ,Λ_σ=Λ_σ,
-#                             λ_max=λ_max,r_cut_σ=r_cut_σ,
-#                             #input_filename="/Users/mckinleypaul/Documents/montecarlo/segc_wl/test/cube_vertices_home_made.inp",# hommade input is the same as examples above 8 atoms on cube of sidelenghth 2 in simulation box of length 5 in σ units
-#                             input_filename= input_path,# hommade input is the same as examples above 8 atoms on cube of sidelenghth 2 in simulation box of length 5 in σ units
-#                             save_directory_path= @__DIR__ ,rng=MersenneTwister(1234))
-#     wl = WangLandauVars(1,zeros(λ_max+1,N_max+1),zeros(λ_max+1,N_max+1),0,0,0,0,0,0.15)
-#     μ = microstate(size(r_box,2),34,r_box,r_frac_box)
+    # r_frac_box values match
+    @test c.μ_prop.r_frac_box == μ_c.r_frac_box
 
-#     #### accepting fractional particle move 
+    # All N particle positions match
+    for i in 1:μ_c.N
+        @test c.μ_prop.r_box[i] == μ_c.r_box[i]
+    end
 
-#     # println(rand(sim.rng,1:μ.N+1) ) # MersenneTwister(1234) outputs 9 as a random number so it moves fractional particle
-#     # println(rand(sim.rng) ) # MersenneTwister(1234) outputs 0.944 so the move should be accepted
-#     old1 = (wl.translation_moves_accepted)
-#     old2 = deepcopy((μ.r_frac_box)) 
-#     old3 = deepcopy(μ.r_box)
-#     translation_move!(sim,μ,wl)
-#     @test old1 != wl.translation_moves_accepted # with conservative δr_max_box pretty sure this will always be accepted
-#     @test old2 != μ.r_frac_box
-#     @test old3 == μ.r_box # this shouldn't change
+    # Deep copy: no shared MVector references for any particle slot
+    for i in 1:μ_c.N
+        @test c.μ_prop.r_box[i] !== μ_c.r_box[i]  # different objects
+    end
+    @test c.μ_prop.r_frac_box !== μ_c.r_frac_box
 
-#     # making sure δr_max gets updated properly
-#     wl.translation_moves_accepted = 2
-#     wl.translation_moves_proposed=3 
-#     δr_max_new = 0.15*1.05
-#     translation_move!(sim,μ,wl) # accepts a move so this becomes 3/4
-#     @test wl.δr_max_box == δr_max_new
+    # Verify independence: mutating μ_c does not affect c.μ_prop
+    old_val = μ_c.r_box[1][1]
+    μ_c.r_box[1][1] += 99.0
+    @test c.μ_prop.r_box[1][1] ≈ old_val  # cache not affected
+    μ_c.r_box[1][1] = old_val  # restore
 
-#     wl.δr_max_box = 0.15
-#     wl.translation_moves_accepted = 1
-#     wl.translation_moves_proposed = 10
-#     δr_max_new = 0.15*0.95
-#     translation_move!(sim,μ,wl) # accepts move so this becomes 1/5 acceptance rate
-#     @test wl.δr_max_box == δr_max_new
+    # Scratch fields initialized to zero
+    @test all(c.ζ_Mvec .== 0.0)
+    @test c.ζ_idx == 0
+    @test all(c.ri_proposed_box .== 0.0)
 
+    # ri_proposed_box does not alias any particle position
+    for i in 1:μ_c.N
+        @test c.ri_proposed_box !== μ_c.r_box[i]
+        @test c.ri_proposed_box !== c.μ_prop.r_box[i]
+    end
 
+    # μ_prop.r_box has N_max slots allocated
+    @test length(c.μ_prop.r_box) == sim_c.N_max
+end
 
-#     ######## accepting normal particle move MersenneTwister(1) 
-#     # first i = rand(sim.rng,1:(μ.N+1))  in translation_move! picks i=6. we then move this particle a little
-#     # and we get E_prop ~ -0.049 and E_old  ~ -0.22831 and ΔE = 0.18 so very slightly uphill so we may accept or reject this move, either one is reasonable
-#     # however, when we use this seed we get a tiny random number in the metropolis criterion ζ = 0.008 and exp(-ΔE/T) = 0.8 so we accept the slightly uphill move for this seed
-#     # so we're moving a normal particle this time and should probably reject the move
+@testset "SimCache: mirror invariant under translation moves" begin
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.5
+    sim_t = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                             λ_max=99, r_cut_σ=3.0,
+                             input_filename=input_path,
+                             save_directory_path=@__DIR__,
+                             rng=MersenneTwister(7))
+    μ_t = init_microstate(sim=sim_t, filename=input_path, λ=10)
+    wl_t = init_WangLandauVars(sim_t)
+    c_t = init_cache(sim_t, μ_t)
 
-#     # initializing some vars for a test
-#     r_σ = [-1  1  1  -1  -1 -1  1  1;  
-#             -1 -1  1   1   1 -1 -1  1;
-#             1  1  1   1  -1 -1 -1  -1  ] # 8 particles on in cube of sidelength 2 centered at (0,0,0), lets just say "box" is sidelength 5
-#     T_σ=1.
-#     Λ_σ=argon_deBroglie(T_σ)
-#     L_σ=5.
-#     r_box = r_σ ./ L_σ
-#     r_box .= r_box .- round.(r_box)
-#     N = size(r_box,2)
-#     λ_max = 99
-#     N_max = 450
-#     logQ_λN = zeros(λ_max+1,N_max+1)
-#     r_frac_box = [0.,0.,0.,]
+    function check_mirror(μ, c)
+        # After every complete move, c.μ_prop must mirror μ exactly
+        c.μ_prop.N == μ.N || return false
+        c.μ_prop.λ == μ.λ || return false
+        c.μ_prop.ϵ_ξ == μ.ϵ_ξ || return false
+        c.μ_prop.σ_ξ_squared == μ.σ_ξ_squared || return false
+        c.μ_prop.r_frac_box == μ.r_frac_box || return false
+        for i in 1:μ.N
+            c.μ_prop.r_box[i] == μ.r_box[i] || return false
+        end
+        return true
+    end
 
-#     L_squared_σ = L_σ^2
-#     r_cut_σ=3
-#     r_cut_squared_σ=r_cut_σ^2
-#     r_cut_squared_box = r_cut_squared_σ/(L_σ^2)
-#     input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp") 
-#     sim = SimulationParams(N_max=450,N_min=0,T_σ=T_σ,Λ_σ=Λ_σ,
-#                             λ_max=λ_max,r_cut_σ=r_cut_σ,
-#                             input_filename=input_path,# hommade input is the same as examples above 8 atoms on cube of sidelenghth 2 in simulation box of length 5 in σ units
-#                             save_directory_path= @__DIR__ , rng=MersenneTwister(1))
-#     wl = WangLandauVars(1,zeros(λ_max+1,N_max+1),zeros(λ_max+1,N_max+1),0,0,0,0,0,0.15)
-#     μ = microstate(size(r_box,2),34,r_box,r_frac_box)
+    for _ in 1:500
+        translation_move!(sim_t, μ_t, wl_t, c_t)
+        @test check_mirror(μ_t, c_t)
+        @test 1 ≤ c_t.ζ_idx ≤ μ_t.N + 1
+    end
+end
 
-#     old1 = (wl.translation_moves_accepted)
-#     old2 = deepcopy(μ.r_box)
+@testset "SimCache: mirror invariant under lambda moves" begin
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 5.0  # high T to encourage acceptance of all move types
+    sim_l = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                             λ_max=9, r_cut_σ=3.0,
+                             input_filename=input_path,
+                             save_directory_path=@__DIR__,
+                             rng=MersenneTwister(13))
+    # Start at λ=0 so N-decrement and N-increment moves are both reachable quickly
+    μ_l = init_microstate(sim=sim_l, filename=input_path, λ=0)
+    wl_l = init_WangLandauVars(sim_l)
+    c_l = init_cache(sim_l, μ_l)
 
-#     translation_move!(sim,μ,wl) # probably should reject move 
-#     println("debugger")
-#     @test old1 != wl.translation_moves_accepted 
-#     @test old2 != μ.r_box # if we accepted move, should be different
+    function check_mirror_full(μ, c)
+        c.μ_prop.N == μ.N || return false
+        c.μ_prop.λ == μ.λ || return false
+        c.μ_prop.ϵ_ξ == μ.ϵ_ξ || return false
+        c.μ_prop.σ_ξ_squared == μ.σ_ξ_squared || return false
+        c.μ_prop.r_frac_box == μ.r_frac_box || return false
+        for i in 1:μ.N
+            c.μ_prop.r_box[i] == μ.r_box[i] || return false
+        end
+        return true
+    end
 
-#     # rejecting move 
+    λ_values_seen = Set{Int}()
+    N_values_seen = Set{Int}()
 
+    for _ in 1:2000
+        λ_move!(sim_l, μ_l, wl_l, c_l)
+        update_wl!(wl_l, μ_l)  # must call after every move as in the real simulation; without this, WL bias never builds and the system gets trapped near high-λ states
+        push!(λ_values_seen, μ_l.λ)
+        push!(N_values_seen, μ_l.N)
+        @test check_mirror_full(μ_l, c_l)
+        # λ and N always in bounds
+        @test sim_l.N_min ≤ μ_l.N ≤ sim_l.N_max
+        @test 0 ≤ μ_l.λ ≤ sim_l.λ_max
+    end
 
-# end
+    # At high T with 2000 WL-biased λ moves, all (λ,N) states are visited uniformly;
+    # both N values and λ values must change.
+    @test length(N_values_seen) > 1
+    @test length(λ_values_seen) > 1
+end
+
+@testset "SimCache: mirror invariant through mixed move sequences" begin
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 3.0
+    sim_m = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                             λ_max=9, r_cut_σ=3.0,
+                             input_filename=input_path,
+                             save_directory_path=@__DIR__,
+                             rng=MersenneTwister(99))
+    μ_m = init_microstate(sim=sim_m, filename=input_path, λ=0)
+    wl_m = init_WangLandauVars(sim_m)
+    c_m = init_cache(sim_m, μ_m)
+
+    function check_mirror_m(μ, c)
+        c.μ_prop.N == μ.N || return false
+        c.μ_prop.λ == μ.λ || return false
+        c.μ_prop.ϵ_ξ == μ.ϵ_ξ || return false
+        c.μ_prop.σ_ξ_squared == μ.σ_ξ_squared || return false
+        c.μ_prop.r_frac_box == μ.r_frac_box || return false
+        for i in 1:μ.N
+            c.μ_prop.r_box[i] == μ.r_box[i] || return false
+        end
+        return true
+    end
+
+    # Replicate the actual simulation loop move selection (75% translation, 25% λ)
+    rng_loop = MersenneTwister(55)
+    for _ in 1:1000
+        ζ = rand(rng_loop)
+        if ζ < 0.75
+            translation_move!(sim_m, μ_m, wl_m, c_m)
+        else
+            λ_move!(sim_m, μ_m, wl_m, c_m)
+        end
+        update_wl!(wl_m, μ_m)
+        @test check_mirror_m(μ_m, c_m)
+    end
+
+    # Verify r_box deep copy independence still holds after 1000 mixed moves
+    # (mutating μ_m.r_box[1] must not change c_m.μ_prop.r_box[1])
+    old_val = μ_m.r_box[1][1]
+    μ_m.r_box[1][1] += 99.0
+    @test c_m.μ_prop.r_box[1][1] ≈ old_val
+    μ_m.r_box[1][1] = old_val
+end
 
 println("")
 println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now Running Physics Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -420,4 +526,77 @@ end
     @test logQ_avg[3] ≈ mathematica_logQ_N2 atol = (0.05*mathematica_logQ_N2) # within 5% seems good
     @test logQ_avg[4] ≈ mathematica_logQ_N3 atol = (0.05*mathematica_logQ_N3) # within 5% seems good
     @test logQ_avg[5] ≈ mathematica_logQ_N4 atol = (0.05*mathematica_logQ_N4) # within 5% seems good
+end
+
+
+@testset "High-N Ideal Gas Limit: logQ(N=10 to 108) vs analytic (diagnostic for high-N drift)" begin
+    #= This test is designed to expose the systematic upward drift in logQ(N) at high N that has
+       been observed across many conditions. It can catch bugs in two distinct layers:
+
+       1. Acceptance criterion: at T*=1e6 the Boltzmann factor exp(-ΔE/T)→1 for all moves, so
+          the acceptance criterion reduces to partition_ratio × V_Λ_prefactor × factorial_prefactor.
+          Any wrong exponent or off-by-one in these terms produces a per-step multiplicative error
+          that accumulates linearly with N (i.e. logQ_WL(N) ≈ logQ_true(N) + N×log(f) for some f≠1).
+
+       2. Cache / microstate scaffolding: bugs in copy_microstate!, shallow-copy aliasing between
+          μ.r_box and c.μ_prop.r_box, incorrect rollback of c.μ_prop on rejection, or wrong particle
+          positions in c.μ_prop.r_box during N-increment / N-decrement energy evaluation will all
+          introduce a systematic energy error in λ_metropolis_pm1. At T*=1e6 these would manifest
+          as wrong acceptance rates for N-change moves (since even a tiny absolute energy error
+          becomes a large relative error when divided by T=1), biasing logQ(N) at high N.
+
+       λ_max=3 is used instead of 99 so the WL histogram has only (λ_max+1)×(N_max+1) = 4×109 = 436
+       bins rather than 10,900. This makes convergence ~25× faster while remaining physically valid
+       at T*=1e6 (all alchemical moves accept trivially since ΔE/T→0).
+
+       Comparison uses ideal_gas_logQ_loggamma (exact, no Stirling approximation) and starts at N=10.
+       Comparison tolerance is 5% of |logQ_analytic|.
+    =#
+    input_path = joinpath(@__DIR__, "../initial_configs/N108_L8.inp")
+    T_σ = 1_000_000.0
+    Λ_σ = argon_deBroglie(T_σ)
+    sim = SimulationParams(
+        N_max=108,
+        N_min=0,
+        T_σ=T_σ,
+        Λ_σ=Λ_σ,
+        λ_max=3,
+        r_cut_σ=3.0,
+        input_filename=input_path,
+        save_directory_path=@__DIR__,
+        maxiter=50_000_000)
+    μstate = init_microstate(sim=sim, filename=input_path)
+    wl = init_WangLandauVars(sim)
+    cache = init_cache(sim, μstate)
+
+    run_simulation!(sim, μstate, wl, cache)
+    logQ_wl = correct_logQ(wl)
+
+    Ns            = collect(10:sim.N_max)
+    logQ_analytic = [ideal_gas_logQ_loggamma(N, sim.V_σ, sim.Λ_σ) for N in Ns]
+    logQ_sim      = [logQ_wl[N+1] for N in Ns]  # 1-indexed: index N+1 = N
+    rel_err       = (logQ_sim .- logQ_analytic) ./ abs.(logQ_analytic)
+
+    println("High-N ideal gas test: logQ_wl vs analytic for N=10:108")
+    for (i, N) in enumerate(Ns)
+        println("  N=$N: WL=$(round(logQ_sim[i],digits=2))  analytic=$(round(logQ_analytic[i],digits=2))  diff=$(round(logQ_sim[i]-logQ_analytic[i],digits=3))  rel_err=$(round(100*rel_err[i],digits=2))%")
+        @test logQ_sim[i] ≈ logQ_analytic[i] atol = (0.05 * abs(logQ_analytic[i]))
+    end
+
+    # Save comparison plots
+    p1 = plot(Ns, logQ_analytic, label="analytic (loggamma)", lw=2, color=:blue,
+              xlabel="N", ylabel="log Q(N,V,T)", title="High-N Ideal Gas: WL vs Analytic",
+              legend=:topleft)
+    plot!(p1, Ns, logQ_sim, label="WL simulation", lw=2, color=:red, linestyle=:dash)
+
+    p2 = plot(Ns, 100 .* rel_err, label="relative error (%)", lw=2, color=:green,
+              xlabel="N", ylabel="relative error (%)",
+              title="High-N Ideal Gas: Relative Error (WL − analytic) / |analytic|",
+              legend=:topleft)
+    hline!(p2, [5.0, -5.0], label="±5% tolerance", color=:red, linestyle=:dot)
+    hline!(p2, [0.0], label="zero", color=:black, linestyle=:dash)
+
+    combined = plot(p1, p2, layout=(2,1), size=(800, 800))
+    savefig(combined, joinpath(@__DIR__, "high_N_ideal_gas_logQ_comparison.png"))
+    println("Plot saved to test/high_N_ideal_gas_logQ_comparison.png")
 end

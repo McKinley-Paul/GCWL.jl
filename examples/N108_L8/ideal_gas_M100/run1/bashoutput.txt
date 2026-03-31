@@ -1,7 +1,4 @@
-1774556667
+1774915566
   Activating new project at `~/Documents/montecarlo/segc_wl/src`
   Activating project at `~/Documents/montecarlo/segc_wl`
-Precompiling packages...
-   1010.0 ms  ✓ segc_wl
-  1 dependency successfully precompiled in 1 seconds. 148 already precompiled.
-Runtime: 4893 seconds
+Runtime: 6578 seconds

@@ -108,7 +108,7 @@ end
 function copy_microstate!(dest::microstate, src::microstate)
     dest.N = src.N
     dest.λ = src.λ
-    for i in eachindex(dest.r_box)
+    for i in 1:src.N
         dest.r_box[i] .= src.r_box[i]  # deep copy each MVector's contents
     end
     # previously this function had:  dest.r_box .= src.r_box  # Copy into existing array (no allocation)

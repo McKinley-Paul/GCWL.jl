@@ -14,11 +14,11 @@ export run_simulation!, translation_move!,λ_move!,update_wl!, post_run
 # initialization functions exports:
 export microstate,SimulationParams,init_microstate,check_inputs, print_simulation_params, print_microstate,print_wl, WangLandauVars,init_WangLandauVars, initialization_check, save_wanglandau_jld2, save_microstate_jld2,load_microstate_jld2, load_wanglandau_jld2, load_configuration, SimCache,init_cache,copy_microstate!
 # utils exports:
-export euclidean_distance, min_config_distance, euclidean_distance_squared_pbc, translate_by_random_vector, metropolis
+export euclidean_distance, min_config_distance, euclidean_distance_squared_pbc, translate_by_random_vector!, metropolis
 # lj exports:
 export argon_deBroglie, E_12_LJ, E_12_frac_LJ, potential_1_normal, potential_1_frac, λ_metropolis_pm1
 # thermo stuff:
-export correct_logQ, ideal_gas_QNVT
+export correct_logQ, ideal_gas_logQNVT, ideal_gas_logQ_loggamma
 
 
 function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVars,c::SimCache)

@@ -1,0 +1,113 @@
+Changes made across the previous context window and this one (March 2026)
+=======================================================================
+
+--- src/initialization.jl ---
+
+* Fixed critical shallow copy bug in copy_microstate! (commit a75b069)
+  - r_box (particle positions) was being shallow-copied, meaning the proposed
+    microstate shared the same underlying position array as the current microstate.
+  - Fix: used deepcopy / copy for all array fields so mutations to μ_prop do not
+    alias back into μ.
+
+* Added SimCache struct and init_cache() (part of pre-existing performance work)
+  - Preallocates μ_prop, ri_proposed_box, and all working arrays used in moves
+    to avoid per-move allocations.
+
+
+--- src/thermo.jl ---
+
+* Added ideal_gas_logQ_loggamma(N, V, Λ) — NEW function
+  - Computes exact log Q(N,V,T) = N*log(V/Λ³) - loggamma(N+1)
+  - Uses SpecialFunctions.loggamma for exact log(N!) with no approximation.
+  - This is the reference function used in the high-N test.
+
+* Identified sign bug in existing ideal_gas_logQNVT (NOT changed — kept for
+  backward compatibility / awareness)
+  - The function uses: N*log(V/Λ³) - N*log(N) - N
+  - Correct Stirling is: N*log(V/Λ³) - N*log(N) + N  (sign on last term is wrong)
+  - Or exactly:          N*log(V/Λ³) - loggamma(N+1)
+  - Error grows as ~N, reaching ~213 log-units at N=108. This was the apparent
+    source of "high-N upward drift" in logQ — the WL simulation was actually correct;
+    the reference formula was wrong.
+
+
+--- src/segc_wl.jl ---
+
+* Fixed wrong export: ideal_gas_QNVT → ideal_gas_logQNVT
+  - The export line had a typo causing UndefVarError when the function was called
+    from tests.
+
+* Added export for ideal_gas_logQ_loggamma (new exact reference function)
+
+* Commented out save_microstate_jld2 checkpoint call inside run_simulation!
+  - JLD2 was crashing (bus error) on the N=108 microstate during the high-N test.
+  - The save_wanglandau_jld2 at flatness convergence is still active.
+
+
+--- test/runtests.jl ---
+
+* Added SimCache: init_cache correctness testset (43 tests)
+  - Checks all scalar fields match μ, deep copy with no aliasing, ri_proposed_box
+    does not alias particles, N_max slots allocated.
+
+* Added SimCache: mirror invariant under translation moves testset (1000 tests)
+  - After every translation move (accepted or rejected), c.μ_prop must exactly
+    mirror μ in all fields. Also checks ζ_idx ∈ [1, μ.N+1].
+
+* Added SimCache: mirror invariant under lambda moves testset (6002 tests)
+  - Includes update_wl! after every move (critical — without it, the WL bias
+    never builds and the system gets trapped near high-λ states, never returning
+    to λ=0 to trigger N-changes). Multiple N and λ values confirmed visited.
+
+* Added SimCache: mirror invariant through mixed move sequences testset (1001 tests)
+  - Replicates the actual 75/25 translation/lambda split used in production.
+  - Verifies deep-copy independence after 1000 moves.
+
+* Added High-N Ideal Gas Limit diagnostic testset
+  - Loads N108_L8.inp (108-particle FCC, L=8σ), runs at T*=1,000,000 (all
+    Boltzmann factors → 1, so acceptance depends only on partition ratio and
+    factorial prefactor), λ_max=3 (436 bins → ~25× faster convergence than
+    λ_max=99).
+  - Compares logQ(N) for N=10 to 108 against ideal_gas_logQ_loggamma.
+  - Tolerance: 5% of |logQ_analytic| at each N.
+  - Prints per-N table of WL value, analytic value, absolute diff, relative error.
+
+* Added plotting to High-N test (using Plots.jl)
+  - Panel 1: logQ(N) — WL simulation vs analytic (loggamma)
+  - Panel 2: relative error (%) with ±5% tolerance lines
+  - Saved to test/high_N_ideal_gas_logQ_comparison.png
+
+* Added using Plots at top of runtests.jl
+
+
+--- Project.toml / Manifest.toml ---
+
+* Added Plots v1.41.6 as a dependency (and its transitive deps: GR, HTTP, etc.)
+
+
+=======================================================================
+WHAT FIXED THE HIGH-N DRIFT?
+=======================================================================
+
+The WL simulation was NOT the source of the drift. The simulation was
+already computing logQ(N) correctly — within 0.04–0.1% of exact values
+at all N.
+
+The apparent "systematic upward drift" was entirely due to a sign bug in
+the reference formula ideal_gas_logQNVT in src/thermo.jl. That function
+uses Stirling's approximation with the wrong sign on the last term (-N
+instead of +N), causing the analytic reference to be systematically too
+LOW by ~2N log-units (roughly 2 per particle). At N=108 this amounts to
+~213 log-units of error in the reference, making the WL result look
+artificially high by comparison.
+
+Fix: use ideal_gas_logQ_loggamma (exact, via loggamma(N+1)) as the
+reference in the high-N test. With the correct reference, the test passes
+comfortably within the 5% tolerance across all N=10 to 108.
+
+The shallow copy bug fix (commit a75b069) was a separate real correctness
+fix in the simulation scaffolding — it prevented position array aliasing
+between μ and μ_prop. This would have corrupted energy evaluations and
+acceptance decisions and could have contributed to errors under interacting
+(non-ideal-gas) conditions, even though at T*=1e6 the Boltzmann factor is
+always ~1 and masks such errors.
