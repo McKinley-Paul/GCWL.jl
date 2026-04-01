@@ -430,6 +430,79 @@ end
 end
 
 println("")
+println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now Running Initialization Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+println("")
+
+@testset "Initialization: SimulationParams with direct L_σ" begin
+    T_σ = 1.0
+    L_σ = 8.0
+    sim_L = SimulationParams(N_max=10, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                             λ_max=99, r_cut_σ=3.0,
+                             L_σ=L_σ,
+                             save_directory_path=@__DIR__,
+                             rng=MersenneTwister(1))
+    @test sim_L.L_σ ≈ L_σ
+    @test sim_L.V_σ ≈ L_σ^3
+    @test sim_L.L_squared_σ ≈ L_σ^2
+    @test sim_L.r_cut_box ≈ 3.0 / L_σ
+    @test sim_L.r_cut_squared_box ≈ (3.0 / L_σ)^2
+
+    # should throw if neither input_filename nor L_σ provided
+    @test_throws ArgumentError SimulationParams(N_max=10, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                                                λ_max=99, r_cut_σ=3.0,
+                                                save_directory_path=@__DIR__)
+end
+
+@testset "Initialization: init_microstate vacuum (N=0, λ=0) state" begin
+    T_σ = 1.0
+    sim_v = SimulationParams(N_max=50, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                             λ_max=99, r_cut_σ=3.0,
+                             L_σ=8.0,
+                             save_directory_path=@__DIR__,
+                             rng=MersenneTwister(1))
+    μ_v = init_microstate(sim_v)
+
+    @test μ_v.N == 0
+    @test μ_v.λ == 0
+    @test μ_v.ϵ_ξ == 0.0
+    @test μ_v.σ_ξ_squared == 0.0
+    @test length(μ_v.r_box) == sim_v.N_max  # pre-allocated to N_max
+    @test all(μ_v.r_frac_box .== 0.0)
+end
+
+@testset "Initialization: init_microstate from file pre-allocates N_max slots" begin
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim_f = SimulationParams(N_max=50, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                             λ_max=99, r_cut_σ=3.0,
+                             input_filename=input_path,
+                             save_directory_path=@__DIR__,
+                             rng=MersenneTwister(1))
+    μ_f = init_microstate(sim=sim_f, filename=input_path)
+
+    # cube_vertices_home_made.inp has 8 particles but N_max=50
+    @test μ_f.N == 8
+    @test length(μ_f.r_box) == sim_f.N_max  # regression: was previously length N_file, not N_max
+end
+
+@testset "Initialization: init_cache with vacuum microstate" begin
+    T_σ = 1.0
+    sim_cv = SimulationParams(N_max=20, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                              λ_max=99, r_cut_σ=3.0,
+                              L_σ=8.0,
+                              save_directory_path=@__DIR__,
+                              rng=MersenneTwister(1))
+    μ_cv = init_microstate(sim_cv)
+    c_cv = init_cache(sim_cv, μ_cv)
+
+    @test c_cv.μ_prop.N == 0
+    @test c_cv.μ_prop.λ == 0
+    @test length(c_cv.μ_prop.r_box) == sim_cv.N_max
+    @test c_cv.μ_prop.r_frac_box == μ_cv.r_frac_box
+    @test c_cv.μ_prop.r_frac_box !== μ_cv.r_frac_box  # deep copy, not aliased
+end
+
+println("")
 println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now Running Physics Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 println("")
 

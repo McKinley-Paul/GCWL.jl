@@ -60,10 +60,14 @@ struct SimulationParams # immutable because structs are by default immutable in 
     dynamic_δr_max_box::Bool # set to true if you want to dynamically adjust δr_max_box during the run, false if you want to use a static one specified from the start
 
     # Now using an "Inner Constructor" to compute the derived parameters from only the input ones
-    function SimulationParams(; N_max,N_min,T_σ,Λ_σ,λ_max,r_cut_σ,input_filename,save_directory_path,rng=MersenneTwister(),maxiter=10^9,dynamic_δr_max_box=true) 
+    function SimulationParams(; N_max,N_min,T_σ,Λ_σ,λ_max,r_cut_σ,input_filename="",L_σ::Float64=0.0,save_directory_path,rng=MersenneTwister(),maxiter=10^9,dynamic_δr_max_box=true)
         # the semicolon above in (; N_max ... ) makes it so all these are keyword arguments, not positional ones so you set them with like 'N_max=100' when initializing a SimulationParams struct
-        # Compute derived quantities
-        _, L_σ, _  = load_configuration(input_filename)
+        # Compute derived quantities: L_σ can be supplied directly or read from an input config file
+        if input_filename != ""
+            _, L_σ, _ = load_configuration(input_filename)
+        elseif L_σ == 0.0
+            throw(ArgumentError("Must provide either input_filename or L_σ to determine box size"))
+        end
         V_σ = L_σ^3
         L_squared_σ = L_σ^2
         r_cut_box = r_cut_σ/L_σ
@@ -171,9 +175,14 @@ end
 function init_microstate(;sim::SimulationParams,filename::String,λ::Int=0, r_frac_box::MVector{3,Float64}=@MVector [0.0, 0.0, 0.0] )::microstate
     # initialize the microstate to feed into run_simulation() in segc_wl from input file
     N,L_σ,r_σ = load_configuration(filename)
-    r_box = r_σ ./ L_σ # converting to "box units" by dividing the positions by the length of the box. Now r_i ∈ [-0.5,0.5]^3 because inputs are centered around 0,0
-    for i in 1:length(r_box)
-        pbc_wrap!(r_box[i]) # converting to Vector of SVectors from 3xN matrix
+    r_σ_box = r_σ ./ L_σ # converting to "box units" by dividing the positions by the length of the box. Now r_i ∈ [-0.5,0.5]^3 because inputs are centered around 0,0
+    for i in 1:length(r_σ_box)
+        pbc_wrap!(r_σ_box[i])
+    end
+    # pre-allocate N_max slots so λ-moves can always write to r_box[μ.N] without bounds errors
+    r_box = [@MVector zeros(3) for _ in 1:sim.N_max]
+    for i in 1:N
+        r_box[i] .= r_σ_box[i]
     end
 
     M = sim.λ_max+1
@@ -183,6 +192,14 @@ function init_microstate(;sim::SimulationParams,filename::String,λ::Int=0, r_fr
     μstate = microstate(N,λ,r_box,r_frac_box, ϵ_ξ,σ_ξ_squared)
     return(μstate)
 end # init microstate
+
+function init_microstate(sim::SimulationParams)::microstate
+    # initialize microstate at N=0, λ=0 (vacuum state) with r_box pre-allocated to N_max slots
+    # use this to start the Wang-Landau walk from the known anchor point Q(N=0,λ=0)=1
+    r_box = [@MVector zeros(3) for _ in 1:sim.N_max]
+    r_frac_box = @MVector [0.0, 0.0, 0.0]
+    return microstate(0, 0, r_box, r_frac_box, 0.0, 0.0)
+end # init_microstate from vacuum
 
 @inline function pbc_wrap!(r::MVector{3,Float64})
     @inbounds for i in 1:3
@@ -194,26 +211,26 @@ end
 
 
 function check_inputs(s::SimulationParams,μ::microstate,wl::WangLandauVars)
-    min_distance,particle_1,particle_2 = min_config_distance(μ.r_box)
-    println("Minimum distance in box units (L_box=1) between particles in the initial configuration is: ",round(min_distance,digits=3), " between particles ",particle_1, " and ", particle_2)
-    println("This is compared to length of σ in box units which is: ", round(1/s.L_σ,digits=3))
+    if μ.N > 1
+        min_distance,particle_1,particle_2 = min_config_distance(μ.r_box[1:μ.N])
+        println("Minimum distance in box units (L_box=1) between particles in the initial configuration is: ",round(min_distance,digits=3), " between particles ",particle_1, " and ", particle_2)
+        println("This is compared to length of σ in box units which is: ", round(1/s.L_σ,digits=3))
+    else
+        println("Starting from N=$(μ.N), skipping minimum distance check.")
+    end
 
     if s.dynamic_δr_max_box == false
-        println("SimulationParams.dynamic_δr_max_box is set to false, therefore wl.δr_max_box will not be updated during the run and 
+        println("SimulationParams.dynamic_δr_max_box is set to false, therefore wl.δr_max_box will not be updated during the run and
         will be set to ", wl.δr_max_box, " for the entire course of the wang landau simulation")
     end
     if (s.dynamic_δr_max_box == false) && (wl.δr_max_box = (0.15/s.L_σ))
         println("wl.δr_max_box: ", wl.δr_max_box)
-        throw("You have SimulationParams.dynamic_δr_max_box set to false yet wl.δr_max_box is the 
+        throw("You have SimulationParams.dynamic_δr_max_box set to false yet wl.δr_max_box is the
                  the default value of 0.15/ L_sigma")
     elseif (s.dynamic_δr_max_box == true) && (wl.δr_max_box != (0.15/s.L_σ))
-        throw("You have SimulationParams.dynamic_δr_max_box set to true yet wl.δr_max_box is NOT the  
+        throw("You have SimulationParams.dynamic_δr_max_box set to true yet wl.δr_max_box is NOT the
                  the default value of 0.15/ L_sigma")
         println("wl.δr_max_box: ", wl.δr_max_box)
-    end
-
-    if μ.N != s.N_max
-        throw(ArgumentError("Input mismatch: input config has $(μ.N) atoms but N_max is $(s.N_max), you have to start the simulation in the densest configuration"))
     end
 
     flush(stdout)

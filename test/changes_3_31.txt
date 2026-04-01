@@ -39,10 +39,6 @@ Changes made across the previous context window and this one (March 2026)
 
 * Added export for ideal_gas_logQ_loggamma (new exact reference function)
 
-* Commented out save_microstate_jld2 checkpoint call inside run_simulation!
-  - JLD2 was crashing (bus error) on the N=108 microstate during the high-N test.
-  - The save_wanglandau_jld2 at flatness convergence is still active.
-
 
 --- test/runtests.jl ---
 
