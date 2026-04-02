@@ -1,0 +1,2 @@
+the data in this directory was picked from figure 1a using plot digitizer.com so there is some error due to the pixel picking procedure,
+but it should give us an order of magnitude check on our data

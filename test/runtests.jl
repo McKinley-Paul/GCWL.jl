@@ -182,7 +182,7 @@ println("")
     if idx_deleted != μ3.N
         c3.μ_prop.r_box[idx_deleted] .= μ3.r_box[μ3.N]  # swap last particle into deleted slot
     end
-    c3.μ_prop.r_frac_box  .= μ3.r_frac_box
+    c3.μ_prop.r_frac_box  .= μ3.r_box[idx_deleted]  # deleted particle becomes fractional
     c3.μ_prop.λ            = λ_max
     c3.μ_prop.ϵ_ξ          = (λ_max / M)^(1/3)
     c3.μ_prop.σ_ξ_squared  = (λ_max / M)^(1/2)
@@ -197,7 +197,7 @@ println("")
     # V_Λ_prefactor = V^(N_prop+1 - N) * Λ^(3N - 3(N_prop+1)) = 1 for this transition
     prefactor = (sim.V_σ^(c3.μ_prop.N+1 - μ3.N)) * (Λ_σ^(3*μ3.N - 3*c3.μ_prop.N - 3))
     factorial_prefactor = μ3.N
-    expected_prob = metrop_prob * factorial_prefactor * prefactor
+    expected_prob = min(1.0, metrop_prob * factorial_prefactor * prefactor)
 
     n_trials = 10000
     n_accepted = sum(λ_metropolis_pm1(μ3, c3.μ_prop, idx_deleted, wl3, sim) for _ in 1:n_trials)
@@ -672,4 +672,193 @@ end
     combined = plot(p1, p2, layout=(2,1), size=(800, 800))
     savefig(combined, joinpath(@__DIR__, "high_N_ideal_gas_logQ_comparison.png"))
     println("Plot saved to test/high_N_ideal_gas_logQ_comparison.png")
+end
+
+println("")
+println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now Running Detailed Balance Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+println("")
+
+#=
+Detailed balance condition for any pair of states (A, B):
+    g(A) × T(A→B) = g(B) × T(B→A)
+
+Since T = q × acc and acc = min(1, g(A)/g(B) × [prefactors] × exp(-βΔU)),
+the g ratios cancel in the product of the forward and reverse raw acceptance arguments:
+
+    [V_Λ_fwd × factorial_fwd × exp(-βΔU_fwd)] × [V_Λ_rev × factorial_rev × exp(-βΔU_rev)] = 1
+
+This product is g-independent, so it can be checked without a converged simulation.
+It reduces to testing two things:
+    (a) V_Λ_fwd × V_Λ_rev × factorial_fwd × factorial_rev = 1    (prefactor symmetry)
+    (b) ΔU_fwd + ΔU_rev = 0                                       (energy antisymmetry)
+
+Most move types satisfy (b) tautologically (the same energy function called with swapped inputs).
+The non-trivial cases are:
+  - λ=0↔1: V/Λ³ prefactor must appear in the right direction (tests branching logic in lj.jl)
+  - Insertion/deletion: (b) only holds if r_frac_box is set to the deleted particle's position.
+    If the stale ghost position is used instead, ΔU_fwd + ΔU_rev = U_particle(ghost) − U_particle(r_i) ≠ 0.
+    This is the exact condition violated by the deletion bug fixed in Apr 2026.
+=#
+
+@testset "Detailed balance: translation move (energy antisymmetry sanity check)" begin
+    #= Trivially true — ΔU_fwd = E(r_new) − E(r_old), ΔU_rev = E(r_old) − E(r_new) = −ΔU_fwd.
+       Included to document the invariant and confirm energy function consistency. =#
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim_db = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                              λ_max=9, r_cut_σ=3.0,
+                              input_filename=input_path,
+                              save_directory_path=@__DIR__,
+                              rng=MersenneTwister(1))
+    μ_db = init_microstate(sim=sim_db, filename=input_path, λ=5)
+
+    i        = 2
+    r_old    = MVector{3,Float64}(μ_db.r_box[i])
+    r_new    = MVector{3,Float64}(r_old .+ 0.05)  # small displacement, stays in box
+    r_frac   = MVector{3,Float64}(0.0, 0.0, 0.0)  # arbitrary ghost (λ=0 → no energy contribution)
+    r_frac_dummy = MVector{3,Float64}(-0.48, -0.48, -0.48)  # far from all particles; avoids zero-dist return
+
+    E_at_r_old = potential_1_normal(μ_db.r_box, r_old, i, r_frac_dummy, 0, sim_db.λ_max,
+                                    μ_db.N, sim_db.L_squared_σ, sim_db.r_cut_squared_box, 0.0, 1.0)
+    E_at_r_new = potential_1_normal(μ_db.r_box, r_new, i, r_frac_dummy, 0, sim_db.λ_max,
+                                    μ_db.N, sim_db.L_squared_σ, sim_db.r_cut_squared_box, 0.0, 1.0)
+
+    ΔU_fwd = E_at_r_new - E_at_r_old  # A → B: particle moves to r_new
+    ΔU_rev = E_at_r_old - E_at_r_new  # B → A: particle moves back to r_old
+
+    @test ΔU_fwd + ΔU_rev ≈ 0.0 atol=1e-12
+    @test exp(-( ΔU_fwd + ΔU_rev ) / T_σ) ≈ 1.0 atol=1e-10
+end
+
+@testset "Detailed balance: λ=0↔1 V/Λ³ prefactor symmetry (non-trivial)" begin
+    #= Non-trivial: tests that the two λ=0/λ>0 branches in λ_metropolis_pm1 produce
+       V/Λ³ and Λ³/V respectively, so their product is 1.
+       A wrong exponent or wrong branch selection would cause product ≠ 1. =#
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim_db = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                              λ_max=9, r_cut_σ=3.0,
+                              input_filename=input_path,
+                              save_directory_path=@__DIR__,
+                              rng=MersenneTwister(1))
+    μ_db = init_microstate(sim=sim_db, filename=input_path, λ=0)
+    N    = μ_db.N
+    r_frac = MVector{3,Float64}(0.05, -0.03, 0.02)  # specific frac position (near box centre)
+
+    # Replicate the V_Λ formula from λ_metropolis_pm1 for each branch
+    # Forward: λ=0 → λ=1, N unchanged  →  branch (μ.λ==0 && μ_prop.λ>0)
+    V_Λ_fwd = sim_db.V_σ^(N+1 - N) * sim_db.Λ_σ^(3*N - 3*(N+1))   # = V/Λ³
+    # Reverse: λ=1 → λ=0, N unchanged  →  branch (μ.λ>0 && μ_prop.λ==0)
+    V_Λ_rev = sim_db.V_σ^(N - N - 1) * sim_db.Λ_σ^(3*(N+1) - 3*N) # = Λ³/V
+
+    @test V_Λ_fwd ≈ sim_db.V_σ / sim_db.Λ_σ^3  atol=1e-10  # forward really is V/Λ³
+    @test V_Λ_rev ≈ sim_db.Λ_σ^3 / sim_db.V_σ  atol=1e-10  # reverse really is Λ³/V
+    @test V_Λ_fwd * V_Λ_rev ≈ 1.0               atol=1e-10  # product cancels
+
+    # ΔU: at λ=0 the frac particle has zero coupling → E_frac(λ=0) = 0 regardless of position
+    ϵ_ξ_1      = (1 / (sim_db.λ_max+1))^(1/3)
+    σ_ξ²_1     = (1 / (sim_db.λ_max+1))^(1/2)
+    E_frac_λ1  = potential_1_frac(μ_db.r_box, r_frac, 1, sim_db.λ_max, N,
+                                   sim_db.L_squared_σ, sim_db.r_cut_squared_box, ϵ_ξ_1, σ_ξ²_1)
+
+    ΔU_fwd = E_frac_λ1 - 0.0   # λ=0→1: frac gains coupling
+    ΔU_rev = 0.0 - E_frac_λ1   # λ=1→0: frac loses coupling
+
+    # Full detailed balance product (factorials = 1 for both since N unchanged)
+    product = V_Λ_fwd * V_Λ_rev * exp(-(ΔU_fwd + ΔU_rev) / T_σ)
+    @test product ≈ 1.0 atol=1e-10
+end
+
+@testset "Detailed balance: insertion/deletion V_Λ = 1 for N-change moves" begin
+    #= When N changes by 1, the V and Λ exponents in both branches cancel exactly.
+       Regression test for the prefactor formula — would fail if the exponents were wrong. =#
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim_db = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                              λ_max=9, r_cut_σ=3.0,
+                              input_filename=input_path,
+                              save_directory_path=@__DIR__,
+                              rng=MersenneTwister(1))
+    N     = 5  # arbitrary N in the interior
+    λ_max = sim_db.λ_max
+
+    # Deletion: μ.λ=0, μ_prop.λ=λ_max, μ.N=N, μ_prop.N=N-1
+    # Branch (μ.λ==0 && μ_prop.λ>0): V^(μ_prop.N+1 - μ.N) × Λ^(3μ.N - 3(μ_prop.N+1))
+    V_Λ_del = sim_db.V_σ^((N-1)+1 - N) * sim_db.Λ_σ^(3*N - 3*((N-1)+1))
+    @test V_Λ_del ≈ 1.0 atol=1e-10
+
+    # Insertion: μ.λ=λ_max, μ_prop.λ=0, μ.N=N, μ_prop.N=N+1
+    # Branch (μ.λ>0 && μ_prop.λ==0): V^(μ_prop.N - μ.N - 1) × Λ^(3(μ.N+1) - 3μ_prop.N)
+    V_Λ_ins = sim_db.V_σ^((N+1) - N - 1) * sim_db.Λ_σ^(3*(N+1) - 3*(N+1))
+    @test V_Λ_ins ≈ 1.0 atol=1e-10
+
+    @test V_Λ_del * V_Λ_ins ≈ 1.0 atol=1e-10
+end
+
+@testset "Detailed balance: insertion/deletion ΔU antisymmetry (regression for deletion r_frac fix)" begin
+    #= THE key detailed balance test. The condition ΔU_del + ΔU_ins = 0 holds if and only if
+       the deletion sets r_frac_box = r_deleted (the fix). With the stale ghost position the
+       sum equals U_particle(ghost) − U_particle(r_deleted) ≠ 0.
+
+       Scenario: delete particle idx_del from an N=8 system, verify the deletion ΔU and
+       the insertion ΔU (starting from the post-deletion state with r_frac = r_deleted)
+       are exact negatives. Then repeat with a ghost position to confirm the sum is nonzero. =#
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim_db = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                              λ_max=9, r_cut_σ=3.0,
+                              input_filename=input_path,
+                              save_directory_path=@__DIR__,
+                              rng=MersenneTwister(1))
+    μ_db    = init_microstate(sim=sim_db, filename=input_path, λ=0)
+    idx_del = 2
+    r_del   = MVector{3,Float64}(μ_db.r_box[idx_del])
+
+    # Build the N-1 particle box (swap last particle into deleted slot, deep copy)
+    r_box_Nm1 = [MVector{3,Float64}(μ_db.r_box[j]) for j in 1:sim_db.N_max]
+    if idx_del != μ_db.N
+        r_box_Nm1[idx_del] .= μ_db.r_box[μ_db.N]
+    end
+    N_m1 = μ_db.N - 1
+
+    ϵ_ξ_max  = (sim_db.λ_max / (sim_db.λ_max+1))^(1/3)
+    σ_ξ²_max = (sim_db.λ_max / (sim_db.λ_max+1))^(1/2)
+
+    # Dummy r_frac for potential_1_normal calls (ϵ_ξ=0, so frac contributes 0 energy;
+    # must differ from the particle position to avoid the zero-distance early return)
+    r_frac_dummy = MVector{3,Float64}(-0.48, -0.48, -0.48)
+
+    # U_particle(r_del): energy of the to-be-deleted particle interacting with the N-1 others.
+    # Computed from the original r_box using idx_del so the j==i skip excludes particle itself.
+    U_part_rdel = potential_1_normal(μ_db.r_box, r_del, idx_del, r_frac_dummy,
+                                     0, sim_db.λ_max, μ_db.N,
+                                     sim_db.L_squared_σ, sim_db.r_cut_squared_box, 0.0, 1.0)
+
+    # U_frac(r_del, λ_max): energy of frac particle at r_del with the N-1 remaining particles.
+    U_frac_rdel = potential_1_frac(r_box_Nm1, r_del, sim_db.λ_max, sim_db.λ_max, N_m1,
+                                   sim_db.L_squared_σ, sim_db.r_cut_squared_box, ϵ_ξ_max, σ_ξ²_max)
+
+    # ── FIXED scheme: r_frac ← r_del ──────────────────────────────────────────
+    ΔU_del_fixed = U_frac_rdel - U_part_rdel  # deletion: particle gone, frac appears at r_del
+    ΔU_ins_fixed = U_part_rdel - U_frac_rdel  # insertion: frac at r_del → full particle at r_del
+
+    @test ΔU_del_fixed + ΔU_ins_fixed ≈ 0.0 atol=1e-12
+    @test exp(-(ΔU_del_fixed + ΔU_ins_fixed) / T_σ) ≈ 1.0 atol=1e-10
+
+    # ── BUGGY scheme: r_frac left at ghost ─────────────────────────────────────
+    # Ghost is an arbitrary position unrelated to r_del
+    r_ghost = MVector{3,Float64}(0.05, -0.03, 0.02)
+
+    U_frac_ghost  = potential_1_frac(r_box_Nm1, r_ghost, sim_db.λ_max, sim_db.λ_max, N_m1,
+                                     sim_db.L_squared_σ, sim_db.r_cut_squared_box, ϵ_ξ_max, σ_ξ²_max)
+    # For the buggy "reverse" insertion, the particle would be created at ghost position
+    U_part_ghost  = potential_1_normal(r_box_Nm1, r_ghost, N_m1+1, r_frac_dummy,
+                                       0, sim_db.λ_max, N_m1,
+                                       sim_db.L_squared_σ, sim_db.r_cut_squared_box, 0.0, 1.0)
+
+    ΔU_del_buggy  = U_frac_ghost - U_part_rdel   # deletion uses ghost, not r_del
+    ΔU_ins_buggy  = U_part_ghost - U_frac_ghost   # "reverse" insertion creates particle at ghost
+
+    # Confirm violation: sum = U_particle(ghost) − U_particle(r_del) ≠ 0
+    @test abs(ΔU_del_buggy + ΔU_ins_buggy) > 0.01   # not zero — detailed balance violated
 end

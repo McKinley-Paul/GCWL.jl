@@ -2,7 +2,7 @@
 
 julia_version = "1.12.1"
 manifest_format = "2.0"
-project_hash = "a1e9c64123813c6656a8265a435db5cda8216fa9"
+project_hash = "5e8d0624aeaf1aacddc25831e2518c9493751459"
 
 [[deps.AbstractTrees]]
 git-tree-sha1 = "2d9c9a55f9c93e8887ad391fbae72f8ef55e1177"
@@ -1462,7 +1462,7 @@ uuid = "cf2c5f97-e748-59fa-a03f-dda3c62118cb"
 version = "2.0.0+0"
 
 [[deps.segc_wl]]
-deps = ["ArbNumerics", "BenchmarkTools", "CSV", "DataFrames", "Dates", "JLD2", "PProf", "Printf", "Profile", "Random", "Revise", "SpecialFunctions", "StaticArrays"]
+deps = ["ArbNumerics", "BenchmarkTools", "CSV", "DataFrames", "Dates", "JLD2", "PProf", "Plots", "Printf", "Profile", "Random", "Revise", "SpecialFunctions", "StaticArrays"]
 path = "."
 uuid = "ce517a80-2c89-4871-b5a9-77267e0ac583"
 version = "0.1.0"

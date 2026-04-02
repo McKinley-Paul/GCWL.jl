@@ -1,0 +1,1357 @@
+Paper converted to .txt in case it is easier to read - just copy and pasted so may be some errors from that process
+
+
+Evaluation of the grand-canonical partition function using expanded
+Wang-Landau simulations. I. Thermodynamic properties in the bulk
+and at the liquid-vapor phase boundary
+Caroline Desgranges and Jerome Delhommelle
+Department of Chemistry, University of North Dakota, Grand Forks, North Dakota 58202, USA
+(Received 16 January 2012; accepted 5 March 2012; published online 11 May 2012)
+TheWang-Landau sampling is a powerful method that allows for a direct determination of the density
+of states. However, applications to the calculation of the thermodynamic properties of realistic fluids
+have been limited so far. By combining the Wang-Landau method with expanded grand-canonical
+simulations, we obtain a high-accuracy estimate for the grand-canonical partition function for atomic
+and molecular fluids. Then, using the formalism of statistical thermodynamics, we are able to calculate
+the thermodynamic properties of these systems, for a wide range of conditions spanning the
+single-phase regions as well as the vapor-liquid phase boundary. Excellent agreement with prior
+simulation work and with the available experimental data is obtained for argon and CO2, thereby
+establishing the accuracy of the method for the calculation of thermodynamic properties such as free
+energies and entropies. © 2012 American Institute of Physics. [http://dx.doi.org/10.1063/1.4712023]
+I. INTRODUCTION
+A few years ago, Wang and Landau proposed a particularly
+promising method.1, 2 The purpose of the Wang-
+Landau (WL) approach is different from conventional simulation
+methods. Instead of calculating equilibrium properties
+for a given set of thermodynamic conditions, the WL
+method determines directly the density of states of the system.
+This approach consists in dynamically updating the density
+of states (i.e., the degeneracy of energy levels) every
+time the simulation visits a configuration of the system of a
+given energy. Then, using the formalism of statistical thermodynamics,
+all thermodynamic properties of the system
+can be calculated over a wide range of conditions. The WL
+method is very appealing since a single simulation run yields
+the thermodynamic properties of the system for a wide range
+of conditions. Moreover, unlike conventional simulations, the
+WL scheme ensures that all energies available to the system
+are sampled evenly, alleviating the need for additional enhanced
+sampling techniques. Finally, we add that other methods,
+such as multicanonical simulations,3, 4 can also give an
+estimate for the density of states. However, as pointed out
+by Shell et al.,5 the WL method has the advantage of providing
+a density of states which can be readily used to calculate
+the thermodynamic properties, given the direct connection
+of the WL density of states to the entropy of the
+system.
+In recent years, the WL method was extended to offlattice
+simulations,5, 6 generalized to different statistical
+ensembles7, 8 and applied to study a variety of phenomena,7, 9
+including the determination of the conditions for phase
+coexistence.8, 10–16 Despite its conceptual advantages and its
+simplicity of use, applications of the WL approach have been
+limited, partly because of its perceived lack of precision when
+compared to other methods such as the transition matrix (TM)
+method.17–21 For instance, Ganzenmüller and Camp10 used
+the WL method in the grand-canonical ensemble to study the
+vapor-liquid equilibria of the Lennard-Jones fluid. While they
+reported densities for the two coexisting phases in good agreement
+with the TM results, they also obtained inaccurate results
+for the activity and the chemical potential (most notably
+at low temperatures for which the deviation from the TM results
+reached 10%). As noted by Ganzenmüller and Camp,
+the error was intrinsic to the simulation method since it could
+not be reduced by varying the convergence parameters used
+in the WL calculation. This is a significant drawback since
+low-quality estimates for the chemical potential, and hence
+for the partition function of the system, precludes the direct
+calculation of the thermodynamic properties for the simulated
+system.
+In this work, we show how we use the WL method to obtain
+a high-accuracy estimate for the grand-canonical function
+of atomic and molecular fluids. More specifically, we discuss
+in Sec. II how we carry out aWL sampling of a simplified version
+of the expanded grand-canonical ensemble,22–30 which
+consists in dividing the insertion and deletion of entire atoms
+and molecules in a large number of intermediate stages. We
+discuss the Metropolis criteria obtained for the resulting simulation
+method.We then apply this method to determine a large
+number of thermodynamic properties, including the entropy,
+which is notoriously difficult to determine, for argon and carbon
+dioxide in the bulk (liquid or vapor) phases as well as at
+the vapor-liquid phase boundary.We establish the accuracy of
+the method by comparing our results to prior simulation work,
+when available, and to experimental data, most notably for the
+entropy of the bulk phases and at coexistence.We finally draw
+the main conclusions from this work.
+0021-9606/2012/136(18)/184107/13/$30.00 136, 184107-1 © 2012 American Institute of Physics
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-2 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+II. OBTAINING A HIGH-ACCURACY ESTIMATE FOR
+THE GRAND-CANONICAL PARTITION FUNCTION
+A. Formalism
+The grand-canonical partition function for a system of N
+atoms can be written as
+ (μ, V, T ) =
+∞ 
+N=0
+Q(N,V, T ) exp(βμN), (1)
+where β =1/kBT, μ is the chemical potential, andQ(N,V, T )
+is the canonical partition function given by
+Q(N,V, T ) = V N
+N! 3N
+ 
+exp(−βU( ))d , (2)
+where the integration is performed over the coordinates of the
+N atoms of the system (  denotes a specific configuration of
+the system of N atoms) and   is the De Broglie wavelength.
+Accurately sampling the grand-canonical ensemble requires
+efficient schemes to insert additional particles into the
+system (and to delete existing particles). Since the insertion
+and deletion of entire atoms and molecules are often problematic,
+it has been suggested to divide the insertion, or deletion,
+in M stages, where M is an integer. At all times, the system
+is therefore composed of N full particles and of a fractional
+particle, which, for a given stage l (0 ≤ l ≤ M − 1), interacts
+with the full particles through a coupling parameter ξ l. l is allowed
+to change and can be interpreted as a fractional number
+of particle. If l = 0, the system consists of N full particles and
+there is no fractional particle. The partition function for this
+expanded grand-canonical (EGC) (Refs. 22 and 24–30) ensemble
+of N full particles and a fractional particle is given by
+ EGC(μ, V, T )=
+∞ 
+N=0
+M −1
+l=0
+Q(N,V,T, l) exp(βμN+ψ(l,N)),
+(3)
+where ψ(l, N) is a weighting function. This weighting
+function ψ(l, N) is generally determined numerically25, 31, 32
+to optimize the sampling around a given value of N (i.e., the
+value of N around which conventional grand-canonical or
+Gibbs Ensemble Monte Carlo simulations33 converge).
+In Eq. (3), Q(N,V, T, l) is the canonical partition function
+for a system of N full particles and a fractional particle at
+stage l > 0, given by
+Q(N,V, T, l) = V N+1
+N! 3N 3
+l
+ 
+exp(−βU( ))d , (4)
+where   denotes a specific configuration of the system consisting
+of N particles and of the fractional particle and  l is
+the De Broglie wavelength for the fractional particle in stage
+l. For l = 0, Q(N,V, T, 0) is the canonical partition function
+for a system of N particles (Eq. (2)). Therefore, if we choose
+to impose ψ(0, N) = 0, we recover the partition function of
+the grand-canonical ensemble by considering only the terms
+for which l = 0 in Eq. (3).
+The aim of this work is to evaluate the grand-canonical
+partition function. Recognizing that the choice of the weighting
+function ψ(l, N) does not affect the value of the grandcanonical
+partition function, we first simplify Eq. (3) by imposing
+ψ(l, N) = 0 for all l and all N. We then choose to
+impose that for all l, the mass of the fractional particle is the
+same as that of the full particle. This implies that  l =  . We
+obtain a simplified expanded grand-canonical (SEGC) ensemble
+with the following partition function:
+ SEGC(μ, V, T ) =
+∞ 
+N=0
+M −1
+l=0
+Q(N,V, T, l) exp(βμN) (5)
+with, for 0 < l < M,
+Q(N,V, T, l) = V N+1
+N! 3(N+1)
+ 
+exp(−βU( ))d . (6)
+B. Determination of the grand-canonical partition
+function using a Wang-Landau sampling
+We now propose to use the Wang-Landau sampling
+method to evaluate the SEGC partition function
+ SEGC(μ, V, T ). In the simplified expanded grand-canonical
+ensemble, the joint Boltzmann distribution for  , N, and l is
+p( ,N, l) = V N+1 exp(βμN−βU( ))
+N! 3(N+1) SEGC(μ,V,T ) for 0 < l <M,
+= V N exp(βμN−βU( ))
+N! 3N SEGC(μ,V,T ) for l = 0.
+(7)
+The distribution p(N, l) can then be estimated as
+p(N, l) =
+ 
+p( ,N, l)d  = Q(N,V, T, l) exp(βμN)
+ SEGC(μ, V, T )
+.
+(8)
+We finally define the biased distribution pbias( , N, l)
+= p( , N, l)/p(N, l) to obtain uniform sampling of (N, l) within
+the Wang-Landau scheme. It follows that the Metropolis criterion
+for a move from an old state (state point  o; number of
+full particles No and fractional number lo) to a new state ( n;
+Nn and ln) is given by10
+acc(o → n) = min
+ 
+1,
+pbias ( n,Nn, ln)
+pbias ( o,No, lo)
+ 
+. (9)
+More specifically, if lo and ln are both either equal to 0 or
+both strictly larger than 0, the Metropolis criterion becomes
+acc(o → n)
+= min
+ 
+1,
+Q(No, V, T, lo)V NnNo! 3No exp(−βU( n))
+Q(Nn, V, T, ln)V NoNn! 3Nn exp(−βU( o))
+ 
+.
+(10)
+If lo = 0 and ln > 0, the Metropolis criterion becomes
+acc(o → n)
+= min
+ 
+1,
+Q(No,V ,T , lo)V Nn+1No! 3No exp(−βU( n))
+Q(Nn,V ,T , ln)V NoNn! 3(Nn+1) exp(−βU( o))
+ 
+(11)
+and if lo > 0 and ln = 0, the Metropolis criterion becomes
+acc(o→n)
+= min
+ 
+1,
+Q(No,V ,T , lo)V NnNo! 3(No+1) exp(−βU( n))
+Q(Nn,V ,T , ln)V No+1Nn! 3Nn exp(−βU( o))
+ 
+.
+(12)
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-3 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+This formalism can be extended to molecular fluids by
+including qint, the molecular partition function for the internal
+degrees of freedom of rotation (e.g., in this work since we
+model CO2 as a rigid molecule) and vibration. TheMetropolis
+criterion becomes for a molecular fluid
+acc(o → n)
+=min
+ 
+1,
+Q(No,V , T,lo)V NnqNn
+intNo! 3No exp(−βU( n))
+Q(Nn,V ,T , ln)V NoqNo
+intNn! 3Nn exp(−βU( o))
+ 
+.
+(13)
+As can be seen from the equations above, the chemical
+potential does not appear in the Metropolis criteria. This
+means that we do not need to specify a given value for μ to
+run the simulation. TheWang-Landau sampling scheme leads
+to a self-consistent determination of Q(N,V, T, l). At the beginning
+of the simulation, we impose Q(N,V, T, l) = 1 for
+all N and l. During the simulation, whenever the system visits
+a configuration with N full particles and a fractional particle
+at stage l, we update the value of Q(N,V, T, l) (i.e., by multiplying
+it by f, a convergence factor greater than 1). Throughout
+the simulation, we collect a histogram of the number of
+visits for each N and l. Once this histogram is close enough
+to being flat, the convergence factor is reduced, the histogram
+for the number of visit is initialized and the simulation is run
+again with this new convergence factor. We add that the convergence
+of the Wang-Landau algorithm has been formally
+proved34 and that there is a considerable freedom in choosing
+a criterion for estimating whether the histogram H(V )
+is flat. This process is repeated until f reaches a minimum
+threshold value, leading to an accurate numerical estimate for
+Q(N,V, T, l) for all N and l. Since the Wang-Landau algorithm
+provides Q(N,V, T, l) up to a multiplicative factor, we
+add that the actual value for Q(N,V, T, l) is determined by
+recognizing that Q(N = 0, V, T, l = 0) is equal to 1. Finally,
+we obtain the numerical estimate for the grand-canonical partition
+function as
+ (μ, V, T ) =
+∞ 
+N=0
+Q(N,V, T, l = 0) exp(βμN). (14)
+III. SIMULATION MODELS AND TECHNIQUES
+A. Argon
+The first system studied in this work is argon, modeled
+with the Lennard-Jones (LJ) fluid. The interactions between
+two LJ particles i and j are given by
+φ(rij ) = 4 
+  
+σ
+rij
+ 12
+−
+ 
+σ
+rij
+ 6
+ 
+, (15)
+where rij is the distance between the two particles i and j, σ
+is the exclusion diameter, and ε is the depth of the potential
+well.
+The fractional LJ particle i interacts with j, one of the N
+full particles through the following equation:
+φ(rij ) = 4 ξl
+  
+σξl
+rij
+ 12
+−
+ 
+σξl
+rij
+ 6
+ 
+, (16)
+where ξ l denotes the coupling parameter, rij represents
+the distance between i and j,  ξl
+= (l/M)1/3  and σξl
+= (l/M)1/4σ (M = 100 is the number of stages for the insertion/
+deletion of the fractional particle and l varies between 0
+and M − 1). The scaling exponents for   and σ are taken from
+previous work.35 The Lennard-Jones parameter for argon are
+ε/kB = 117.05 K and σ = 3.4 Å. In line with prior work,10, 17
+most of the results presented here were generated for a volume
+of V = 512σ3 and a cutoff distance for the calculations
+of pair interactions to 3σ. We set the maximum number of
+argon atoms to 450, which allows us to study the vapor and
+the liquid regions of the phase diagram of argon, as well as
+the vapor-liquid coexistence of argon. In addition, in calculations
+aiming at determining the dependence of the surface
+tension on the system size, we carried out simulations with
+volumes of V = 729σ3, V = 1000σ3, and V = 1728σ3. Error
+estimates were calculated as the standard deviation for
+each property over a set of four independent expanded Wang-
+Landau simulations.
+B. Carbon dioxide
+The second system we study is the CO2 molecule. In this
+work, CO2 molecules interact with each other through the
+TraPPE potential,36 which consists of 3 LJ sites and 3 point
+charges per molecule (i.e., 1 LJ site and 1 charge per atom).
+The interaction between two atoms i and j (either C or O),
+belonging to two different CO2 molecules, is given by
+φ(rij ) = 4 ij
+  
+σij
+rij
+ 12
+−
+ 
+σij
+rij
+ 6
+ 
++ qiqj
+4π 0rij
+. (17)
+The parameters for the model36 are as follows:  CC/kB
+= 27 K,  OO/kB = 79 K, σCC = 2.80 Å, σOO = 3.05 Å, qC
+= 0.7e, and qO = −0.35e. The parameters for the LJ interactions
+between unlike atoms are calculated using the Lorentz-
+Berthelot mixing rules.37 The interaction of an atom i belonging
+to the fractional CO2 molecule with an atom j belonging
+to one of the N full CO2 molecules is calculated according to
+φ(rij ) = 4 ij
+  
+σij,ξl
+rij
+ 12
+−
+ 
+σij,ξl
+rij
+ 6
+ 
++ qi,ξl qj
+4π 0rij
+,
+(18)
+where ξ l denotes the coupling parameter, rij represents
+the distance between atoms i and j,  ij,ξl
+= (l/M)1/3 ij ,
+σij,ξl
+= (l/M)1/4σij , and qi,ξl
+= (l/M)1/3qi (in line with argon,
+M = 100 is the number of stages for the insertion/
+deletion of the fractional particle and l varies between
+0 and M − 1). In addition to using a partial coupling for the
+interactions, we also apply a homothetic transformation to the
+skeleton of the fractional molecule as the fractional molecule
+is shrunk or grown. This implies that, for a fractional molecule
+at a given stage l, the distance between the carbon and one of
+the oxygens is equal to (l/M)1/4deq
+C−O, where deq
+C−O
+= 1.16 Å
+is the distance between C and O in a full molecule of carbon
+dioxide. Most of the results presented here were obtained
+for a boxlength of L = 31.05 Å with a cutoff distance for the
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-4 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+calculations of pair interactions set to half the boxlength. As
+we did for the Lennard-Jones system, we also carried out simulations
+with boxlengths of L = 35.54 Å, L = 39.12 Å, and L
+= 44.78 Å to determine the dependence of the surface tension
+on the system size.
+C. Simulation details
+We combine the Wang-Landau sampling scheme with
+Monte Carlo simulations. For argon, the Monte Carlo (MC)
+steps consist in either the translation of a single atom (75%
+of the MC steps) or in a change in (N, l) (25% of the MC
+steps). For CO2, the MC steps are either the translation of a
+single molecule (37.5% of the MC steps), the rotation of a
+single molecule (37.5% of the MC steps) or in a change in
+(N, l) (25% of the MC steps). The initial value for the convergence
+factor is set to e. After every iteration of the process, the
+value of the convergence factor is reduced by taking its square
+root until the minimal threshold value (f = 10−8) is reached.
+As noted by Ganzenüller and Camp,10 the convergence of the
+Wang-Landau algorithm has been formally proved34 and there
+is a considerable freedom in choosing a criterion for estimating
+whether the histogram H(V ) is flat. In this work, we use
+the same criterion as in Ref. 10 (i.e., that all values of N and
+l have been visited at least 1000 times) to determine that the
+Wang-Landau simulation has converged for a given value of
+the convergence factor. The simplicity of this method lies in
+the fact that we do not need to specify any value for the chemical
+potential to run the simulation. Moreover, we only need to
+run a single simulation to have access to the partition function
+at a given temperature.
+IV. RESULTS AND DISCUSSION
+A. Argon
+Once Q(N,V, T, l) is obtained, we analyze the results
+obtained for Q(N,V, T, l = 0). We will note Q(N,V, T, l
+= 0) as Q(N,V, T ) in the rest of the paper. We present in
+Fig. 1(a) the reduced canonical partition function
+Q
+∗(N,V, T ) =  3NQ(N,V, T) as a function of the
+number of argon atoms for temperatures between 87.79
+K and 140.46 K. Once Q(N,V, T ) is known, we can
+evaluate the grand-canonical partition function  (μ, V, T )
+through Eq. (14). Equation (14) is an infinite sum over N of
+Q(N,V, T ) exp(βμN). This sum converges if, for large values
+of N, the termQ(N,V, T ) exp(βμN) tends towards 0.We
+plot in Fig. 1(b) the variations of Q
+∗(N,V, T ) exp(βμN),
+scaled by its maximum value, for different values of the
+chemical potential μ. Figures 1(b) and 1(c) show that, for
+large N, this term becomes negligible and that the numerical
+estimate for the grand-canonical partition function has
+converged. From there, using the formalism of statistical
+mechanics, we can calculate the thermodynamic properties
+of single-phase (bulk) systems and at phase boundaries. In
+what follows, we focus on the properties at the vapor-liquid
+coexistence and in the bulk (liquid or vapor). To assess
+the accuracy of the grand-canonical partition function, we
+compare our results to experimental data and available
+simulation results.
+0 100 200 300 400 500
+N
+0
+(a)
+(b)
+(c)
+500
+1000
+1500
+2000
+2500
+3000
+ln Q*(N,V,T)
+87.79 K
+93.64 K
+99.49 K
+105.35 K
+111.20 K
+117.05 K
+122.90 K
+128.76 K
+134.61 K
+140.46 K
+0 50 100 150 200 250 300 350 400 450
+N
+0
+0.2
+0.4
+0.6
+0.8
+1
+Q*(N,V,T) exp(βμN)
+μ=-259.10 kJ/kg
+μ=-254.44 kJ/kg
+μ=-238.40 kJ/kg
+0 50 100 150 200 250 300 350
+N
+0
+0.2
+0.4
+0.6
+0.8
+1
+Q*(N,V,T) exp(βμN)
+μ=-337.07 kJ/kg
+μ=-323.27 kJ/kg
+μ=-316.62 kJ/kg
+FIG. 1. Argon: (a) Logarithm of the reduced canonical partition function
+Q
+∗(N,V, T ) =  3NQ(N,V, T ) against the number of atoms. Convergence
+of the numerical estimate for the grand-canonical partition function as shown
+by the variation of Q
+∗(N,V, T ) exp(βμN), scaled by its maximum value
+for each chemical potential, as a function of N for (b) T = 99.49 K and (c)
+T = 140.46 K.
+1. Thermodynamic properties at the liquid-vapor
+coexistence
+We start by explaining how we use the grand-canonical
+partition function to determine the conditions of coexistence.
+Our first task is to locate the phase transition. This can be done
+by determining the variation of the chemical potential with
+the average number of argon atoms (Fig. 2). For this purpose,
+we vary the chemical potential and, for each value of
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-5 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+0 100 200 300 400
+N
+-400
+-350
+-300
+-250
+-200
+μ (kJ/kg)
+T = 87.79 K
+T = 105.35 K
+T = 140.46 K
+FIG. 2. Argon: Chemical potential μ (in kJ/kg) against the average number
+of atoms  N .
+μ, we use Q(N,V, T ) to calculate the average number of argon
+atoms as
+ N  =
+
+N N
+ 
+Q(N,V, T ) exp(βμN)
+ 
+ (μ, V, T )
+. (19)
+For each value of T, plotting μ as a function of  N  results in a
+curve exhibiting a plateau (see Fig. 2) at the liquid-vapor coexistence.
+This provides a rough estimate for μcoex, the chemical
+potential at coexistence.
+Alternatively, μcoex can be located by plotting the variations
+of the pressure P with μ (Fig. 3). For each value of μ, P
+can be evaluated from Q(N,V, T ) as
+P = kBT ln (μ, V, T )
+V
+. (20)
+Once an estimate for μcoex is obtained, we can further
+refine its value by analyzing the number distribution p(N), defined
+as
+p(N) = Q(N,V, T ) exp(βμN)
+ (μ, V, T )
+. (21)
+Depending on the value of μ, the number distribution exhibits
+either one peak, corresponding to the bulk, either liquid
+(Fig. 4(a)) or vapor (Fig. 4(b)), or two peaks, when the system
+-400 -350 -300 -250 -200
+μ (kJ/kg)
+0
+100
+200
+300
+400
+P (bars)
+T = 87.79 K
+T = 105.35 K
+T = 140.46 K
+FIG. 3. Argon: Pressure P (in bars) against the chemical potential μ
+(in kJ/kg).
+0 100 200 300 400
+N
+0
+(a)
+(b)
+(c)
+0.01
+0.02
+0.03
+0.04
+0.05
+P(N)
+μ = -316.62 kJ/kg
+0 100 200 300 400
+N
+0
+0.05
+0.1
+0.15
+0.2
+P(N)
+μ = -361.68 kJ/kg
+0 100 200 300 400
+N
+0
+0.005
+0.01
+0.015
+0.02
+P(N)
+μ = -323.27 kJ/kg
+FIG. 4. Argon: Number distribution p(N) at T=140.46 K for different values
+of μ: (a) μ = −316.62 kJ/kg (bulk liquid), (b) μ = −361.68 kJ/kg (bulk
+vapor), and (c) μ=−323.27 kJ/kg (liquid-vapor coexistence).
+is close to coexistence. The chemical potential at coexistence
+μcoex corresponds to the value of μ for which the areas below
+the two peaks are equal to each other (see Fig. 4(c)), indicating
+that the two phases are equally probable for μ = μcoex. We
+provide in Table I the values for μcoex and for the activity at
+coexistence (zsat =  
+−3exp (βμcoex)). An excellent agreement
+is obtained between the results obtained in this work and the
+results from the TMMC approach.17 In particular, the method
+presented in this work accurately predicts the activity at coexistence
+as shown in Table I. This is a significant improvement
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-6 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+TABLE I. Argon: Chemical potential μcoex (in kJ/kg) at the vapor-liquid coexistence
+(standard deviation of 0.07 kJ/kg) and activity z (in reduced units).
+Transition matrix Monte Carlo results are taken from Ref. 17.
+μcoex(kJ/kg) ln zsat ln zsat
+T(K) this work this work TMMC
+140.46 −323.27 −3.028 −3.031
+134.61 −312.65 −3.193 −3.197
+128.76 −302.32 −3.382 −4.384
+122.90 −292.16 −3.592 −3.595
+117.05 −282.35 −3.833 −3.834
+111.20 −272.73 −4.104 −4.107
+105.35 −263.41 −4.415 −4.419
+99.49 −254.44 −4.775 −4.779
+93.64 −245.87 −5.194 −5.196
+87.79 −237.68 −5.684 −5.683
+over the Wang-Landau approach presented in Ref. 10, which
+exhibited departures of the order of 10% at low temperatures.
+We now turn to the determination of the densities of the
+two coexisting phases through
+ ρliq  =
+
+N>Nb
+N
+V Q(N,V, T ) exp(βμN)
+
+N>Nb
+Q(N,V, T ) exp(βμN)
+(22)
+for the liquid density, where Nb is the number of Ar atoms for
+which p(N) reaches its minimum, and
+ ρvap  =
+
+N<Nb
+N
+V Q(N,V, T ) exp(βμN)
+
+N<Nb
+Q(N,V, T ) exp(βμN)
+(23)
+for the vapor density. We present in Table II the results obtained
+in this work for the densities at coexistence and compare
+them to the experimental data and to the TMMC results.
+Once again, we obtain an excellent agreement between the
+three sets of results, further establishing the reliability and accuracy
+of the method presented in this work.
+We move on to the determination of the thermodynamic
+properties at coexistence. We first plot the phase diagram of
+argon in the pressure-temperature plane (Fig. 5) and in the
+volume-temperature plane (Fig. 6). In Figs. 5 and 6, we report
+the critical point estimated from our simulations with the
+usual scaling laws.39, 40 Both plots show that the agreement
+80 100 120 140 160
+T (K)
+0
+10
+20
+30
+40
+50
+P (bar)
+FIG. 5. Argon: Vapor-liquid phase diagram in the pressure-temperature
+plane. Results obtained in this work are connected by a solid line, while the
+experimental data are shown with squares. The critical point estimated from
+the simulations is shown as a filled circle.
+FIG. 6. Argon: Vapor-liquid phase diagram in the volume-temperature plane.
+Results obtained in this work are connected by a solid line, while the experimental
+data are shown with squares. The critical point estimated from the
+simulations is shown as a filled circle.
+TABLE II. Argon: Liquid and vapor densities (in g/cm3) at coexistence (standard deviations of 0.002 g/cm3 and
+0.002 g/cm3 for the liquid and vapor densities, respectively). Experimental data are taken from Ref. 38, while
+transition matrix Monte Carlo results are obtained from Ref. 17.
+ρliq (g/cm3) ρliq (g/cm3) ρliq (g/cm3) ρvap (g/cm3) ρvap (g/cm3) ρvap (g/cm3)
+T (K) this work TMMC exp. this work TMMC exp.
+140.46 0.947 0.953 0.934 0.170 0.170 0.182
+134.61 1.026 1.025 1.012 0.126 0.125 0.131
+128.76 1.086 1.085 1.077 0.093 0.093 0.096
+122.90 1.139 1.138 1.134 0.069 0.069 0.070
+117.05 1.191 1.187 1.184 0.050 0.050 0.051
+111.20 1.230 1.232 1.231 0.036 0.036 0.036
+105.35 1.275 1.274 1.273 0.025 0.025 0.025
+99.49 1.311 1.315 1.314 0.0165 0.0163 0.0163
+93.64 1.354 1.354 1.352 0.011 0.010 0.010
+87.79 1.389 1.391 1.389 0.007 0.006 0.006
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-7 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+with the experimental data is very good over the whole
+temperature range with an estimated critical point with ρc
+= 0.528 ± 0.008 g/cm3, Tc = 151 ± 4 K, and Pc = 50.8
+± 2 bar close to the experimental critical point38 at ρc = 0.536
+g/cm3, Tc = 150.86 K, and Pc = 50.0 bar. The partition function
+obtained from the expanded Wang Landau simulations
+can be further used to determine the value taken by various
+state functions at coexistence.
+We start with the evaluation of the entropies Sliq and Svap
+at coexistence. While the determination of the entropy is notoriously
+difficult to achieve in simulations, the expandedWang
+Landau simulations provide a direct route to evaluate Sliq and
+Svap through
+Sliq = kB ln (μ,V,T )
+ Nliq  
++ (Uliq−μ)
+T ,
+Svap = kB ln (μ,V,T )
+ Nvap 
++ (Uvap−μ)
+T (24)
+with the internal energy for the liquid Uliq and for the vapor
+Uvap at coexistence defined as
+Uliq =
+
+N>Nb (Epot (N)+32
+kBT )p(N)
+
+N>Nb
+p(N) ,
+Uvap =
+
+N<Nb (Epot (N)+32
+kBT )p(N)
+
+N<Nb
+p(N) (25)
+in which Epot(N) is the average potential energy per argon
+atom, collected during the expanded Wang Landau simulation,
+for a system containing N full argon atoms (and a fractional
+particle with l = 0). In this expression, 32
+kBT is the kinetic
+(ideal gas) contribution arising from the 3 translational
+degrees of freedom per argon atom.
+We plot in Fig. 7 the entropies of the two coexisting
+phases in the volume-entropy plane and report the data in
+Table III, together with the experimental data. Table III
+demonstrates that we obtain an excellent agreement with
+the experiment for the liquid (with deviations between
+0.01 kJ/kg/K and 0.02 kJ/kg/K over the whole range of temperatures)
+and a good agreement for the vapor (with deviations
+between 0.01 kJ/kg/K and 0.05 kJ/kg/K).
+The Helmholtz free energy can then be calculated for
+both the liquid and the vapor phases according to
+Aliq = Uliq − T Sliq ,
+1 1.5 2 2.5 3 3.5
+S (kJ/kg/K)
+0
+10
+20
+30
+40
+50
+V/N (cm3/g)
+FIG. 7. Argon: Vapor-liquid phase diagram in the volume-entropy plane. Results
+obtained in this work are connected by a solid line, while the experimental
+data are shown with squares.
+Avap = Uvap − T Svap. (26)
+The Helmholtz free energies so obtained are given in
+Table IV. Table IV also provides a comparison with the corresponding
+experimental values for A. The agreement between
+the predicted value and the experimental data for the
+Helmholtz free energies is remarkably good for both phases
+(well within 0.5%), resulting in errors of the order of 1 kJ/kg
+for the Helmholtz free energy change upon vaporization. We
+finally conclude our examination of the thermodynamic state
+functions at coexistence by comparing the Gibbs free energy
+obtained from the expanded Wang-Landau simulations to the
+experimental data in Table V. Once again, the agreement is
+very good, i.e., within 0.6% over the whole set of conditions
+studied in this work.
+2. Thermodynamic properties of bulk phases
+We now turn to the results obtained for bulk phases.
+These can be easily obtained from the grand-canonical partition
+function for a wide range of conditions. This is done
+by gradually varying the chemical potential with μ ≤ μcoex
+to determine the thermodynamic properties for the vapor
+phase and μ ≥ μcoex for the liquid phase. In both cases, the
+number probability distribution exhibits a single peak (see
+TABLE III. Entropies at coexistence for argon (standard deviations of 0.002 kJ/kg/K for the liquid and of 0.0008
+kJ/kg/K for the vapor). Experimental data are taken from Ref. 38.
+Sliq (kJ/kg/K) Sliq (kJ/kg/K) Svap (kJ/kg/K) Svap (kJ/kg/K)  S(kJ/kg/K)  S(kJ/kg/K)
+T (K) this work exp. this work exp. this work exp.
+140.46 1.97 1.98 2.61 2.58 0.64 0.60
+134.61 1.90 1.91 2.67 2.65 0.78 0.74
+128.76 1.84 1.84 2.74 2.73 0.90 0.89
+122.90 1.77 1.78 2.80 2.78 1.02 1.00
+117.05 1.71 1.71 2.86 2.84 1.15 1.12
+111.20 1.65 1.65 2.92 2.91 1.27 1.26
+105.35 1.59 1.59 2.99 2.97 1.41 1.38
+99.49 1.53 1.53 3.07 3.04 1.55 1.51
+93.64 1.45 1.46 3.16 3.12 1.71 1.66
+87.79 1.38 1.40 3.27 3.20 1.88 1.92
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-8 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+TABLE IV. Helmholtz free energies at coexistence for argon. Experimental data are taken from Ref. 38.
+Aliq (kJ/kg) Aliq (kJ/kg) Avap (kJ/kg) Avap (kJ/kg)  A(kJ/kg)  A(kJ/kg)
+T(K) this work exp. this work exp. this work exp.
+140.46 −326.26 −327.83 −342.23 −342.18 −15.97 −14.35
+134.61 −315.36 −316.15 −332.29 −332.54 −16.93 −16.39
+128.76 −304.53 −304.54 −323.92 −324.94 −19.39 −20.40
+122.90 −292.96 −294.45 −314.20 −313.75 −21.24 −19.30
+117.05 −283.22 −283.26 −304.46 −303.69 −21.24 −20.43
+111.20 −272.88 −273.72 −294.40 −294.85 −21.52 −21.13
+105.35 −264.13 −264.47 −285.00 −284.34 −20.87 −19.87
+99.49 −255.14 −255.72 −275.70 −274.45 −20.56 −18.73
+93.64 −245.62 −246.45 −265.44 −265.03 −19.82 −18.58
+87.79 −237.39 −238.59 −254.70 −254.87 −17.31 −16.28
+Figs. 4(a) and 4(b)). The equations giving the density and the
+thermodynamic functions become
+ ρ  =
+
+N
+N
+ V Q(N,V,T ) exp(βμN)
+N Q(N,V,T ) exp(βμN) ,
+U =
+
+N (Epot (N)+32
+ kBT )p(N)
+N p(N) ,
+S = kB ln (μ,V,T )
+ N 
++ (U−μ)
+T ,
+A = U − T S. (27)
+We show in Fig. 8 the variation of density (calculated using
+the first line of Eq. (27)) with pressure in the singlephase
+vapor region of the phase diagram (Fig. 8(a)) and in the
+single-phase liquid region of the phase diagram (Fig. 8(b)) for
+T = 105.35 K and T = 140.46 K. Both plots show that
+the density-pressure relationship obtained from the grandcanonical
+partition function is in excellent agreement with
+the experimental data, further establishing the high-quality of
+the results from the expanded Wang-Landau simulations. We
+then use the third line of Eq. (27) to evaluate the entropy as
+a function of pressure for the bulk vapor and liquid phases.
+The results are shown in Fig. 9, together with a comparison
+with the entropies determined experimentally. Once again, the
+plots show a very good agreement between the calculated entropies
+and the experimental data, which show the reliability
+for bulk phases of the approach presented here.
+3. Surface tension calculations
+The surface tension is an example of yet another property
+that can be determined from the simulations presented in this
+work. Starting from the number probability distribution p(N)
+TABLE V. Gibbs free energy for argon at coexistence. Experimental data
+are taken from Ref. 38.
+T(K) 140.46 134.61 128.76 122.90 117.05
+G(kJ/kg) (this work) −323.27 −312.65 −302.32 −292.16 −282.35
+G(kJ/kg) (exp) −324.39 −313.56 −303.95 −293.37 −282.91
+T (K) 111.20 105.35 99.49 93.64 87.79
+G(kJ/kg) (this work) −272.73 −263.41 −254.44 −245.87 −237.68
+G(kJ/kg) (exp) −273.96 −264.35 −255.36 −246.44 −237.86
+at coexistence, defined in Eq. (21), we determine for a system
+of finite dimension L, where L is the edge of the cubic box in
+the simulations, the L-dependent interfacial free energy41 as
+FL = 1
+2
+
+
+ln pmax
+l
++ ln pmax
+v
+ 
+− ln p(Nb). (28)
+In Eq. (28), pmax
+l is the maximum probability for the peak
+of p(N) corresponding to the liquid (see, e.g., on the right
+of Fig. 4(c)), pmax
+v is the maximum probability for the peak
+0 5 10 15 20 25
+P (bars)
+0
+0.02
+(a)
+(b)
+0.04
+0.06
+0.08
+0.1
+0.12
+ρ (g/cm3)
+T = 105.35 K
+T = 140.46 K
+0 20 40 60 80 100
+P (bars)
+1
+1.05
+1.1
+1.15
+1.2
+1.25
+1.3
+ρ (g/cm3)
+T = 105.35 K
+T = 140.46 K
+FIG. 8. Single-phase bulk properties for argon: Variations of density as a
+function of pressure for (a) the vapor and (b) the liquid. Results obtained in
+this work are shown with lines, while the experimental data are shown with
+circles (105.35 K) and squares (140.46 K).
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-9 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+0 5 10 15 20 25 30
+P (bars)
+2.6
+(a)
+(b)
+2.8
+3
+3.2
+3.4
+3.6
+S (kJ/kg/K)
+T = 105.35 K
+T = 140.46 K
+0 10 20 30 40 50 60 70 80 90 100
+P (bars)
+1.5
+1.6
+1.7
+1.8
+1.9
+2
+S (kJ/kg/K)
+T = 105.35 K
+T = 140.46 K
+FIG. 9. Single-phase bulk properties for argon: Variations of entropy as a
+function of pressure for (a) the vapor and (b) the liquid. Results obtained in
+this work are shown with lines, while the experimental data are shown with
+circles (105.35 K) and squares (140.46 K).
+in p(N) corresponding to the vapor (see, e.g., on the left
+of Fig. 4(c)) and p(Nb) is the minimum for the probability,
+reached for N = Nb.
+Following Errington41 and Jain and de Pablo,42 the
+L-dependent surface tension can then be calculated from the
+interfacial free energy as
+γL = FL
+2L2 . (29)
+The surface tension can then be obtained by extrapolating
+the variations of γ L with the system size to an infinitely large
+system L→∞, according to the following equation:43
+βγL = a
+L2
++ b lnL
+L2
++ βγ∞. (30)
+We present in Fig. 10 the results obtained in this work.
+Figure 10(a) shows the variation of γ L, for L = 8σ, as a function
+of the temperature, while Fig. 10(b) show the dependence
+of γ L on the size of the system at a reduced temperature of
+0.85. Figure 10(b) also provides a comparison between our
+results and those obtained using the TMMC approach41 for a
+cutoff radius of 3σ. Once again, the two methods lead to results
+in excellent agreement. Applying Eq. (30) to the TMMC
+results gives an estimate for γ∞ of 0.986, while the method
+80 100 120 140
+T (K)
+0
+0.2
+(a)
+(b)
+0.4
+0.6
+0.8
+1
+1.2
+γL
+*
+0 0.01 0.02 0.03
+(ln L)/L2
+0.72
+0.76
+0.8
+0.84
+0.88
+0.92
+0.96
+1
+γL
+*
+FIG. 10. Surface tension for argon: Variations of surface tension (in units
+reduced with respect to the Lennard-Jones parameters) as a function of (a)
+temperature and (b) system size for a reduced temperature (T* = kBT/ ) of
+0.85. Results obtained in this work are shown as squares, while the TMMC
+results are shown as circles.
+presented in this work gives an estimate for γ∞ of 0.989 (fitting
+errors are of the order of 0.008).
+B. Carbon dioxide
+We present in Fig. 11 the reduced canonical partition
+function Q
+∗(N,V, T ) as a function of the number of CO2
+molecules for temperatures from 220 K to 280 K. The grandcanonical
+partition function  (μ, V, T ) can then be evaluated
+through Eq. (14). From there, similar to the case of argon discussed
+above, we use the formalism of statistical mechanics to
+calculate the thermodynamic properties of single-phase (bulk)
+systems and at the vapor-liquid phase boundary. To assess the
+accuracy of the grand-canonical partition function obtained
+for CO2, we compare our results to experimental data and
+available simulation results.
+1. Thermodynamic properties at the liquid-vapor
+coexistence
+We start by locating the phase transition using the same
+methods as for argon. For each temperature, we determine
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-10 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+0 100 200 300 400 500
+N
+0
+500
+1000
+1500
+2000
+2500
+ln (Q*(N,V,T))
+T = 220 K
+T = 230 K
+T = 240 K
+T = 250 K
+T = 260 K
+T = 270 K
+T = 280 K
+FIG. 11. Carbon dioxide: Logarithm of the reduced canonical partition function
+Q
+∗(N,V, T ) =  3NQ(N,V,T )
+( 8π2IkBT
+2h2 )N
+against the number of CO2 molecules.
+μcoex, the chemical potential at coexistence, through Eq. (21)
+and then Psat, the saturation pressure, through Eq. (20).
+Figure 12 shows the variation of the saturation pressure as a
+function of temperature. The results obtained in this work for
+the saturation pressure are in excellent agreement with the experimental
+data. The critical pressure and temperature, extrapolated
+from the simulation data, are 73.51 bar and 303.78 K.
+Both results are in excellent agreement with the experiment
+(Tc = 304.19 K and Pc = 73.82 bar) and with prior simulation
+work, based on the Gibbs Ensemble Monte Carlo
+(GEMC) method36 (Tc = 306.2 K and Pc = 77.7 bar). Applying
+Eqs. (22) and (23), we obtain the densities for the two
+coexisting phases. A comparison of the results so obtained
+with the experimental data is provided in Table VI. We also
+plot in Fig. 13 the phase diagram of CO2 in the volumetemperature
+plane. Again, we obtain an excellent agreement
+with the experimental data. In addition, the critical volume
+obtained in this work (2.128 dm3/kg) is very close to the experimental
+data (2.136 dm3/kg) and to that reported in GEMC
+simulations36 (2.151 dm3/kg).
+We now use the partition function obtained from the
+expanded Wang Landau simulations to evaluate the state
+220 240 260 280 300
+T (K)
+0
+20
+40
+60
+80
+P (bar)
+FIG. 12. Carbon dioxide: Vapor-liquid phase diagram in the pressuretemperature
+plane. Results obtained in this work are connected by a solid
+line, while the experimental data are shown with squares. The critical point
+estimated from the simulations is shown as a filled circle.
+TABLE VI. Carbon dioxide: Densities at coexistence. Experimental data
+are taken from Ref. 38.
+ρliq (g/cm3) ρliq (g/cm3) ρvap (g/cm3) ρvap (g/cm3)
+T(K) this work exp. this work exp.
+280.00 0.893 0.883 0.116 0.121
+270.00 0.943 0.944 0.086 0.089
+260.00 1.002 0.998 0.062 0.064
+250.00 1.041 1.046 0.044 0.046
+240.00 1.083 1.089 0.032 0.033
+230.00 1.123 1.130 0.022 0.021
+220.00 1.156 1.167 0.015 0.016
+220 240 260 280 300
+T (K)
+0
+10
+20
+30
+40
+50
+60
+70
+V/N (cm3/g)
+FIG. 13. Carbon dioxide: Vapor-liquid phase diagram in the volumetemperature
+plane. Results obtained in this work are connected by a solid
+line, while the experimental data are shown with squares. The critical point
+estimated from the simulations is shown as a filled circle.
+2.5 3 3.5 4 4.5
+S (kJ/kg/K)
+0
+10
+20
+30
+40
+50
+60
+70
+V/N (cm3/g)
+FIG. 14. Carbon dioxide: Vapor-liquid phase diagram in the volume-entropy
+plane. Results obtained in this work are connected by a solid line, while the
+experimental data are shown with squares.
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-11 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+TABLE VII. Carbon dioxide: Entropies at coexistence. Experimental data are taken from Ref. 38.
+Sliq (kJ/kg/K) Sliq (kJ/kg/K) Svap (kJ/kg/K) Svap (kJ/kg/K)  S (kJ/kg/K)  S (kJ/kg/K)
+T(K) this work exp. this work exp. this work exp.
+280.00 3.12 3.18 3.90 3.93 0.78 0.75
+270.00 3.04 3.10 3.95 4.00 0.91 0.90
+260.00 2.95 3.02 4.01 4.06 1.06 1.04
+250.00 2.89 2.94 4.07 4.11 1.18 1.18
+240.00 2.82 2.86 4.12 4.17 1.30 1.31
+230.00 2.74 2.78 4.18 4.21 1.40 1.43
+220.00 2.64 2.70 4.24 4.26 1.60 1.56
+functions at coexistence. Starting with the entropies Sliq and
+Svap at coexistence
+Sliq = kB ln (μ,V,T )
+ Nliq  
++ (Uliq−μ)
+kBT ,
+Svap = kB ln (μ,V,T )
+ Nvap 
++ (Uvap−μ)
+kBT
+(31)
+with the internal energy for the liquid Uliq and for the vapor
+Uvap at coexistence, Eq. (25) becomes for CO2,
+Uliq =
+
+N>Nb (Epot (N)+52
+kBT )p(N)
+
+N>Nb
+p(N) ,
+Uvap =
+
+N<Nb (Epot (N)+52
+kBT )p(N)
+
+N<Nb
+p(N) (32)
+in which Epot(N) is the average potential energy per CO2
+molecule, collected during the expanded Wang Landau simulation,
+for a system containing N full CO2 molecules. In this
+expression, 52
+kBT is the kinetic (ideal gas) contribution arising
+from the 3 translational degrees of freedom and the 2 rotational
+degrees of freedom per CO2 molecule.
+We plot in Fig. 14 the entropies of the two coexisting
+phases in the volume-entropy plane and report the data in
+Table VII, together with the experimental data. Once again,
+we obtain an excellent agreement with the experiment for
+the liquid (with deviations of around 3%) and for the vapor
+(with deviations of around 1%) over the whole range of
+temperatures.
+The Helmholtz free energies so obtained are given in
+Table VIII. Table VIII also provides a comparison with the
+corresponding experimental values. The agreement between
+the predicted value and the experimental data is very good for
+both phases, resulting in errors of less than 1.5 kJ/kg for the
+Helmholtz free energy of vaporization. We finally compare
+the results obtained for the Gibbs free energy at coexistence
+to the experimental data.38 Table IX shows that the method
+presented here leads to Gibbs free energies in excellent agreement
+with the data, with a maximum deviation of about 0.5%
+for the temperature closest to the critical temperature and a
+near perfect agreement at low temperatures.
+2. Thermodynamic properties of bulk phases
+As for argon, the thermodynamic properties for bulk
+phases can be easily determined from the grand-canonical
+partition function. This is done by gradually varying the
+chemical potential with μ ≤ μcoex to determine the thermodynamic
+properties for the vapor phase and μ ≥ μcoex for the
+liquid phase. For CO2, the equations giving the density and
+the thermodynamic functions become
+ ρ  =
+
+N
+N
+ V Q(N,V,T ) exp(βμN)
+N Q(N,V,T ) exp(βμN) ,
+U =
+
+N (Epot (N)+52
+ kBT )p(N)
+N p(N) ,
+S = kB ln (μ,V,T )
+ N 
++ (U−μ)
+kBT ,
+A = U − T S. (33)
+As an example, we show in Fig. 15 the variations of density
+with pressure (see Fig. 15(a)) and of entropy with pressure
+(see Fig. 15(b)) at a temperature of 280 K. In line with the
+results obtained at coexistence, the density and the entropy
+for the bulk are in very good agreement with the experimental
+data.
+TABLE VIII. Carbon dioxide: Helmholtz free energies at coexistence. Experimental data are taken from
+Ref. 38.
+Aliq (kJ/kg) Aliq (kJ/kg) Avap (kJ/kg) Avap (kJ/kg)  A(kJ/kg)  A(kJ/kg)
+T(K) this work exp. this work exp. this work exp.
+280.00 −967.69 −970.8 −997.71 −999.8 −30.02 −29.0
+270.00 −934.83 −940.0 −968.00 −973.3 −33.17 −33.3
+260.00 −904.66 −909.5 −940.95 −945.1 −36.29 −35.6
+250.00 −875.54 −879.3 −915.05 −915.3 −39.51 −36.0
+240.00 −848.73 −850.1 −887.32 −888.3 −38.59 −38.2
+230.00 −819.12 −821.7 −861.24 −862.7 −42.12 −41.0
+220.00 −794.1 −800.7 −834.39 −839.6 −40.29 −38.7
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-12 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+TABLE IX. Gibbs free energy for CO2 at coexistence. Experimental data are taken from Ref. 38.
+T(K) 280 270 260 250 240 230 220
+G (kJ/kg) (this work) −960.53 −931.00 −902.10 −873.88 −846.50 −819.83 −793.41
+G (kJ/kg) (exp) −966.88 −936.6 −906.84 −877.35 −848.66 −820.79 −794.4
+3. Surface tension calculations
+The surface tension of CO2 can also be determined from
+the simulations presented in this work. This can be done according
+to the same process as that outlined for argon (see
+Eqs. (28) and (29)). Based on the system sizes studied in this
+work, we obtain an estimate for the surface tension for an infinitely
+large system of 14 ± 1 mN.m−1 at T = 238 K, in
+reasonable agreement with the value of 12 mN.m−1 for the
+experimental value44 and obtained on another potential model
+for carbon dioxide.45
+V. CONCLUSION
+In this work, we show how we use the Wang-Landau
+method to obtain a high-accuracy estimate for the grandcanonical
+partition function of atomic and molecular fluids.
+0 10 20 30 40 50
+P (bars)
+0
+0.02
+(a)
+(b)
+0.04
+0.06
+0.08
+0.1
+0.12
+ρ (g/cm3)
+T = 280 K
+0 10 20 30 40 50
+P (bars)
+4
+4.2
+4.4
+4.6
+4.8
+S (kJ/kg/K)
+T = 280 K
+FIG. 15. Single-phase bulk properties for carbon dioxide: Variations of (a)
+density and (b) entropy as a function of pressure for the vapor phase. Results
+obtained in this work are shown with lines, while the experimental data are
+shown as squares.
+Prior applications to the calculation of the thermodynamic
+properties of realistic fluids had been limited, partly because
+of a lack of accuracy of the partition function so obtained.
+By combining the WL sampling with a simplified version of
+the expanded grand-canonical ensemble, we show how the
+grand-canonical partition function of the system can be evaluated.
+Then, using the formalism of statistical thermodynamics,
+thermodynamic properties such as the entropy and the
+Helmholtz and Gibbs free energies are determined for argon
+and carbon dioxide over a wide range of conditions. We establish
+the accuracy of the method by comparing our results
+to prior simulation work, when available, and to experimental
+data in the bulk phases and at coexistence. We emphasize
+that the method presented in this work is general and can be
+applied to any kind of molecular fluid. This method is also
+simple to use since a single simulation run yields the thermodynamic
+properties of the system at a given temperature.
+ACKNOWLEDGMENTS
+We thank Dr. Philip J. Camp for sharing his data on
+the Lennard-Jones system. Partial funding for this research
+was provided by National Science Foundation (NSF) through
+CAREER award DMR-1052808.
+1F. G. Wang and D. P. Landau, Phys. Rev. E 64, 056101 (2001).
+2F. G. Wang and D. P. Landau, Phys. Rev. Lett. 86, 2050 (2001).
+3B. A. Berg and T. Neuhaus, Phys. Rev. Lett. 68, 9 (1992).
+4N. B. Wilding, Am. J. Phys. 69, 1147 (2001).
+5M. S. Shell, P. G. Debenedetti, and A. Z. Panagiotopoulos, Phys. Rev. E 66,
+056703 (2002).
+6M. S. Shell, P. G. Debenedetti, and A. Z. Panagiotopoulos, J. Phys. Chem.
+B 108, 19748 (2004).
+7J. J. de Pablo, Q. Yan, and R. Faller, J. Chem. Phys. 116, 8649 (2002).
+8M. S. Shell, P. G. Debenedetti, and A. Z. Panagiotopoulos, J. Chem. Phys.
+119, 9406 (2003).
+9J. Luettmer-Strathmann, F. Rampf, W. Paul, and K. Binder, J. Chem. Phys.
+128, 064903 (2008).
+10G. Ganzenmüller and P. J. Camp, J. Chem. Phys. 127, 154504 (2007).
+11C. Desgranges and J. Delhommelle, J. Chem. Phys. 130, 244109 (2009).
+12T. Aleksandrov, C. Desgranges, and J. Delhommelle, Fluid Phase Eq. 287,
+79 (2010).
+13C. Desgranges, E. A. Kastl, T. Aleksandrov, and J. Delhommelle, Mol.
+Simul. 36, 544 (2010).
+14C. Desgranges, J. M. Hicks, A. Magness, and J. Delhommelle, Mol. Phys.
+108, 151 (2010).
+15A. Malakis, A. N. Berker, I. A. Hijagapiou, N. G. Fytas, and T.
+Papakonstantinou, Phys. Rev. E 81, 041113 (2010).
+16G. Ganzenmüller and P. J. Camp, Condens. Matter Phys. 14, 33602 (2011).
+17J. Errington, J. Chem. Phys. 118, 9915 (2003).
+18I. D. Gospodinov and F. A. Escobedo, J. Chem. Phys. 122, 164103 (2005).
+19Y. Okamoto, J. Mol. Graphics Modell. 22, 425 (2004).
+20A. S. Paluch, V. K. Shen, and J. R. Errington, Ind. Eng. Chem. Res. 47,
+4533 (2008).
+21J. R. Errington and V. K. Shen, J. Chem. Phys. 123, 164103 (2005).
+22A. P. Lyubartsev, A. A. Martsinovski, S. V. Shevkunov, and P. N.
+Vorontsov-Velyaminov, J. Chem. Phys. 96, 1776 (1992).
+Downloaded 15 May 2012 to 139.184.30.132. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+184107-13 C. Desgranges and J. Delhommelle J. Chem. Phys. 136, 184107 (2012)
+23M. Muller and W. Paul, J. Chem. Phys. 100, 719 (1994).
+24F. Escobedo and J. J. de Pablo, J. Chem. Phys. 105, 4391 (1996).
+25F. A. Escobedo and C. R. A. Abreu, J. Chem. Phys. 124, 104110 (2006).
+26C. R. A. Abreu and F. A. Escobedo, J. Chem. Phys. 124, 054116 (2006).
+27J. K. Singh and J. R. Errington, J. Phys. Chem. B 110, 1369 (2006).
+28F. A. Escobedo and F. J. Martinez-Veracoechea, J. Chem. Phys. 127,
+174103 (2007).
+29F. A. Escobedo, J. Chem. Phys. 127, 174104 (2007).
+30F. A. Escobedo and F. J. Martinez-Veracoechea, J. Chem. Phys. 129,
+154107 (2008).
+31S. Trebst, D. A. Huse, and M. Troyer, Phys. Rev. E 70, 046701 (2004).
+32W. Shi and E. J. Maginn, J. Comput. Chem. 29, 2520 (2008).
+33A. Z. Panagiotopoulos, Mol. Phys. 61, 813 (1987).
+34C. Zhou and R. N. Bhatt, Phys. Rev. E 72, 025701 (2005).
+35R. D. Kaminski, J. Chem. Phys. 101, 4986 (1994).
+36J. J. Potoff and J. I. Siepmann, AIChE J. 47, 1676 (2001).
+37 G. C. Maitland, M. Rigby, E. B. Smith, and W. A. Wakeham, Intermolecular
+Forces (Clarendon, Oxford, 1981).
+38 N. B. Vargaftik, Y. K. Vinoradov, and V. S. Yargin, Handbook of Physical
+Properties of Liquids and Gases (Begell House, New York, 1996).
+39 J. S. Rowlinson and F. L. Swinton, Liquids and Liquid Mixtures (Butterworths,
+London, 1982).
+40J. Delhommelle, A. Boutin, B. A. Tavitian, A. D. Mackie, and A. H. Fuchs,
+Mol. Phys. 96, 1517 (1999).
+41J. Errington, Phys. Rev. E 67, 012102 (2003).
+42T. S. Jain and J. J. de Pablo, J. Chem. Phys. 118, 4226 (2003).
+43K. Binder, Phys. Rev. A 25, 1699 (1982).
+44Data taken from the NIST webbook; see http://webbook.nist.gov.
+45A. Ghoufi, F. Goujon, V. Lachet, and P. Malfreyt, J. Chem. Phys. 128,
+154716 (2008).

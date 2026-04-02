@@ -1,8 +1,9 @@
 module segc_wl
 using StaticArrays
 using Dates # mostly for debugging/monitoring long calculations
-include("initialization.jl")
+using Statistics # used for 80% average flatness criterion
 
+include("initialization.jl")
 include("utils.jl")
 include("lj.jl")
 include("thermo.jl")
@@ -38,8 +39,13 @@ function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVar
         update_wl!(wl,μ)
 
         # check flatness and save state:
-        if wl.iters % 1000 ==0 # check flatness only every 1000 cycles
+        if wl.iters % 10_000 ==0 # check flatness only every 1000 cycles
             min = minimum(wl.H_λN[:,(sim.N_min+1) : (sim.N_max+1) ]) # the zeroth particle sits in wl.H_λN[:,1] - the 1 indexed column
+                        
+            # trying out the traditional flatness criterion as suggested by Wang and Landau in 2001
+            # avg = mean(wl.H_λN[:,(sim.N_min+1) : (sim.N_max+1) ])
+            # if min ≥ 0.8*avg # flatness here means that for all possible  H(λ,N) is not less than 80% of the average histogram <H(λ,N)>
+
             if min ≥  1000 # this is our flatness criteria
                 save_wanglandau_jld2(wl,sim, "wl_checkpoint_before_rezeroing.jld2") # jld2 is quick save binary, to inspect checkpoint, open up julia ipynb and use wl_loaded = load_wanglandau_jld2("checkpoint.jld2")
                 
@@ -49,12 +55,11 @@ function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVar
 
                 wl.H_λN = zeros(Int64,sim.λ_max+1,sim.N_max+1)
                 save_wanglandau_jld2(wl,sim, "wl_checkpoint_after_zeroing.jld2") # jld2 is quick save binary, to inspect checkpoint, open up julia ipynb and use wl_loaded = load_wanglandau_jld2("checkpoint.jld2")
-
             end
             if wl.iters % 100_000 ==0 # save checkpoint every 100,000 moves 
                 #save_wanglandau_jld2(wl,sim, "wl_checkpoint.jld2") # jld2 is quick save binary, to inspect checkpoint, open up julia ipynb and use wl_loaded = load_wanglandau_jld2("checkpoint.jld2")
                 save_microstate_jld2(μ,sim, "microstate_checkpoint.jld2")
-            end
+        end
         end #flatness/printing
     end # while logf ≥ logf_convergence_threshold
 end #run_simulation
@@ -161,28 +166,33 @@ function λ_move!(sim::SimulationParams,μ::microstate,wl::WangLandauVars,c::Sim
         if idx_deleted != μ.N
             c.μ_prop.r_box[idx_deleted] .= μ.r_box[μ.N]
         end
+        # deleted particle becomes the new fractional particle: its position must go to r_frac_box.
+        # μ.r_box[idx_deleted] is still the deleted position here (the swap above only touched c.μ_prop.r_box)
+        c.μ_prop.r_frac_box .= μ.r_box[idx_deleted]
 
         c.μ_prop.ϵ_ξ = ( c.μ_prop.λ/(sim.λ_max + 1) )^(1/3)
-        c.μ_prop.σ_ξ_squared = (c.μ_prop.λ/(sim.λ_max + 1) )^(1/2) 
+        c.μ_prop.σ_ξ_squared = (c.μ_prop.λ/(sim.λ_max + 1) )^(1/2)
 
         accept = λ_metropolis_pm1(μ, c.μ_prop,idx_deleted, wl,sim)
         if accept == true
             wl.λ_moves_accepted += 1
             μ.λ = c.μ_prop.λ
+            # set r_frac_box to deleted position BEFORE swapping r_box (μ.r_box[idx_deleted] still valid here)
+            μ.r_frac_box .= μ.r_box[idx_deleted]
             if idx_deleted != μ.N # only do the swap if we actually deleted a particle that wasn't the last one
                 μ.r_box[idx_deleted] .= μ.r_box[μ.N] # swap last particle into deleted slot in actual microstate
-            end  
+            end
             μ.N -= 1
 
             μ.ϵ_ξ = c.μ_prop.ϵ_ξ
             μ.σ_ξ_squared = c.μ_prop.σ_ξ_squared
 
         else # reset the cache state if rejected
-            c.μ_prop.λ = μ.λ 
+            c.μ_prop.λ = μ.λ
             c.μ_prop.N += 1
             c.μ_prop.r_box[idx_deleted] .= μ.r_box[idx_deleted] # put back the deleted particle in the cache
-            
-            c.μ_prop.ϵ_ξ = μ.ϵ_ξ 
+            c.μ_prop.r_frac_box .= μ.r_frac_box # restore ghost position in cache
+            c.μ_prop.ϵ_ξ = μ.ϵ_ξ
             c.μ_prop.σ_ξ_squared = μ.σ_ξ_squared
         end
 

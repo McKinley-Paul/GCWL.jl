@@ -1,0 +1,299 @@
+Hi McKinley,
+
+Thank you for checking in. My semester has been quite busy, but I’ve made some progress. I am still in the process of tracking down the results you asked about; it’s taking a bit longer than expected due to my recent move. I plan to try to work on this during the Thanksgiving break and will keep you updated.
+
+Thanks for your understanding, and I will be in touch soon.
+
+Best,
+
+Caroline
+--------
+
+Caroline Desgranges
+
+Research Assistant Professor
+
+ 
+
+Department of Physics and Applied Physics
+
+University of Massachusetts Lowell
+
+One University Avenue
+
+Lowell, MA 01854
+
+ 
+
+Email: caroline_desgranges@uml.edu
+
+Web: https://theoutofequilibriumgroup.github.io/
+
+Phone: 978-934-3721
+
+Zoom: https://uml.zoom.us/my/cdesgranges
+
+ 
+
+Pronouns: she/her/hers
+
+ 
+
+From: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Sent: Tuesday, October 28, 2025 1:52 PM
+To: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Cc: Delhommelle, Jerome <Jerome_Delhommelle@uml.edu>
+Subject: Re: Question on your paper
+ 
+Hi Professor Desgranges, 
+
+Hope your semester has been going well. Just wanted to check in and ask if you have had any luck tracking down those results?
+
+Also, I wanted to mention that although I currently don’t have any funding for this project, I do get a few thousand CPU hours per month for free on Georgia Tech’s cluster. Therefore, if it is easier to find the source code that generated the data vs. the data itself, perhaps you would be willing to share that over GitHub or via a tar file and perhaps I could partially recreate that data myself?
+
+Let me know what you think.
+
+Thank you, 
+McKinley
+
+
+From: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Date: Monday, September 22, 2025 at 3:00 PM
+To: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Subject: Re: Question on your paper
+
+Hi Prof. Desgranges,
+ 
+I bet! Thanks for letting me know it’s on your radar. I can imagine hunting down some ~13 yr old data isn’t the easiest thing!
+ 
+Thanks,
+McKinley
+ 
+From: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Date: Sunday, September 21, 2025 at 6:05 PM
+To: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Cc: Delhommelle, Jerome <Jerome_Delhommelle@uml.edu>
+Subject: Re: Question on your paper
+
+Hi McKinley, 
+
+I hope you’re doing well. I just wanted to drop you a quick note to let you know that I got your email. Things have been a bit hectic with the semester starting, but I’ll do my best to track down the results and send them your way soon. 
+Thanks for your patience!
+ 
+Best,
+ 
+Caroline
+--------
+
+Caroline Desgranges
+
+Research Assistant Professor
+
+ 
+
+Department of Physics and Applied Physics
+
+University of Massachusetts Lowell
+
+One University Avenue
+
+Lowell, MA 01854
+
+ 
+
+Email: caroline_desgranges@uml.edu
+Web: https://theoutofequilibriumgroup.github.io/
+Phone: 978-934-3721
+
+Zoom: https://uml.zoom.us/my/cdesgranges
+ 
+
+Pronouns: she/her/hers
+
+ 
+
+From: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Sent: Tuesday, September 2, 2025 8:00 AM
+To: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Cc: Delhommelle, Jerome <Jerome_Delhommelle@uml.edu>
+Subject: Re: Question on your paper
+ 
+Hi Professors Desgranges and Delhommelle, Hope you were able to enjoy the holiday weekend. Is there any chance you would be able to share with me some of your raw data from this paper we have been discussing - J. Chem. Phys. 136, 184107 (2012)
+Hi Professors Desgranges and Delhommelle,
+ 
+Hope you were able to enjoy the holiday weekend. Is there any chance you would be able to share with me some of your raw data from this paper we have been discussing - J. Chem. Phys. 136, 184107 (2012) ? Specifically, the raw data for Q(NVT) or ln(Q*(NVT)) presented in Figure 1a and Figure 11?
+ 
+Preliminarily, it seems like my theoretical scheme might be working, however I’m having a bit of an issue because I have to work directly with Q(NVT), not ln(Q(NVT)). As such, I tried to digitize the data in your paper using a plot digitizer, which usually works well for me, but I think small errors in the digitization of the log data (especially at low N where the different temperatures overlap) become significant when I transform to Q(NVT) space. As such, I’m hoping that this digitization error may be the source of some unphysical results I am seeing.  
+ 
+Thank you so much,
+McKinley
+ 
+From: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Date: Friday, August 22, 2025 at 9:53 AM
+To: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Cc: Delhommelle, Jerome <Jerome_Delhommelle@uml.edu>
+Subject: Re: Question on your paper
+
+Hi McKinley,
+ 
+No problem at all - I’m glad to hear that my responses have helped clarify things for you! 
+ 
+Looking forward to hearing about your progress!
+ 
+Best,
+ 
+Caroline
+--------
+Caroline Desgranges
+Research Assistant Professor
+ 
+Department of Physics and Applied Physics
+University of Massachusetts Lowell
+One University Avenue
+Lowell, MA 01854
+ 
+Email: caroline_desgranges@uml.edu
+Web: https://theoutofequilibriumgroup.github.io/
+Phone: 978-934-3721
+Zoom: https://uml.zoom.us/my/cdesgranges
+ 
+Pronouns: she/her/hers
+ 
+From: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Sent: Thursday, August 21, 2025 5:27 PM
+To: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Subject: Re: Question on your paper
+ 
+Hi Prof. Desgranges, It took a while to sink in for me, but I think I get it now. Thank you so much for taking the time to write several detailed responses to me!! Usually when I email people to ask questions about papers, I get no response
+Hi Prof. Desgranges,
+ 
+It took a while to sink in for me, but I think I get it now.
+ 
+Thank you so much for taking the time to write several detailed responses to me!! Usually when I email people to ask questions about papers, I get no response at all.
+ 
+I will let you know if anything comes of my efforts here!
+ 
+Cheers,
+McKinley
+ 
+ 
+ 
+From: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Date: Tuesday, August 12, 2025 at 12:09 PM
+To: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Cc: Delhommelle, Jerome <Jerome_Delhommelle@uml.edu>
+Subject: Re: Question on your paper
+
+Hi McKinley,
+ 
+I apologize for the delayed response; I was out of the office. To provide you with a detailed answer, let’s go back to the algorithm (and I apologize if this is repetitive for you). The main equation for the Metropolis criterion is Equation (9), which varies depending on the "l" value of the fractional particle in the old configuration (o) and the new configuration (n) as described in Equations (10), (11), and (12). 
+ 
+The goal is to obtain a self-consistent determination of Q(N,V,T,l) by using the Wang-Landau method in a Monte Carlo simulation, applying these specific Metropolis criteria. To begin the simulation, you set Q(N,V,T,l) to 1 for all N and l, allowing you to calculate the actual values for the Metropolis criterion in Equations (10) to (12) so that you can run your simulations. 
+ 
+For more details on the workflow of the simulation, I’d suggest checking out our article, especially the section that begins with "As can be seen..." on page 3.
+ 
+At the end of the simulation, once it has converged, you will have the value of Q(N,V,T). This means we only use the values for Q(N,V,T,l=0). For Figure 1, we simply use Q^*(N,V,T) = \Lambda^3 Q(N,V,T), which means that we multiply our value Q(N,V,T) by \Lambda^3 to obtain Q^*(N,V,T) for Argon.
+ 
+For CO_2, we will apply the same logic, but this time we will incorporate the term for a rigid molecular fluid (as we discussed last time). In this case, the Metropolis criterion will change to Equation (13).
+ 
+I hope this clarifies things.
+ 
+Best,  
+ 
+Caroline
+--------
+Caroline Desgranges
+Research Assistant Professor
+ 
+Department of Physics and Applied Physics
+University of Massachusetts Lowell
+One University Avenue
+Lowell, MA 01854
+ 
+Email: caroline_desgranges@uml.edu
+Web: https://theoutofequilibriumgroup.github.io/
+Phone: 978-934-3721
+Zoom: https://uml.zoom.us/my/cdesgranges
+ 
+Pronouns: she/her/hers
+ 
+ 
+ 
+From: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Sent: Monday, July 28, 2025 1:24 PM
+To: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Cc: Delhommelle, Jerome <Jerome_Delhommelle@uml.edu>
+Subject: Re: Question on your paper
+ 
+This Message Is From an External Sender
+This message came from outside your organization.
+Report Suspicious
+ 
+Dear Professor Desgranges,
+ 
+Thank you so much for the detailed response!
+ 
+Just to make extremely clear, based on the caption of Figure 1 in J. Chem. Phys. 136, 184107 (2012) for the argon LJ system, you just use $q_{int} = q_{trans} = \frac{V}{\Lambda^3} $, but the volume term in the numerator is neglected so that $Q*(N,V,T) = \Lambda^{3N}Q(N,V,T)$.
+ 
+Then for CO2, based on the caption for figure 11. $q_{int} = q_{trans} * q_{rot} = \frac{V}{\Lambda^3} * \frac{kT}{\sigma \bar{B}} = \frac{V}{\Lambda^3} * \frac{8 \pi^2 I kT}{2h^2}$  But again the volume term in the numerator of the translational partition function is neglected to yield $Q*(N,V,T) = \frac{\Lambda^{3N}}{ (\frac{8 \pi^2 I k T}{2h^2})^N } Q(N,V,T)$. And for CO2, I = 2 (m_Or^2) = 2(16*1.162^2) =43.06 amu Å^2.
+ 
+Does that all look about right to you?
+ 
+Again, thank you so much for the detailed response!
+ 
+Best,
+McKinley
+ 
+ 
+From: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Date: Monday, July 14, 2025 at 12:45 PM
+To: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Cc: Delhommelle, Jerome <Jerome_Delhommelle@uml.edu>
+Subject: Re: Question on your paper
+
+Dear McKinley,
+Thank you very much for your interest in our 2018 paper, “A new approach for the prediction of partition functions using machine learning techniques.” I am delighted to hear that the results may be useful for your theoretical project. Regarding your question about the computation of the internal molecular partition function, please find attached "Evaluation of the grand-canonical partition function using expanded Wang-Landau simulations. I. Thermodynamic properties in the bulk and at the liquid-vapor phase boundary." where it is discussed (top page 3). For more complex molecules, $q_{int}$ would, in general, include contributions from rotational and vibrational partition functions, calculated using standard statistical mechanics expressions (see, for example, McQuarrie’s Statistical Mechanics, Ch. 21).
+Hope this helps.
+Best,
+Caroline
+--------
+Caroline Desgranges
+Research Assistant Professor
+ 
+Department of Physics and Applied Physics
+University of Massachusetts Lowell
+One University Avenue
+Lowell, MA 01854
+ 
+Email: caroline_desgranges@uml.edu
+Web: https://theoutofequilibriumgroup.github.io/
+Phone: 978-934-3721
+Zoom: https://uml.zoom.us/my/cdesgranges
+ 
+Pronouns: she/her/hers
+ 
+ 
+ 
+From: Paul, Mckinley K <mckinley.paul@gatech.edu>
+Sent: Friday, July 11, 2025 1:30 AM
+To: Desgranges, Caroline <Caroline_Desgranges@uml.edu>
+Subject: Question on your paper
+ 
+This Message Is From an External Sender
+This message came from outside your organization.
+Report Suspicious
+ 
+Dear Professor Desgranges, 
+ 
+I recently came across your 2018 paper  --  “A new approach for the prediction of partition functions using machine learning techniques” J. Chem. Phys. 149, 044118 (2018) 10.1063/1.5037098 – and was very excited about the results!  I am interested in building upon your work, as a theoretical project I am working on requires an expression for Q(N| V,T) – the partition functions for various numbers of molecules at some fixed V and T. 
+ 
+The data presented in your figures 2,7, and 10 of the reduced partition functions vs. particle number could be a perfect set of “proof of concept” data for me, but I am unclear on some of the details of this data. 
+ 
+Primarily, how did you compute the internal molecular partition functions, q_int in the expression Q*(N,V,T) = Q(N,V,T)/ (\lambda^3 q_int)^N for the different molecular models?
+ 
+Thank you so much, 
+ 
+McKinley Paul
+Chemistry PhD Candidate
+NSF GRFP Fellow
+ 
