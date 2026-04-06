@@ -1,0 +1,20 @@
+1775172393
+  Activating project at `~/Documents/montecarlo/segc_wl`
+Precompiling packages...
+    516.5 ms  ✓ Qt6ShaderTools_jll
+    519.2 ms  ✓ Qt6Svg_jll
+    683.7 ms  ✓ FFMPEG_jll
+    804.6 ms  ✓ BenchmarkTools
+    967.2 ms  ✓ Graphviz_jll
+   1410.7 ms  ✓ StatsBase
+    542.4 ms  ✓ FFMPEG
+    710.2 ms  ✓ GR_jll
+    496.2 ms  ✓ pprof_jll
+   1551.0 ms  ✓ Qt6Declarative_jll
+   1113.8 ms  ✓ PProf
+   2440.9 ms  ✓ GR
+  22067.1 ms  ✓ Plots
+   1695.1 ms  ✓ Plots → FileIOExt
+    972.6 ms  ✓ segc_wl
+  15 dependencies successfully precompiled in 30 seconds. 233 already precompiled.
+Runtime: 220037 seconds

@@ -1,0 +1,378 @@
+PHYSICAL REVIEW E 75, 046701  2007 
+1539-3755/2007/75 4 /046701 5  046701-1 ©2007 The American Physical Society
+entry corresponding to n is incremented according to H En 
+=H En +1 and g En =g En f, where f is an arbitrary convergence
+factor, which is generally initialized as e. If a move
+is rejected, the new configuration is discarded and the histogram
+entry corresponding to the old configuration is incremented
+according to H E0 =H E0 +1; at the same time, the
+density of states is incremented according to g E0 =g E0 f.
+This process is repeated until the energy histogram becomes
+sufficiently flat. When that happens, the energy histogram is
+reset to zero and the convergence factor is decreased according
+to fk+1= fk, where fk is the convergence factor corresponding
+to stage k. The process is continued until f becomes
+sufficiently close to 1  say, f exp 10−8  .
+In practice, the relation S E =log g E   is generally used
+in order to fit all possible values of g E  into doubleprecision
+numbers.
+In order to understand the WL method and its limitations,
+let us describe the time behavior of  H t  = 1
+N
+EH E, t ,
+where N is the number of states of different energies and
+H E, t  stands for the mean height of the histogram in E at
+time t  with t= j /N, where j is the number of trial moves
+attempted  which is the MC time for the rest of the paper.
+Note that t is normalized to the entire range of energy, N, and
+not to the number of lattice sites, L2.
+The wide histogram is defined as  H t =Hmax t 
+−Hmin t , where Hmax t  and Hmin t  are the maximum and
+minimum values of H at time t, respectively.
+Other quantities of interest are  H
+ H  , the function F
+=log f , and the errors   E, t  and   E, t , defined as
+  E,t  =  1 −
+log gn E,t  
+log gex E      2 
+and
+  E,t  =  1 −
+gn E,t 
+gex E   ,  3 
+where gn E, t  and gex E, t  are the experimental and the exact
+values of the DOS  gn E, t  is normalized with respect to
+the exact DOS at the ground state . Then, the mean values
+are    t  = 1
+ N−1 
+E  E, t  and    t  = 1
+ N−1 
+E  E, t .
+The dynamics of the WL algorithm can be analyzed observing
+the behavior of these quantities, as shown in Figs.
+1 a  and 1 b , where  H ,  H,  H
+ H  , F,    t  , and    t   are
+plotted as a function of MC time for the Ising model in a
+two-dimensional square lattice with L=8, over the whole
+range of energies, N=63. Note that in this case, t= L2
+N t ,
+where t  is normalized to the number of the lattice sites, L2.
+The exact value of the density of states, gex E , is obtained
+from the method developed in Ref.  32 , and gn E, t  is averaged
+over 256 independent samples.
+For 0 t tc, F0=const  i.e. F0=log e =0.434 294 4. . . ,
+where tc is the number of MC trial flips between adjacent
+records in the histogram, typically tc=10000L2
+N MC step;
+both errors    t   and    t   are very large; the average
+height of the histogram grows linearly with time as  H t  
+=t;  H follows the same behavior of  H , while Hmin=0; as
+soon as Hmin 0,  H remains constant and consequently the
+rate  H
+ H  begins to decrease inversely with time,  H
+ H   t−1.
+When this parameter fulfills the flatness criteria  i.e., 95%,
+horizontal line in the figure  and the Monte Carlo time is the
+adequate t tc, then F is modified to a new value  Fk+1
+=Fk/2 , the histogram H E  is reset, and the errors    t   and
+   t   are reduced, remaining constant until the parameter F
+is modified again. New reductions of F lead to lower values
+of    t   and    t   and the error curves go down.
+However, after a certain time both errors reach a saturation
+value. It turns out that  H ,  H, and  H
+ H  are also saturated.
+It seems that the saturation in the error is due to the
+fact that the parameter F is reduced in an inadequate way,
+every time that the histogram becomes flat.
+In the WL algorithm, any function F may be used for the
+modification factor, as long as it decreases monotonically to
+zero. One of the ways of reducing F is to use the following
+assignment relation: F k+1 = Fk
+m with m=2. One could suggest
+to change the value of m to optimize the error; however,
+other values of m present the same behavior, saturating in all
+cases as is shown in Fig. 2. In order to render the WL method
+efficient, m should be variable in each interval controlled by
+the flatness in the histogram.
+III. t−1 TIME-DEPENDENT ALGORITHM
+In this paper an algorithm to obtain the density of states is
+introduced by determining an appropriate law for the temporary
+change of F in such a way that the saturation in the
+<η
+<ε
+Δ
+Δ
+FIG. 1. Dynamical behavior of  a  F,    t  ,    t   and  b   H ,
+ H,  H
+ H  for the Ising model in a two-dimensional square lattice with
+L=8 using the Wang-Landau method. The quantities are obtained
+averaging over 256 independent samples. The flatness criterion was
+95%.
+R. E. BELARDINELLI AND V. D. PEREYRA PHYSICAL REVIEW E 75, 046701  2007 
+046701-2
+errors is avoided. One proceeds in the same way as in the
+WL method, identifying the range of the energy of interest,
+performing the random walk in this range, and using the
+acceptance probability defined in Eq.  1 . The algorithm is as
+follows:
+ i  Choose an initial configuration and set S E =0, H E 
+=0 for all E and F0=1 and also fix Ffinal.
+ ii  The system changes from Ei to Ef according to the
+probability given in Eq.  1 .
+ iii  Increment the histogram and the density of state,
+H E →H E +1, and S E →S E +Fk.
+ iv  After some fixed sweeps  i.e., 1000 MC time  check
+H E ; if H E  0 for all E, then refine Fk+1=Fk /2 and reset
+the histogram H E .
+ v  If Fk+1 t−1, then Fk+1=F t =t−1 and in what follows
+F t  is updated at each MC time. H E  and the step  iv  are
+not used for the rest of the experiment.
+ vi  If F t  Ffinal, then the process is stopped. Otherwise
+go to  ii .
+The main goal of the algorithm proposed here is to find an
+appropriate variation of the refinement parameter as a function
+of time, as is given in  v .
+To analyze the dynamic of the proposed algorithm it is
+convenient to introduce a new histogram H  E  analogous to
+H E , which is not reset in the whole experiment.
+In Fig. 3 one can observe a test of the algorithm through
+the time behavior of the quantities  a     t  ,    t  , and  F,
+and  b   H  t  ,  H , and  H 
+ H   , for the same system as that
+described in Fig. 1. One can see that the errors    t   and
+   t   are proportional to 1
+ t and F t =t−1 for large t. On the
+other hand,  H  t  =t for all time t  this is due to the fact that
+its quantity is not reset during the whole experiment ,  H 
+  t and  H 
+ H     1
+ t .
+In the inset of the Fig. 3 b , the behavior of the nonreset
+histogram  H  t  ,  H , and  H 
+ H   for the WL algorithm is
+included. Clearly, it is observed that both quantities  H  t  
+and  H  are proportional to t and  H 
+ H  
+→const for large t.
+One can verify that the errors    t   and    t   go as
+  F t ; this is the main characteristic of the algorithm. On
+the other hand, the fluctuation of the histogram goes as  H
+  1
+ F t  ; this relation was also obtained by different authors in
+Refs.  26,31  for the WL method. Based on the time behavior
+of the histogram growth and its fluctuation, one can conclude
+that it belongs to the universality class of the random deposition
+model  33 .
+The election of F t =1/ H  t   is not arbitrary; in fact, if
+F t  decreases more slowly than 1/  H  t  , the algorithm
+will lose unnecessary time to arrive at the same precision in
+g E   this can be easily tested, changing the exponent in the
+function F t  and observing the behavior of the errors . On
+the contrary, if F t  decreases faster than 1/  H  t  , the error
+saturates, as happens in the WL method. F t =t−1 is a limit
+function.
+To compare the speed and convergence of the algorithm
+proposed here with the WL method, the error    t   versus
+time t is plotted in Fig. 4 for both cases. It is observed that
+for any value of the flatness condition in the WL method, the
+error saturates. Taking the value of the error at the saturation
+time for each curve, one can observe the t−1/2 dependence;
+such behavior suggests the functionality of F t . One can
+also observe that the error calculated by the method proposed
+here, at a given time t, is always smaller than the one corresponding
+to WL with any value of the flatness condition. On
+the other hand, the time that the WL algorithm takes is al-
+ε
+FIG. 2. Dynamical behavior of    t   for different values of the
+parameter m. The flatness criterion was 95%. As one can see, in all
+cases the error saturates.
+Δ
+Δ
+η
+ε
+Δ
+Δ
+FIG. 3. Dynamical behavior of  a   F,    t  ,    t   and  b 
+ H  ,  H ,  H 
+ H   , for the Ising model in a 2D square lattice with L
+=8 using the algorithm introduced here. The quantities are obtained
+averaging over 88 independent samples. In a double-logarithmic
+scale, the data points for the quantities  H ,  H 
+ H   ,    t  , and    t  
+fall on a straight line with the values of the slopes equal to
+0.518±0.015, −0.482±0.015, −0.486±0.008, and −0.488±0.008,
+respectively, for large t. In the inset of  b  the time behavior of  H  ,
+ H , and  H 
+ H   for the WL algorithm is shown.
+FAST ALGORITHM TO CALCULATE DENSITY OF STATES PHYSICAL REVIEW E 75, 046701  2007 
+046701-3
+ways greater than that corresponding to our algorithm.
+Figure 5 shows the errors versus time for one interval of
+energy, E/L2  −2,0 , for an Ising model with L=50 with
+80 averages. In the same figure,  F t  and  H 
+ H   are also included.
+In the inset, one can see   E  and   E  as a function
+of E
+L2 at the final time tfinal for a typical independent sample.
+As is expected, in the Ising model one can compare the
+exact value of the energy density function, at least for size
+L 50, with the experimental one. However, the error and
+ H 
+ H   have the same time functionality. This fact is necessary
+when the exact energy density function is not previously
+known, as in other statistical models. Then, observing the
+behavior of  H 
+ H   as a function of time, one can obtain information
+about the accuracy and convergence of the algorithm.
+To check this fact, in Fig. 6 the critical temperature Tc is
+shown as a function of the size of the lattice for a ten-state
+Potts model. Tc has been obtained using the method of the
+double peak described in Ref.  34 . The size of the lattices
+goes from L=40 to L=120. To compare both methods, the
+results given by the WL algorithm  Ref.  1   are also shown.
+As one can see, the precision of the proposed algorithm is
+rather better than that obtained by the WL algorithm  in the
+same conditions, f final=exp 10−8  . The critical temperature,
+obtained by using our algorithm according to finite-size
+theory, is Tc=0.701 237±0.000 008  the exact result for the
+infinite system is Tc=0.701 232. . .; see Ref.  35  .
+In the inset of the figure, the time behavior of  H 
+ H   and
+ F t  is shown for the WL and the algorithm proposed here,
+for L=16. While in the first case,  H 
+ H   goes to a constant
+value, even for very low values of  F t , in the second one,
+ H 
+ H     F t  t−1/2.
+It is important to note that in our method, as in the WL
+method, during the random walk especially in the early time,
+the algorithm does not satisfy the detailed balance condition
+exactly, because g E  is modified constantly during the random
+walk. After the refinement parameter assumes the t−1
+functionality, the random walk algorithm satisfies the detailed
+balance with accuracy proportional to 1
+ t .
+IV. CONCLUSIONS
+Summarizing, in this paper an accurate algorithm to calculate
+the energy density function is proposed. The algorithm
+considers that the refinement parameter F in the well-known
+WL method is a function of time, which decreases at the
+same speed as the average height in the energy histogram
+increases. In this way, the density of states calculated,
+gm E, t , approaches asymptotically the exact value gex E  as
+ t−1/2. This simple law avoids the saturation in the error.
+Although the function  H 
+ H   follows the same time behavior
+as the error, the histogram is not indispensable in the implementation
+of the method. In other words, there is a direct
+relation between the accuracy of the method and the flatness
+in the histogram, as is shown in this work. Note that in the
+ε
+FIG. 4. Comparison between the error    t   calculated using the
+WL method with different flatness condition and that obtained by
+our algorithm for the Ising model in a 2D square lattice with L=8.
+Δ
+η
+ε ε
+η
+FIG. 5. Time behavior of  F,  H 
+ H   ,    t  , and    t   for the
+whole energy range E/L2  −2,0  for an Ising model in a 2D
+square lattice with L=50 and N=1250 averaging over 80 independent
+samples. In a double-logarithmic scale, the data points for the
+quantities  H 
+ H   ,    t  , and    t   fall on a straight line with the
+values of the slopes equal to −0.51±0.03, −0.51±0.03, and
+−0.54±0.05, respectively. In the inset the behavior is shown of the
+errors   and   as a function of the energy E/L2 at the final stage of
+the simulation  2
+108 MC steps  for a typical independent sample.
+FIG. 6. Extrapolation of finite lattice “transition temperatures”
+for the algorithm proposed here  solid circles  and WL algorithm
+ open triangles  for a 2D Q=10 Potts model. In the inset the time
+behavior of  H 
+ H   and  F is shown for both the WL  dashed lines 
+and our algorithm  solid lines , with L=16.
+R. E. BELARDINELLI AND V. D. PEREYRA PHYSICAL REVIEW E 75, 046701  2007 
+046701-4
+present algorithm the energy histogram growth belongs to
+the universality class of the random deposition model, independently
+of the statistical model that is simulated.
+The most important property of the algorithm is the
+present relation between the error and the function F t ; this
+characteristic allows the assignment of the final stopping
+condition to F t , making it as small as one wants. In this
+way, the total time of simulation is previously determined for
+a given Ffinal, which is not possible to do with the WL algorithm
+and its variations.
+In conclusion, the proposed algorithm is more efficient,
+accurate, and easy to implement than other well-known
+methods.
+ACKNOWLEDGMENTS
+We thank Professor G. Zgrablich for reading the manuscript.
+This work is partially supported by the CONICET
+ Argentina .
+ 1  F. Wang and D. P. Landau, Phys. Rev. Lett. 86, 2050  2001 ;
+Phys. Rev. E 64, 056101  2001 ; Comput. Phys. Commun.
+147, 674  2002 ;.
+ 2  N. Rathore and J. J. de Pablo, J. Chem. Phys. 116, 7225
+ 2002 , N. Rathore, T. A. Knotts, and J. J. de Pablo, ibid. 118,
+4285  2001 .
+ 3  Q. Yan, R. Faller, and J. J. de Pablo, J. Chem. Phys. 116, 8745
+ 2002 .
+ 4  M. Chopra and J. J. de Pablo, J. Chem. Phys. 124, 114102
+ 2006 ; E. B. Kim, R. Feller, Q. Yan, N. L. Abbott, and J. J. de
+Pablo, ibid. 117, 7781  2002 ; A. Ethan and J. J. de Pablo,
+ibid. 122, 124109  2005 .
+ 5  M. S. Shell, P. G. Debenedetti, and A. Z. Panagiotopoulos,
+Phys. Rev. E 66, 056703  2002 .
+ 6  C. Yamaguchi and Y. Okabe, J. Phys. A 34, 8781  2001 .
+ 7  Y. Okabe, Y. Tomita, and C. Yamaguchi, Comput. Phys. Commun.
+146, 63  2002 .
+ 8  E. A. Mastny and J. J. de Pablo, J. Chem. Phys. 122, 124109
+ 2005 .
+ 9  P. Poulain, F. Calvo, R. Antoine, M. Broyer, and Ph. Dugourd,
+Phys. Rev. E 73, 056704  2006 .
+ 10  N. Metropolis, A. Rosembluth, M. Rosembluth, A. Teller, and
+E. Teller, J. Chem. Phys. 21, 1087  1953 .
+ 11  R. H. Swendsen and J.-S. Wang, Phys. Rev. Lett. 58, 86
+ 1987 ; U. Wolff, ibid. 62, 361  1989 .
+ 12  D. P. Landau and K. Binder, A Guide to Monte Carlo Methods
+in Statistical Physics  Cambridge University Press, Cambridge,
+England, 2000 .
+ 13  B. A. Berg and T. Neuhaus, Phys. Rev. Lett. 68, 9  1992 .
+ 14  B. A. Berg and T. Celik, Phys. Rev. Lett. 69, 2292  1992 .
+ 15  B. A. Berg and T. Neuhaus, Phys. Lett. B 267, 249  1991 .
+ 16  W. Janke and S. Kappler, Phys. Rev. Lett. 74, 212  1995 .
+ 17  W. Janke, Int. J. Mod. Phys. C, 3, 375  1992 .
+ 18  B. A. Berg, U. Hansmann, and T. Neuhaus, Phys. Rev. B 47,
+497  1993 .
+ 19  W. Janke, Physica A 254, 164  1998 .
+ 20  B. A. Berg and W. Janke, Phys. Rev. Lett. 80, 4771  1998 .
+ 21  B. A. Berg, Nucl. Phys. B 63, 982  1998 .
+ 22  B. A. Berg, T. Celik, and U. Hansmann, Europhys. Lett. 22, 63
+ 1993 .
+ 23  N. Hatano and J. E. Gubernatis, in Computer Simulation Studies
+in Condensed Matter Physics XII, edited by D. P. Landau,
+S. P. Lewis, and H.-B. Schuttler  Springer, Berlin, 2000 .
+ 24  B. J. Schulz, K. Binder, and M. Müller, Int. J. Mod. Phys. C
+13, 477  2002 .
+ 25  D. Jayasri, V. S. S. Sastry, and K. P. N. Murthy, Phys. Rev. E
+72, 036702  2005 .
+ 26  C. Zhou and R. N. Bhatt, Phys. Rev. E 72, 025701 R   2005 .
+ 27  A. Troster and C. Dellago, Phys. Rev. E 71, 066705  2005 .
+ 28  C. Zhou, T. Schulthess, S. Torbrugge, and D. Landau, Phys.
+Rev. Lett. 96, 120201  2006 .
+ 29  S. Trebst, D. A. Huse, and M. Troyer, Phys. Rev. E 70, 046701
+ 2004 .
+ 30  P. Dayal, S. Trebst, S. Wessel, D. Wurtz, M. Troyer, S. Sabhapandit,
+and S. N. Coppersmith, Phys. Rev. Lett. 92, 097201
+ 2004 .
+ 31  H. K. Lee, Y. Okabe, and D. P. Landau, Comput. Phys. Commun.
+175, 36  2006 .
+ 32  P. D. Beale, Phys. Rev. Lett. 76, 78  1996 .
+ 33  A-L. Barabasi and H. E. Stanley, Fractal Concept in Surface
+Growth  Cambridge University Press, Cambridge, England,
+1995 .
+ 34  M. S. S. Challa, D. P. Landau, and K. Binder, Phys. Rev. B 34,
+1841  1986 .
+ 35  F. Y. Wu, Rev. Mod. Phys. 54, 235  1982 .

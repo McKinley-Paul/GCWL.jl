@@ -204,7 +204,7 @@ function λ_move!(sim::SimulationParams,μ::microstate,wl::WangLandauVars,c::Sim
             c.μ_prop.N -= 1
             return(nothing)
         end
-        c.μ_prop.r_box[c.μ_prop.N] .= μ.r_frac_box # add the fractional particle to the μ.N+1 position
+        c.μ_prop.r_box[c.μ_prop.N] .= μ.r_frac_box # add the fractional particle to the μ.N+1 position, make the fractional particle whole
         @inbounds for i in 1:3
             c.μ_prop.r_frac_box[i] = rand(sim.rng) - 0.5
         end

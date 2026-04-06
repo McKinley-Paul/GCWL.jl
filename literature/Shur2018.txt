@@ -1,0 +1,354 @@
+On properties of the Wang–Landau algorithm
+L.N. Shchur1,2,3
+1 Landau Institute for Theoretical Physics, 142432 Chernogolovka, Russia
+2 Science Center in Chernogolovka, 142432 Chernogolovka, Russia
+3 National Research University Higher School of Economics, 101000 Moscow, Russia
+Abstract. We review recent advances in the analysis of the Wang–Landau algorithm, which
+is designed for the direct Monte Carlo estimation of the density of states (DOS). In the case of a
+discrete energy spectrum, we present an approach based on introducing the transition matrix in
+the energy space (TMES). The TMES fully describes a random walk in the energy space biased
+with the Wang–Landau probability. Properties of the TMES can explain some features of the
+Wang–Landau algorithm, for example, the flatness of the histogram. We show that the Wang–
+Landau probability with the true DOS generates a Markov process in the energy space and the
+inverse spectral gap of the TMES can estimate the mixing time of this Markov process. We
+argue that an efficient implementation of theWang–Landau algorithm consists of two simulation
+stages: the original Wang–Landau procedure for the first stage and a 1/t modification for the
+second stage. The mixing time determines the characteristic time for convergence to the true
+DOS in the second simulation stage. The parameter of the convergence of the estimated DOS
+to the true DOS is the difference of the largest TMES eigenvalue from unity. The characteristic
+time of the first stage is the tunneling time, i.e., the time needed for the system to visit all
+energy levels.
+1. Introduction
+The history of Monte Carlo simulations begins in the early years of computing. The method
+was developed in one of the most cited papers in computational physics and chemistry [1], where
+both the Monte Carlo method and the molecular dynamics approach were introduced. Many
+algorithms for Monte Carlo simulations have since been developed. In statistical mechanics,
+different Monte Carlo algorithms are based on different partition function representations.
+A general partition function representation is
+Z =
+X
+{i}
+e−Ei/kBT , (1)
+where Ei is the energy of the configuration {i} of the system in the phase space, T is the
+temperature, and kB is the Boltzmann constant. Representation (1) can be associated, for
+example, with the Metropolis algorithm [1], which is based on the local updates taking energy
+changes  Ekl = El−Ek with moves in the phase space from state {k} to state {l} into account.
+The probability of accepting the move is given by the Metropolis probabilities
+P = min
+h
+1, e− Ekl/kBT
+i
+. (2)
+Modifications of the Metropolis algorithm are based on variations of local updates, as well as
+more complicated algorithms, which in any event use local update rules and probabilities (see
+book [2] for references). All of them use partition function (1) as the basic representation.
+A more sophisticated algorithm named the MuMC algorithm (multi-canonical Monte Carlo)
+is based on another representation of the partition function [3, 4],
+Z =
+XNE
+k=1
+g(Ek)W(Ek), (3)
+where NE is the number of energy levels, g(Ek) is the number of states with the energy Ek,
+and W(E) is an a priori unknown weight function, which is estimated in the simulations. The
+condition to stop is that all g(Ek)W(Ek) are approximately equal to each other. It is successfully
+used in polymer simulations [5].
+Another famous example is based on a cluster representation [6] of the Potts model,
+Z =
+X
+bonds
+pb(1 − p)nqNc , (4)
+where p = 1 − exp(−J/kBT), J is a constant measured in energy units, b is the number of
+bonds connecting spins, n is the number of bonds not connecting spins, q is the number of spin
+components, and Nc is the number of clusters in the configuration. The cluster representation
+leads to several efficient algorithms for simulating the Potts model; the two most famous are the
+Swendsen–Wang cluster algorithm [7] and the Wolf one-cluster algorithm [8].
+The abovementioned algorithms are extensively used in simulations. We do not discuss the
+pros and cons of the algorithms and refer our readers to the book [2].
+A common property of all the mentioned algorithms is that simulations depend explicitly on
+the temperature T. The algorithm that we review and analyze here is quite different: simulations
+are independent of the temperature.
+The Wang–Landau (WL) algorithm is a way to estimate the density of states (DOS)
+directly [9, 10]. It can be applied to any system with a defined partition function. Its idea is
+based on representing the partition function as a sum over the energy levels (somewhat similar
+to representations used for the MuMC algorithm),
+Z =
+XNE
+k=1
+g(Ek)e−Ek/kBT . (5)
+It has proved to work quite well for many systems, with applications in different areas of
+statistical physics and mechanics. There are more than 1500 papers on the application of
+the algorithm and its improvements. At the same time, not all properties of the algorithm
+are well understood. For example, it is unclear how auxiliary histogram flatness is related to
+the convergence of the algorithm and how accuracy of the DOS estimation evolves with the
+simulation time.
+An approach based on constructing the transition matrix in the energy space (TMES) was
+recently proposed [11]. It answers the above questions and can be used for a deeper analysis
+of the algorithm and for modifications of the WL algorithm. We present a summary of the
+approach to the analysis of the WL algorithm. We regard the WL algorithm as a random
+walk in the energy space as soon as the WL probabilities of moves between energies are based
+purely on the ratios of the corresponding densities g(E) of the energy states. We explain some
+properties of the WL algorithm, including the flatness criteria and the characteristic time scales,
+and discuss the control parameter for estimating the accuracy of the DOS estimate and for the
+convergence of the DOS to the true values.
+In section 2, we briefly review the WL algorithm. In section 3, we introduce the TMES. In
+section 4, we define and discuss the characteristics time of the WL algorithm. The discussion in
+section 5 finishes our review.
+2. Wang–Landau algorithm
+We briefly describe the WL algorithm here. We take a configuration of the system, compute the
+energy value Ek, randomly choose an update to a new configuration with the energy Em, and
+accept this configuration with the WL probability
+e Pwl = min
+ 
+1,
+˜g(Ek)
+˜g(Em)
+ 
+, (6)
+where ˜g(E) is the current DOS approximation. The approximation is obtained recursively
+by multiplying ˜g(Em) by a factor f at each step of the random walk in the energy space.
+Each time that the auxiliary histogram H(E) becomes sufficiently flat, the parameter f is
+modified by taking the square root, f := √f. Each histogram value H(Em) counts the number
+of moves to the energy level Em. The histogram is filled with zeros after each modification
+of the refinement parameter f. It is convenient to work with the logarithms of the values,
+S(Ek) := ln ˜g(Ek) and F := ln f, and to replace the multiplication ˜g(Em) := f · ˜g(Em) with
+the addition S(Em) := S(Em)+F. At the end of the simulation, the algorithm provides only a
+relative DOS. Either the total number of states or the number of ground states can be used to
+determine the absolute DOS.
+3. Transition matrix in the energy space
+The central idea of the WL algorithms is the WL probability, which generates a random walk in
+the energy space. We first argue that random walk in the energy space with the WL probability
+calculated using the true DOS is a Markov chain and satisfies the detailed balance condition [11].
+The WL probability in this case is given by
+Pwl = min
+ 
+1,
+g(Ek)
+g(Em)
+ 
+, (7)
+where g(E) is the true DOS (cf. WL probability (6)).
+It is useful to consider a TMES whose elements show the frequency of transitions between
+energy levels during the WL random walk in the energy space [11]. Its elements are influenced
+by both the random process of choosing a new configurational state and the WL probability of
+accepting the new energy,
+T(Ek,Em) = min
+ 
+1,
+g(Ek)
+g(Em)
+ 
+P(Ek,Em), (8)
+which represents nondiagonal elements of the TMES of theWL random walk in the energy space.
+Here, P(Ek,Em) is the probability of one step of the random walk to move from a configuration
+with the energy Ek to any configuration with the energy Em.
+The random walk in the configuration space is a Markov chain. Its invariant distribution is
+uniform, i.e., the probabilities of all states of the physical system are equal to each other. For
+any pair of configurations 
+A and 
+B, the probability of an update from 
+A to 
+B is equal to
+the probability of an update from 
+B to 
+A. Hence, the detailed balance condition is satisfied.
+Therefore,
+g(Ek)P(Ek,Em) = g(Em)P(Em,Ek), (9)
+where g(E) is the true DOS. It follows from (8) and (9) that
+T(Ek,Em) = T(Em,Ek). (10)
+Therefore, the TMES of the WL random walk on the true DOS is a symmetric matrix. Because
+the matrix is both symmetric and right stochastic, it is also left stochastic. Therefore, the sum
+over rows (columns) is equal to unity, and the rates of visiting of all energy levels are equal
+to each other. The corresponding auxiliary histogram of energy visits in the WL algorithm is
+indeed flat! (See the discussion in section 5.)
+We therefore observe [11] that the flatness of the histogram in the WL algorithm is just the
+proximity of the corresponding random walk in the energy space to the Markov process. The
+closer the estimated DOS is to the true DOS, the closer the TMES is to the fully stochastic
+matrix. This property can be used to connect control of DOS convergence to the property of
+TMES convergence to the stochastic matrix.
+3.1. Exact TMES for 1D Ising model
+It is instructive to seek an exact solution of TMES elements. This can be easily done for the
+1D Ising model [11]. In the case of a chain of L spins with periodic boundary conditions, the
+probability to change the energy from Ek to Em in a WL random move is
+T(Ek,Em) = min
+ 
+1,
+g(Ek)
+g(Em)
+ X2k
+i=0
+NiQEk!Em
+i
+g(Ek)
+, (11)
+where k 6= m. Here, k is the number of couples of domains walls in the configuration, which
+determines the energy level Ek = −
+PLj
+=1  j j+1 = −L + 4k, Ni(k,L) is the number of
+configurations where i domains consist of only one spin and 2k−i domains consist of more
+than one spin, and QEk!Em
+i (L) is the probability that a single spin flip moves system to the
+energy Em from such configurations.
+The structure of expression (11) shows that TMES elements are composed of three
+probabilities: the probability of the particular configuration, the probability that the move
+in the configuration space changes the system energy to some value, and the WL probability Pwl
+to accept the proposed move between energy levels. It reflects the inside of the WL algorithm
+and explicitly shows how the combination of choosing the site in the configuration space and of
+the corresponding change in the phase space generates a random walk in the energy space.
+Occupations of energy levels of the chain are expressed in terms of binomial coefficients as
+g(Ek) = 2C2k
+L because there are exactly C2k
+L ways to arrange 2k domain walls. Therefore,
+partition function (5) is
+ZL = 2
+XL/2
+k=0
+C2k
+L e(L−4k)/(kBT) (12)
+and the TMES for the 1D Ising model is
+T(Ek,Ek+1) = T(Ek+1,Ek) =
+C2k
+L−2
+max
+ 
+C2k
+L ,C2k+2
+L
+ . (13)
+The TMES is indeed symmetric and stochastic.
+3.2. Estimation of TMES elements during simulation
+We estimate the TMES elements in simulations as follows [11]. The auxiliary matrix U(Ek,Em)
+is initially filled with zeros. The element U(Ek,Em) is increased by unity after every WL move
+from a configuration with the energy Ek to a configuration with the energy Em. During the
+simulations, we compute the normalized matrix
+e T(Ek,Em) = U(Ek,Em)/eH
+, (14)
+where
+eH
+=
+X
+k,m
+U(Ek,Em)/NE. (15)
+The obtained matrix e T is expected to approach the stochastic matrix T in the final stage of
+correct calculation.
+4. Two characteristic times in WL algorithm
+Results of simulations [11, 12] demonstrate that there are two time scales in the WL simulations
+(although this point is not discussed in the texts). It is well known that the WL algorithm drives
+the estimated DOS to the vicinity of the true DOS at the beginning of simulations, at least for
+systems with a discrete energy spectrum and a not very complicated energy landscape. This is
+a positive feature of the WL algorithm, although still unexplained. The time scale of this stage
+can be associated with the tunneling time. The second stage is the stage of convergence of the
+estimated DOS to the true DOS. In this section, we argue that the time scale of the second
+stage is given by the inverse value of the spectral gap of the TMES.
+4.1. Tunneling time
+Is it known from the beginning of WL simulations [13] that the finite value of the desired
+histogram flatness leads to saturation of the estimates, and saturation was found for systems
+with a known DOS. The first stage of the WL algorithm drives the estimated DOS close to the
+true DOS in the first simulation stage, although not very close. Analysis of Figures 1 and 3–5
+in paper [11] shows that there is a characteristic time of the first stage; we suggest that it is the
+tunneling time of the random walk in the energy space. There are several definitions leading
+to the same scaling behavior of the tunneling time with system size (more precisely, with the
+number of energy levels), Tt ∝ Lz. A useful practical definition is that it is the time needed for
+the WL random walk to reach the highest energy level starting from the lowest one [14].
+The modification of the WL algorithm called the 1/t-WL algorithm [15, 16] defines the time
+when the 1/t regime of the WL algorithm starts as the time when all energy levels have been
+visited at least once. Clearly, it is practically the same as the tunneling time.
+The stochastic approximation Monte Carlo (SAMC) algorithm [17, 18] does specify how to
+choose the time t0 when the 1/t regime starts. Our preliminary analysis shows that the optimal
+choice of t0 is indeed the tunneling time.
+There is a natural lower limit for the exponent z. It can be understood in terms of the random
+walk. We first consider the classical problem of the 1D unbiased random walk: the position i of
+the random walk changes with equal probability to i − 1 or i + 1. The point 0 is the reflecting
+point of the random walk, and the point N is the absorbing point. The first-passage time of the
+random walk is known to scale as N2. The number of levels NE for the 2D Ising model scales as
+L2, and the number of random walk jumps necessary to cross all energy spectrum hence scales
+as L4. Therefore, z = 4 is the minimum value for any type of random walk in the energy space
+of the 2D Ising model.
+For a random walk with bias, which is the WL probability Pwl, the growth of the tunneling
+time should be faster, z > 4. There is a worse message, which can be learned from the properties
+of a random walk in a random potential. It states that localization of the random walker occurs
+in one dimension [19]. This probably explains the difficulties in applying the WL algorithm to
+systems with complex energy landscapes: the random walker can be temporarily trapped near
+a global minimum of the probability profile in the simulated DOS.
+Positions of the vertical dashed line in Figures 1 and 3–5 in paper [11] can be associated with
+the tunneling time. During the first simulation stage, the effective tunneling time exponent
+grows from z = 4 to a value that depends on the investigated system. Reported estimated
+exponents for the scaling of the tunneling time are z = 4.743(7) for the 2D Ising model on
+a square lattice of linear size L and approximately z = 5.7 for the fully frustrated 2D Ising
+model [14].
+4.2. Mixing time
+The spectral gap G of the TMES determines the mixing time of the Markov chain [20]:
+Tm = 1/G, (16)
+G =  1 −  2, (17)
+where  1 and  2 are the two largest eigenvalues of the TMES.
+In the second phase of the 1/t-WL (or SAMC) algorithm, the DOS is very close to the true
+DOS, and the characteristic time of convergence is therefore just the mixing time Tm of the
+Markov chain.
+The exact solution for the 1D Ising model [11] can be used to construct the TMES for varying
+lattice sizes, and fitting to the inverse spectral gap yields an estimate [12] for the mixing time
+exponent Tm ∝ L2.19. Numerically estimating the mixing time for the 2D Ising model [12] leads
+to the result Tm ∝ L4.37(2).
+5. Discussion
+Using our approach, we can calculate the normalized histogram H = H(Em)/
+P
+m H(Em) from
+the TMES H =
+P
+k
+e T(Ek,Em). It is obvious that the histogram flatness condition is equivalent
+to the property that the matrix e T is close to the stochastic matrix. The histogram flatness in
+the second simulation stage is closely related to the stochastic properties of the TMES because
+the estimated DOS is very close to the true DOS.
+We have argued that the time tc in the 1/t-WL algorithm [15, 16] and the time t0 in the SAMC
+algorithm [17, 18] is of the order of the tunneling time [14]. Therefore, in the first simulation
+stage, the optimal choice is the original WL algorithm, which drives the estimated DOS close
+to the true DOS, at least for systems with a not very complicated free energy landscape. In the
+second simulation stage, the 1/t-WL algorithm drives the estimated DOS to the true DOS, and
+the characteristic time is the mixing time Tm. The accuracy of estimating the DOS is given by
+the deviation of the largest eigenvalue of the estimated TMES from unity [11].
+Future research should be done to understand properties of the WL algorithm when applied
+to more complicated systems and to systems with a continuous energy spectrum. In systems
+with a complex energy landscape, the variation of the transition matrix elements can be huge,
+and this can lead to a large increase of the tunneling time. It follows from the theory of a
+random walk in a random potential [19] that the random walker can be localized in an extremal
+valley of the potential. It is important to understand under which conditions this can happen
+with the WL algorithm.
+Partitioning a continuous energy spectrum into bins (done in simulations) allows using the
+TMES approach to analyze simulations. It would be instructive to understand how the bin size
+influences TMES properties, from which we might understand some properties of simulations,
+the behavior of the control parameter, and also the tunneling and mixing time values.
+This work was supported by grant 14-21-00158 from the Russian Science Foundation.
+References
+[1] Ni. Metropolis, A.W. Rosenbluth, M.N. Rosenbluth, A.H. Teller, and E. Teller, Equation of State Calculations
+by Fast Computing Machines, J. Chem. Phys. 21, 1087 (1953).
+[2] D.P. Landau and K. Binder, A Guide to Monte Carlo Simulations in Statistical Physics, 4th edition,
+Cambridge University Press, Cambridge, 2015.
+[3] B. A. Berg, T. Neuhaus, Multicanonical algorithms for first order phase transitions , 26, 249 (1991).
+[4] B. A. Berg, T. Neuhaus, Multicanonical ensemble: A new approach to simulate first-order phase transitions,
+Phys. Rev. Lett. 68, 9 (1992).
+[5] W. Janke and W. Paul, Thermodynamics and Structure of Macromolecules from Flat-Histogram Monte Carlo
+Simulations, Soft Matter 12, 642 (2016).
+[6] C. M. Fortuin, P. W. Kasteleyn, On the random-cluster model: I. introduction and relation to other models,
+Physica (Amsterdam), 57, 536 (1972).
+[7] R.H. Swendsen and J.-S. Wang, Nonuniversal critical dynamics in Monte Carlo simulations, Phys. Rev. Lett.
+58, 86 (1987).
+[8] U. Wolff, Lattice field theory as a percolation process, Phys. Rev. Lett. 60, 1461 (1988).
+[9] F. Wang, D. P. Landau, Efficient, multiple-range random walk algorithm to calculate the density of states,
+Phys. Rev. Lett. 86, 2050 (2001).
+[10] F. Wang, D. P. Landau, Determining the density of states for classical statistical models: A random walk
+algorithm to produce a flat histogram, Phys. Rev. E 64, 056101 (2001).
+[11] L. Yu. Barash, M. A. Fadeeva, and L. N. Shchur, Control of accuracy in the Wang–Landau algorithm, Phys.
+Rev E 96, 043307 (2017).
+[12] M. Fadeeva and L. Shchur, On the mixing time in the Wang–Landau algorithm, J. Phys.: Conf. Ser. 955,
+012028 (2018).
+[13] D. Landau. Rahman Prize Lecture, 2002.
+[14] P. Dayal, et al, Performance limitations of flat-histogram method, Phys. Rev. Lett. 92, 097201 (2004).
+[15] R. E. Belardinelli and V. D. Pereyra, Fast algorithm to calculate density of states, Phys. Rev. E 75, 046701
+(2007).
+[16] R. E. Belardinelli and V. D. Pereyra, Wang–Landau algorithm: A theoretical analysis of the saturation of the
+error, J. Chem. Phys. 127, 184105 (2007).
+[17] F. Liang, C. Liu, and R. J. Carroll, Stochastic Approximation in Monte Carlo Computation, J. Am. Stat.
+Assoc. 102, 305 (2007).
+[18] F. Liang, A Theory on Flat Histogram Monte Carlo Algorithms, J. Stat. Phys. 122, 511 (2006).
+[19] Ya.G. Sinai, The Limiting Behavior of a One-Dimensional Random Walk in a Random Medium, Theory
+Probab. Appl., 27, 256 (1982)
+[20] S. Boyd, P. Diaconis, L. Xiao, Fastest mixing Markov chain on a graph, SIAM Review 46, 667 (2004).

@@ -1,0 +1,11 @@
+1775172411
+  Activating project at `~/Documents/montecarlo/segc_wl`
+Precompiling packages...
+    Plots Being precompiled by another process (pid: 76445, pidfile: /Users/mckinleypaul/.julia/compiled/v1.12/Plots/ld3vC_sUlZW.ji.pidfile)
+   9076.2 ms  ✓ Plots
+    FileIOExt Being precompiled by another process (pid: 76445, pidfile: /Users/mckinleypaul/.julia/compiled/v1.12/FileIOExt/uE6Zh_sUlZW.ji.pidfile)
+   1751.7 ms  ✓ Plots → FileIOExt
+    segc_wl Being precompiled by another process (pid: 76445, pidfile: /Users/mckinleypaul/.julia/compiled/v1.12/segc_wl/U5ebZ_sUlZW.ji.pidfile)
+    890.6 ms  ✓ segc_wl
+  3 dependencies successfully precompiled in 12 seconds. 245 already precompiled.
+Runtime: 187879 seconds

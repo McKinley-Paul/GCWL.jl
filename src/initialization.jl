@@ -315,6 +315,7 @@ function initialization_check(sim::SimulationParams, μ::microstate,wl::WangLand
     check_inputs(sim,μ,wl) # tell user the min distance in config and similar things
     print_simulation_params(sim)
     print_microstate(μ,true)
+    flush(stdout)
 end
 
 
