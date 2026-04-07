@@ -64,7 +64,7 @@ function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVar
                 # we never have to check min ≥ 1000 because by definition min ≥ 1 must happen before min ≥ 1000 so the only time 
                 # we will change the modification factor is in phase 2            
                 wl.phase2 = true
-                wl.H_λN = zeros(Int64,sim.λ_max+1,sim.N_max+1) # rezero to start out phase 2
+                # wl.H_λN = zeros(Int64,sim.λ_max+1,sim.N_max+1) # rezero to start out phase 2
                 println("Now entering phase 2! It took ", wl.iters, " monte carlo moves (wl.iters) to get to phase 2!")
                 flush(stdout)
             end
