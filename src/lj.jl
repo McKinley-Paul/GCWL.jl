@@ -31,7 +31,7 @@ function argon_deBroglie(T_σ::Float64)::Float64 #  ✅
 end # argon debroglie
 
 function E_12_LJ(rij_squared_σ::Float64)::Float64 #  ✅ 
-    #= Computes the interaction energy between two normal lennard jones particles in LJ units 
+    #= Computes the interaction energy between two lennard jones particles in LJ units 
     rij_squared_\sigma = squared distance between two particles in lennard jones \sigma =1 units
     =# 
     E_int = (1/rij_squared_σ)^6 - (1/rij_squared_σ)^3
@@ -39,28 +39,14 @@ function E_12_LJ(rij_squared_σ::Float64)::Float64 #  ✅
     return(E_int)
 end 
 
-function E_12_frac_LJ(rij_squared_σ::Float64,λ::Int64,λ_max::Int64,ϵ_ξ::Float64,σ_ξ_squared::Float64)::Float64 #  ✅ 
-    #= computes interaction between fractional particle and normal LJ particle according to equation 16 of Desgranges 2016. Note that `M` in Desgranges = λ_max + 1 in our notation
-    returns energy in lennard jones units
-    # takes in ϵ_ξ and σ_ξ_squared instead of precomputing because they only need to be computed 1 time every time λ changes
-    # assumes that rij_squared_σ was computed using the correct minimum image PBC 
-    =# 
-
-    E_int = (σ_ξ_squared/rij_squared_σ)^6 - (σ_ξ_squared/rij_squared_σ)^3
-    E_int = 4*ϵ_ξ*E_int
-    return(E_int)
-end #E12_frac_lj 
 
 
-function potential_1_normal(r_box::Vector{MVector{3,Float64}},ri_box::MVector{3,Float64},i::Int64,r_frac_box::MVector{3,Float64},λ::Int64,λ_max::Int64,N::Int64,L_squared_σ::Float64,r_cut_squared_box::Float64,ϵ_ξ::Float64,σ_ξ_squared::Float64)::Float64 #  ✅ 
-    #= Calculates the sum of the interaction potential between 1 special particle labelled i (e.g. the particle involved in a proposal move) in the r list and all others including the fractional particle
+function potential_1(r_box::Vector{MVector{3,Float64}},ri_box::MVector{3,Float64},i::Int64,N::Int64,L_squared_σ::Float64,r_cut_squared_box::Float64)::Float64 #  ✅ 
+    #= Calculates the sum of the interaction potential between 1 special particle labelled i (e.g. the particle involved in a proposal move) in the r list and all others
     Inputs:
-        -r_box (Array of Float64s): 3xN position matrix of N normal particles in box units
+        -r_box (Array of Float64s): 3xN position matrix of N  particles in box units
         -ri_box (static array of Float64s): 3x1 vector of the position of ri you want to use for distances between all other particles in box units
         -i (int): index of particle in r list you want to compute interactions between, used for avoiding self interactions.
-        - r_frac_box (static array of Float64s): location of fractional particle in box units
-        - λ (int): coupling constant 
-        - λ_max (int): M-1 in desgranges paper, number of unique values λ can take 
         - N (int): current number of particles, could be read from _,N = size(r_box) but want to minimize all activity in this loop and we already have to keep track of N outside this function call
         - L_squared_σ (Float64): squared length of box in σ units (LJ this time)
         - r_cut_squared_box  (Float64): cutoff length squared  for the potential in box=1 units
@@ -70,7 +56,7 @@ function potential_1_normal(r_box::Vector{MVector{3,Float64}},ri_box::MVector{3,
 
     E_int_σ = 0
 
-    # first computing interaction with normal particles
+    #  computing interaction with other particles
     @inbounds for j in 1:N
         if j != i # avoid double counting
             rij_squared_box = euclidean_distance_squared_pbc(ri_box,r_box[j])
@@ -90,105 +76,6 @@ function potential_1_normal(r_box::Vector{MVector{3,Float64}},ri_box::MVector{3,
         end
     end 
 
-    # adding fractional interaction
-    rij_squared_box = euclidean_distance_squared_pbc(ri_box,r_frac_box)
-    if (rij_squared_box < r_cut_squared_box) && (rij_squared_box != 0.0)# if the distance is zero, E_12_frac_LJ returns NaN
-        rij_squared_σ = rij_squared_box  * L_squared_σ  
-        E_int_σ = E_int_σ + E_12_frac_LJ(rij_squared_σ,λ,λ_max,ϵ_ξ,σ_ξ_squared)
-    elseif rij_squared_box == 0.0 # if this is the case need to just reject this config because LJ involves 1/rij which if rij=0 is undefined
-            return(typemax(Float64))
-    end
-    
     return(E_int_σ)
 
-end # potential_1_normal
-
-function potential_1_frac(r_box::Vector{MVector{3,Float64}},r_frac_box::MVector{3,Float64},λ::Int64,λ_max::Int64,N::Int64,L_squared_σ::Float64,r_cut_squared_box::Float64,ϵ_ξ::Float64,σ_ξ_squared::Float64)::Float64
-    #= this function calculates the sum of all interactions between the fractional particle and all the normal particles
-        -r_box (Array of Float64s): 3xN position matrix of N normal particles in box units
-        - r_frac_box (static array of Float64s): location of fractional particle in box units
-        - λ (int): coupling constant 
-        - λ_max (int): M-1 in desgranges paper, number of unique values λ can take 
-        - N (int): current number of particles, could be read from _,N = size(r_box) but want to minimize all activity in this loop and we already have to keep track of N outside this function call
-        - L_squared_σ (Float64): squared length of box in σ units (LJ this time)
-        - r_cut_squared_box  (Float64): cutoff length squared  for the potential in box=1 units
-    Returns:
-        - E_int_σ (Float64): total interaction energy between particle i at location ri and all other particles including the fractional one in natural units for the potential (i.e. lennard jones units)
-    =# 
-    E_int_σ = 0
-
-    @inbounds for j in 1:N
-        rij_squared_box = euclidean_distance_squared_pbc(r_frac_box,r_box[j])
-        if (rij_squared_box < r_cut_squared_box) && (rij_squared_box > 0) # if rij_squared_box ==0 E_12_frac_LJ returns a NaN
-            rij_squared_σ = rij_squared_box  * L_squared_σ 
-            # here we would check for overlap normally and reject but we will not do this for the fractional particle because if λ=1 or something, could still have low energy if overlapped
-            E_int_σ = E_int_σ + E_12_frac_LJ(rij_squared_σ,λ,λ_max,ϵ_ξ,σ_ξ_squared)
-        elseif rij_squared_box == 0 # if this is the case need to just reject (or get out of) this config because LJ involves 1/rij which if rij=0 is undefined/+infinity
-            return(typemax(Float64))
-        end
-    end
-    return(E_int_σ)
-
-end # potential_1_frac
-
-# was @inline 
-function  λ_metropolis_pm1(μ::microstate,
-                           μ_prop::microstate, idx_deleted::Int64, # μ_prop = μ_proposed the next proposed microstate
-                           wl::WangLandauVars,sim::SimulationParams)::Bool #  ✅ 
-
-        # MAKES SOME SIMPLIFYING ASSUMPTIONS THAT ONLY WORK WHEN LAMBDA CAN ONLY CHANGE BY ±1 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        # the purpose of the function is to handle the complex control flow based on the current value of λ and the proposed one.
-        # many things change including the form of the metropolis criterion, what energies you have to compute to get ΔE, and so on.
-        # covered by in general by equations 10-12 in Desgranges 2012
-        # assumes that you have already checked that N_proposed is in bounds  (N_min ≤ N_proposed ≤ N_max)
-
-        # first we compute the multiplicative prefactor term involving Q,V,Λ in eqns 10-12-- because the N! terms can cause overflow, we only compute them once we know something about N old vs new
-        logQ_diff = wl.logQ_λN[μ.λ+1 , μ.N+1] - wl.logQ_λN[μ_prop.λ+1 , μ_prop.N+1]
-        partition_ratio = exp(logQ_diff)
-        if (μ.λ > 0 && μ_prop.λ > 0) || (μ.λ == 0 && μ_prop.λ == 0)
-            V_Λ_prefactor = sim.V_σ^(μ_prop.N -μ.N) * sim.Λ_σ^(3*μ.N - 3*μ_prop.N)
-        elseif μ.λ ==0 && μ_prop.λ > 0
-            V_Λ_prefactor = sim.V_σ^(μ_prop.N+1 - μ.N) * sim.Λ_σ^(3*μ.N - 3*(μ_prop.N+1))
-        elseif μ.λ > 0 && μ_prop.λ == 0 
-           V_Λ_prefactor = sim.V_σ^(μ_prop.N - μ.N - 1) * sim.Λ_σ^(3*(μ.N+1)-3*μ_prop.N)
-        end
-
-        # now we compute the exponential part of the criterion having to do with the configurational potential energy
-        # and the N-dependent factorial prefactor factorial_prefactor = Nold!/Nnew!
-
-        if μ.N == μ_prop.N # λ changed so change in configurational energy only has to do with fractional particle old vs new
-            # following equation 10 desgranges
-           E_old = potential_1_frac(μ.r_box,μ.r_frac_box,   μ.λ   ,sim.λ_max,μ.N,sim.L_squared_σ,sim.r_cut_squared_box, μ.ϵ_ξ,μ.σ_ξ_squared ) 
-           E_proposed = potential_1_frac(μ_prop.r_box,μ_prop.r_frac_box,      μ_prop.λ    ,sim.λ_max,μ_prop.N,sim.L_squared_σ,sim.r_cut_squared_box, μ_prop.ϵ_ξ,μ_prop.σ_ξ_squared)
-           factorial_prefactor = 1
-        
-        elseif μ.N < μ_prop.N # particle created so λ = λ_max and λ_proposed = 0
-            #  change in potential energy comes from fractional particle becoming full particle and the new fractional particle with λ=0 makes no contribution to energy
-            # so E_Old = E_old_frac interaction with all others and E_new = E_new_full_particle interaction with all others
-            factorial_prefactor = 1/μ_prop.N # only works for ±1
-            E_old = potential_1_frac(μ.r_box,μ.r_frac_box,  μ.λ   ,sim.λ_max,μ.N,sim.L_squared_σ,sim.r_cut_squared_box,  μ.ϵ_ξ,μ.σ_ξ_squared )
-            #i = length(μ_prop.r_box) # @@@@@@@@ POSSIBLE BUG  always picking Nmax @@@@@@@@@@@@@@
-            i = μ_prop.N ############ 
-            E_proposed = potential_1_normal(μ_prop.r_box , μ_prop.r_box[i],i,μ_prop.r_frac_box,μ_prop.λ,sim.λ_max,μ_prop.N,sim.L_squared_σ,sim.r_cut_squared_box, μ_prop.ϵ_ξ,μ_prop.σ_ξ_squared)
-                    
-        elseif μ.N > μ_prop.N # particle destroyed so λ = 0 and λ_proposed = 99
-            # old energy is energy of destroyed particle with rest of full particles 
-            # new configurational energy is interaction of fractional particle with others
-            factorial_prefactor = μ.N # only works for ±1
-            # destroyed_particle = @view μ.r_box[:,idx_deleted]
-            E_old = potential_1_normal(μ.r_box,μ.r_box[idx_deleted],idx_deleted,μ.r_frac_box,μ.λ,sim.λ_max,μ.N,sim.L_squared_σ,sim.r_cut_squared_box,  μ.ϵ_ξ,μ.σ_ξ_squared)
-            E_proposed = potential_1_frac(μ_prop.r_box,μ_prop.r_frac_box,  μ_prop.λ   ,sim.λ_max,μ_prop.N ,sim.L_squared_σ,sim.r_cut_squared_box,   μ_prop.ϵ_ξ,μ_prop.σ_ξ_squared)
-        end # ΔN logic 
-
-        ΔE = E_proposed - E_old
-        exponent = -1*ΔE/sim.T_σ 
-        prob_ratio = partition_ratio*V_Λ_prefactor*factorial_prefactor*exp(exponent)
-        if prob_ratio > 1
-            return(true)
-        else
-            ζ = rand(sim.rng)
-            accept = (prob_ratio > ζ)   #boolean
-            return(accept)
-        end
-end #λ_metropolis_pm1
+end # potential_1

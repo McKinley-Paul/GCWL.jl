@@ -7,13 +7,7 @@ using Random
 
 mutable struct microstate # holds the variables of the actual current or proposed state
     N::Int64 # number of particles in the microstate
-    λ::Int64 # coupling constant of the fractional particles
     r_box::Vector{MVector{3,Float64}}  # position of all N particles (3xN matrix)
-    r_frac_box::MVector{3,Float64} # position of fractional particle
-
-    # makes sense to precompute these values and attach them to the microstate for speedups:
-    ϵ_ξ::Float64 # = (λ/M)^(1/3) # fractional energy  coupling parameter in lennard jones units (so really this might be named ϵ_ξ_σ but that just looked like too much)
-    σ_ξ_squared::Float64 # = (λ/M)^(1/2) # \sigma_\xi is the fractional distance coupling parameter in LJ σ units, because (σ_ξ)^2 = (λ/M)^(1/2)
 end
 
 mutable struct SimCache
@@ -42,8 +36,7 @@ struct SimulationParams # immutable because structs are by default immutable in 
     T_σ::Float64 # temperature for Q(N,V,T,λ) in lennard jones units
     Λ_σ::Float64 # DeBroglie Wavelength for system, just passing in as somethign you compute instead of doing inside inner constructor for module loading dependency reasons
 
-    λ_max::Int64 # maximum value lambda can take, equivalent of M-1 in desgranges et al because λ=100 is the same as λ=0
-    r_cut_σ::Float64 # cutoff to stop evaluating LJ potential
+    r_cut_σ::Float64 # cutoff to stop evaluating the potential
 
     input_filename::String
     save_directory_path::String #path to save variables to like binaries of microstate during checkpoints and after runs and so on
@@ -81,12 +74,12 @@ end # SimulationParams
 mutable struct WangLandauVars
     # WangLandauVars holds variables related to the wang landau monte carlo process that will change throughout the course of the simulation
     logf::Float64 # natural log of f, the modification factor in the Wang Landau scheme which is initiall set to f = the euler constant
-    H_λN::Matrix{Int64} # histogram of number of times each (λ,N) pair has been visited.  λ_max rows, N_max columns.
-    logQ_λN::Matrix{Float64} # "density of states" for Wang Landau method in SEGC is the extended canonical partition functions Q(NVT,λ) because V and T are fixed for given sim., they are left out of name, λ on rows and N on columns
+    H_N::Vector{Int64} # histogram of number of times each (λ,N) pair has been visited.  λ_max rows, N_max columns.
+    logQ_N::Vector{Float64} # "density of states" for Wang Landau method in SEGC is the extended canonical partition functions Q(NVT,λ) because V and T are fixed for given sim., they are left out of name, λ on rows and N on columns
     translation_moves_proposed::Int64
     translation_moves_accepted::Int64
-    λ_moves_proposed::Int64
-    λ_moves_accepted::Int64
+    N_moves_proposed::Int64
+    N_moves_accepted::Int64
     iters::Int64 # total number of monte carlo moves thus far
     δr_max_box::Float64
     phase2::Bool # set to true once phase 2 is entered for Pereyra's 1/t algorithm (monte carlo time)
@@ -103,10 +96,10 @@ function init_WangLandauVars(sim::SimulationParams,δr_max_box::Float64 = typema
     end
 
     logf = 1 
-    H_λN = zeros(Int64,sim.λ_max+1,sim.N_max+1)
-    logQ_λN=zeros(Float64,sim.λ_max+1,sim.N_max+1) # has λ_max + 1 because λ=0 goes in row 1, row 2  -> λ = 1 ... , row λ_max+1 -> λ = λ_max .. similar logic for N, N=0 goes in column 1, N_max goes in column (N_max + 1)
+    H_N = zeros(Int64,sim.N_max+1)
+    logQ_N=zeros(Float64,sim.N_max+1) # has N_max+1 for N, N=0 goes in column 1, N_max goes in column (N_max + 1)
         
-    wl = WangLandauVars(logf,H_λN,logQ_λN,0,0,0,0,0,δr_max_box,false,false)
+    wl = WangLandauVars(logf,H_N,logQ_N,0,0,0,0,0,δr_max_box,false,false)
     return(wl)
 end
 
@@ -114,7 +107,6 @@ end
 
 function copy_microstate!(dest::microstate, src::microstate)
     dest.N = src.N
-    dest.λ = src.λ
     for i in 1:src.N
         dest.r_box[i] .= src.r_box[i]  # deep copy each MVector's contents
     end
@@ -122,9 +114,6 @@ function copy_microstate!(dest::microstate, src::microstate)
     #The .= operator on a Vector does element-wise assignment. For Vector{MVector{3,Float64}}, dest.r_box[i] = src.r_box[i]
     # makes dest.r_box[i] point to the same MVector object as src.r_box[i]. This was the source of a major bug as This behavior means c.μ_prop.r_box and μ.r_box share the same MVector objects after initialization!
     # thus we must deep copy  element wise  as above
-    dest.r_frac_box .= src.r_frac_box
-    dest.ϵ_ξ = src.ϵ_ξ
-    dest.σ_ξ_squared = src.σ_ξ_squared
 end
 
 
@@ -175,7 +164,8 @@ end # load_configuration(filename)
     return r
 end
 
-function init_microstate(;sim::SimulationParams,filename::String,λ::Int=0, r_frac_box::MVector{3,Float64}=@MVector [0.0, 0.0, 0.0] )::microstate
+
+function init_microstate(;sim::SimulationParams,filename::String )::microstate
     # initialize the microstate to feed into run_simulation() in segc_wl from input file
     N,L_σ,r_σ = load_configuration(filename)
     r_σ_box = r_σ ./ L_σ # converting to "box units" by dividing the positions by the length of the box. Now r_i ∈ [-0.5,0.5]^3 because inputs are centered around 0,0
@@ -188,20 +178,15 @@ function init_microstate(;sim::SimulationParams,filename::String,λ::Int=0, r_fr
         r_box[i] .= r_σ_box[i]
     end
 
-    M = sim.λ_max+1
-    ϵ_ξ = (λ/M)^(1/3) # fractional energy  coupling parameter in lennard jones units (so really this might be named ϵ_ξ_σ but that just looked like too much)
-    σ_ξ_squared = (λ/M)^(1/2) # \sigma_\xi is the fractional distance coupling parameter in LJ σ units, because (σ_ξ)^2 = (λ/M)^(1/2)
-
-    μstate = microstate(N,λ,r_box,r_frac_box, ϵ_ξ,σ_ξ_squared)
+    μstate = microstate(N,r_box)
     return(μstate)
 end # init microstate
 
 function init_microstate(sim::SimulationParams)::microstate
-    # initialize microstate at N=0, λ=0 (vacuum state) with r_box pre-allocated to N_max slots
-    # use this to start the Wang-Landau walk from the known anchor point Q(N=0,λ=0)=1
+    # initialize microstate at N=0  (vacuum state) with r_box pre-allocated to N_max slots
+    # use this to start the Wang-Landau walk from the known anchor point Q(N=0)=1
     r_box = [@MVector zeros(3) for _ in 1:sim.N_max]
-    r_frac_box = @MVector [0.0, 0.0, 0.0]
-    return microstate(0, 0, r_box, r_frac_box, 0.0, 0.0)
+    return microstate(0, r_box)
 end # init_microstate from vacuum
 
 @inline function pbc_wrap!(r::MVector{3,Float64})
@@ -241,19 +226,13 @@ function check_inputs(s::SimulationParams,μ::microstate,wl::WangLandauVars)
 end #check_inputs
 
 function init_cache(sim::SimulationParams,initial_μ::microstate)::SimCache
-    ζ_Svec = @MVector zeros(3)
+    ζ_Mvec = @MVector zeros(3)
     ζ_idx = Int64(0)
     ri_proposed_box = @MVector zeros(3)
     r_box = [@MVector zeros(3) for _ in 1:sim.N_max]
-    r_frac_box = @MVector [0.0, 0.0, 0.0]
-    μ_prop = microstate(0,
-                        0,
-                        r_box,
-                        r_frac_box,
-                        0.0,
-                        0.0 )
+    μ_prop = microstate(0,r_box)
     copy_microstate!(μ_prop,initial_μ)
-    return SimCache(ζ_Svec,ζ_idx,ri_proposed_box,μ_prop)
+    return SimCache(ζ_Mvec,ζ_idx,ri_proposed_box,μ_prop)
 end
 
 
@@ -285,9 +264,6 @@ function print_microstate(μ::microstate,print_r::Bool=false)
     if print_r 
         println("Positions of full particles in box units: ")
         display(μ.r_box)
-
-        println("Position of fractional particle:")
-        display(μ.r_frac_box)
     end
 end #print_microstate
 
@@ -295,9 +271,9 @@ function print_wl(wl::WangLandauVars,verbose=true)
     println()
     println("Wangl Landau Variables")
     @printf("logf = %.4f\n", wl.logf)
-    @printf("λ_moves_proposed = %f\n", wl.λ_moves_proposed)
-    @printf("λ_moves_accepted = %f\n", wl.λ_moves_accepted)
-    @printf("λ acceptance ratio = %.4f\n", ( wl.λ_moves_accepted/wl.λ_moves_proposed) )
+    @printf("N_moves_proposed = %f\n", wl.N_moves_proposed)
+    @printf("N_moves_accepted = %f\n", wl.N_moves_accepted)
+    @printf("N acceptance ratio = %.4f\n", ( wl.N_moves_accepted/wl.N_moves_proposed) )
 
     @printf("δr_max_box = %.4f\n", wl.δr_max_box)
     @printf("translation_moves_proposed = %f\n", wl.translation_moves_proposed)
@@ -307,10 +283,10 @@ function print_wl(wl::WangLandauVars,verbose=true)
 
     if verbose 
         display("LogQ: ")
-        display(wl.logQ_λN)
+        display(wl.logQ_N)
 
-        display("Histogram λN")
-        display(wl.H_λN)
+        display("Histogram N")
+        display(wl.H_N)
     end
 end # print_wl
 

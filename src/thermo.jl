@@ -18,8 +18,8 @@ function correct_logQ(wl::WangLandauVars)::Array{Float64}
 
     returns the corrected,true partition functions as a Vector. logQ[1] = logQ(N=0|V,T) and so on
     =#
-    logC = -1*wl.logQ_λN[1,1] # natural log of multiplicative constant 
-    logQtrue = wl.logQ_λN[1,:] .+ logC
+    logC = -1*wl.logQ_N[1] # natural log of multiplicative constant 
+    logQtrue = wl.logQ_N .+ logC
     return(logQtrue)
 end #correct_logQ
 

@@ -1,0 +1,1215 @@
+Applications of Wang-Landau sampling to determine phase equilibria in
+complex fluids
+Georg Ganzenmüller and Philip J. Camp
+Citation: J. Chem. Phys. 127, 154504 (2007); doi: 10.1063/1.2794042
+View online: http://dx.doi.org/10.1063/1.2794042
+View Table of Contents: http://jcp.aip.org/resource/1/JCPSA6/v127/i15
+Published by the American Institute of Physics.
+Additional information on J. Chem. Phys.
+Journal Homepage: http://jcp.aip.org/
+Journal Information: http://jcp.aip.org/about/about_the_journal
+Top downloads: http://jcp.aip.org/features/most_downloaded
+Information for Authors: http://jcp.aip.org/authors
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+Applications of Wang-Landau sampling to determine phase equilibria
+in complex fluids
+Georg Ganzenmüllera  and Philip J. Campb 
+School of Chemistry, University of Edinburgh, West Mains Road, Edinburgh EH9 3JJ, United Kingdom
+ Received 31 May 2007; accepted 11 September 2007; published online 16 October 2007 
+Applications of the Wang-Landau algorithm for simulating phase coexistence at fixed temperature
+are presented. The number density is sampled using either volume scaling or particle insertion/
+deletion. The resulting algorithms, while being conceptually easy, are of comparable efficiency to
+existing multicanonical methods but with the advantage that neither the chemical potential nor the
+pressure at phase coexistence has to be estimated in advance of the simulation. First, we benchmark
+the algorithm against literature results for the vapor-liquid transition in the Lennard-Jones fluid. We
+then demonstrate the general applicability of the algorithm by studying vapor-liquid coexistence in
+two examples of complex fluids: charged soft spheres, which exhibit a transition similar to that in
+the restricted primitive model of ionic fluids, being characterized by strong ion pairing in the vapor
+phase; and Stockmayer fluids with high dipole strengths, in which the constituent particles aggregate
+to form chains, and for which the very existence of a transition has been widely debated. Finally, we
+show that the algorithm can be used to locate a weak isotropic-nematic transition in a fluid of
+Gay-Berne mesogens. © 2007 American Institute of Physics.  DOI: 10.1063/1.2794042 
+I. INTRODUCTION
+The phase behavior of fluids is of general importance in
+many fields of science and engineering. Monte Carlo  MC 
+methods are particularly well suited for simulating phase
+transitions in simple models.1 While standard simulation
+methods are often sufficient for sampling coexisting phases
+with comparable and low densities, they cannot be used to
+probe directly the phase coexistence region well below the
+critical temperature where the transition is strong, i.e., where
+there is a large difference in order parameter between the
+coexisting phases. The problem arises mainly from the large
+free-energy barrier separating the coexisting phases, which is
+associated with forming an interface within the simulation
+cell. Many new algorithms have been devised to overcome
+or circumvent this barrier. Multicanonical sampling2 biases
+the simulation such that the free-energy barrier is canceled
+out, allowing uniform sampling of the coexisting phases and
+all intermediate states. Parallel tempering3,4 accelerates MC
+sampling by exchanging thermodynamic parameters among
+a large number of replicas being considered simultaneously,
+thus allowing the exploration of a path “around” the barrier,
+rather than “through” the barrier. In recent years, huge advances
+in uniform  or flat-histogram  sampling methodologies
+have been made. Abreu and Escobedo provide a very
+general framework for conducting uniform sampling of arbitrary
+order parameters in a variety of ensembles.5 Such order
+parameters are usually mechanically extensive variables like
+the energy, the volume, or the number of particles. In
+Metropolis importance sampling MC, statistical expectation
+values for these order parameters are computed as simple
+arithmetic averages of simulation measurements. In contrast,
+expectation values from flat-histogram simulations have to
+be computed by properly reweighting the simulation measurements.
+The reweighting step corresponds to dividing out
+the biased probability density which led to uniform sampling
+in the first place, and then multiplying by the probability
+density appropriate to the specific ensemble for which we
+wish to know the result. In Ref. 5 it is demonstrated that
+reweighting is not only possible for mechanical, extensive
+variables but also for structural, intensive properties such as
+radial distribution functions. In order to sample an order parameter
+uniformly, one needs to know the weights which
+yield a flat histogram; these are often referred to as the multicanonical
+ MUCA  weights. As we will show below,
+knowledge of this distribution is tantamount to knowing the
+free energy as a function of order parameter, which of course
+is unknown a priori. However, iterative schemes can be employed
+to map out the free-energy profile and build up the
+biasing distribution during the course of a simulation. The
+specific scheme for obtaining the weights is what distinguishes
+the many types of flat-histogram sampling methods
+currently available. These schemes can be broadly divided
+into two classes: “visited-states” and “transition-probability”
+methods. The original MUCA formulation by Berg and
+Neuhaus,2 entropic sampling,6 and the relatively new Wang-
+Landau  WL   or “density-of-states”  sampling7–10 belong to
+the visited-states class. One way to employ transitionprobability
+data is Bennett’s acceptance ratio method.11,12
+Recent examples of flat-histogram sampling based on
+transition-matrix  TM  data appear in Refs. 5 and 12–14. For
+a general review of flat-histogram techniques, see Ref. 15.
+Much of the above-cited work deals with the general
+theoretical concepts and algorithmic details of uniform sampling,
+and thus mainly considers lattice models or the
+Lennard-Jones fluid. In this article, we focus on determining
+a Electronic mail: g.ganzenmueller@ed.ac.uk
+b Electronic mail: philip.camp@ed.ac.uk
+THE JOURNAL OF CHEMICAL PHYSICS 127, 154504  2007 
+0021-9606/2007/127 15 /154504/10/$23.00 127, 154504-1 © 2007 American Institute of Physics
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+vapor-liquid coexistence in complex fluids which are difficult
+to simulate. We use the WL algorithm in order to facilitate
+flat-histogram sampling of the number density  , which
+is the appropriate order parameter for vapor-liquid phase
+transitions  at least away from the critical point . This is
+accomplished by working either in the isothermal-isobaric
+ensemble and performing changes in the volume V, or in the
+grand-canonical ensemble by changing the number of particles
+N. If traditional simulation techniques like parallel
+tempering or multicanonical sampling with fixed weights are
+used, the pressure or chemical potential for phase coexistence
+has to be known in advance to enable repeated traversals
+between liquid and vapor phases so that accurate statistics
+can be accumulated in the course of a single simulation. The
+search for suitable parameters is often a tedious task and
+requires many small trial-and-error simulations before actual
+production runs can be started. Histogram reweighting can
+be used subsequently to fine-tune the conditions for
+coexistence.16 In contrast, algorithms which determine the
+weights iteratively do not suffer from this drawback.
+The central idea of the WL algorithm is to perform a
+random walk in one or more thermodynamic variables, and
+to bias the simulation in order to effect uniform sampling of
+those variables, i.e., to obtain “flat histograms.” In the case
+of sampling the number of particles N and the potential energy
+E at fixed volume V, the required biasing function is a
+density of potential-energy states   N,V,E  which can be
+determined by a process of iteration  to be detailed later .
+Once   N,V,E  is known, all thermodynamic functions can
+be determined at any temperature T for which the dominant
+values of N and E have been sampled adequately. In Refs. 8
+and 9 the vapor-liquid coexistence envelopes for small systems
+of Lennard-Jones spheres have been obtained using the
+WL approach. In spite of the tempting prospect of generating
+the whole phase coexistence envelope from one single simulation,
+this approach is not of general utility because for even
+the smallest systems  N 100  it requires vast amounts of
+CPU time to determine   N,V,E  over the full ranges of N
+and E. This led the authors of Ref. 8 to conclude that multicanonical
+sampling with fixed weights is more effective if
+both N and E are to be sampled at the same time.
+In this article, we use the WL approach to simulate phase
+coexistence at fixed temperature, thus sampling only the
+number density. This sampling can be achieved by changing
+either the volume with fixed N or the number of particles
+with fixed V. The scheme has already been suggested by Yan
+et al., who used it to sample N at fixed V and T in preparation
+for a full density-of-states sampling of N and E.9 In Ref.
+13, Errington used a closely related TM scheme to compute
+the vapor-liquid coexistence envelope of the Lennard-Jones
+fluid, both by varying N with fixed V  grand-canonical ensemble
+  and V with fixed N  isothermal-isobaric ensemble .
+Irrespective of whether the TM approach or the WL scheme
+is employed, essential features of the simulations remain unchanged;
+the overall aim is to achieve uniform sampling of
+the order parameter over a desired range spanning two
+phases at coexistence. In general, the TM approach and multicanonical
+techniques have been demonstrated to yield very
+precise results  at least for simple systems, such as the
+Lennard-Jones fluid , with the only minor drawback being
+that rough estimates for the chemical potential or pressure at
+coexistence have to be determined in short preliminary simulations
+in order that full sampling of the density can be
+achieved in an efficient manner. On the other hand, WL
+achieves broad sampling of the density in a relatively short
+time  again, for simple systems , although the precision of
+the final results is not so good as with the TM approach. One
+of the main objectives of this work is to explore “difficult”
+phase transitions in complex fluids. We demonstrate that the
+WL approach can work where other simulation techniques
+appear to fail; a specific example discussed in this paper is
+the vapor-liquid transition in Stockmayer fluids with high
+dipole strengths. In this case, the very existence of the transition
+has been called in to question. The main requirement is
+that the coexisting phases can be sampled adequately in a
+finite amount of CPU time; we therefore employ the WL
+algorithm.
+In this paper we first compare the accuracy of the WL
+methods against high-quality data already available for the
+Lennard-Jones fluid. We then demonstrate the broad applicability
+of our sampling scheme by attacking some difficult
+transitions, namely the vapor-liquid transitions of charged
+soft spheres and of the strongly dipolar Stockmayer fluid,
+and the isotropic-nematic transition of Gay-Berne mesogens.
+The rest of this article is organized as follows. First, we give
+a general outline of flat-histogram sampling. We then derive
+equations for conducting such sampling in the canonical,
+grand-canonical, and isothermal-isobaric ensembles, and
+then detail the implementation within the WL scheme. Following
+that, we present specific details and results of our
+calculations on the Lennard-Jones fluid, charged soft
+spheres, the Stockmayer fluid, and the Gay-Berne model. We
+finish by discussing the efficiency of the WL variants and by
+addressing future possible improvements to these sampling
+schemes.
+II. METHODOLOGY
+The aim of this section is to outline a general method
+with which partition functions  up to multiplicative constants
+  and thermodynamic properties  up to additive constants
+  can be determined from a flat-histogram MC simulation.
+The discussion will begin with generalities, and then
+move on to the specific details in each of the most common
+statistical mechanical ensembles. Consider an ensemble in
+which an extensive thermodynamic variable X is allowed to
+fluctuate; in the present work X will correspond either to the
+number of particles N, the volume V, or the instantaneous
+potential energy E. For simplicity, the discussion will apply
+to N identical particles in a cubic box of length L. A specific
+configuration of N particles will be denoted by  , shorthand
+for the set of scaled coordinates on a unit cube  s1 , . . . , sN ,
+i.e., the actual position vector of particle i is ri=Lsi. If
+p  ,X  is the probability distribution of   and X, then the
+distribution of X is given by
+154504-2 G. Ganzenmüller and P. J. Camp J. Chem. Phys. 127, 154504  2007 
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+p X  =  p  ,X d .  1 
+In flat-histogram methods, a biased distribution is sought that
+leads to uniform sampling of the extensive variable s .
+Clearly, the appropriate biased distribution which leads to a
+uniform sampling of X is
+pbias  ,X  =
+p  ,X 
+p X 
+,  2 
+for then pbias X = pbias  ,X d =1. In a MC scheme, if
+moves from an old state   o ,Xo  to a new state   n ,Xn  are
+attempted without bias, then the detailed balance condition
+is17
+pbias  o,Xo acc o→n  = pbias  n,Xn acc n→o ,  3 
+where acc o→n  is the probability of accepting a trial move
+from state o to state n. The Metropolis solution of Eq.  3  is
+acc o→n  = min 1,
+pbias  n,Xn 
+pbias  o,Xo 
+.  4 
+In the following sections, it is shown explicitly how
+pbias  ,X  is related to partition functions. Of course, the
+function p X  is not known in advance, but must be determined
+iteratively by some scheme. One available method is
+Wang-Landau sampling, which is described in Sec. II E.
+A. Uniform sampling of E: The canonical ensemble
+To obtain a biased simulation that samples the potential
+energy E=U    uniformly for fixed N and V, consider the
+canonical  NVT  ensemble. The Boltzmann distribution for  
+is
+p    =
+VNexp −  U    
+N !  3NQ N,V,T 
+,  5 
+where  = h2/2 mkBT is the de Broglie thermal wavelength,
+and
+Q N,V,T  =
+VN
+N !  3N exp −  U    d   6 
+is the canonical partition function. E=U    is a function of
+the particle coordinates, and so the energy distribution is
+p E  =  p     U    − E d  =
+VN  N,V,E exp −  E 
+N !  3NQ N,V,T 
+,
+ 7 
+where   N,V,E =   U   −E d  is a density of potentialenergy
+states. Inserting Eqs.  5  and  7  into Eq.  2  yields
+the biased distribution
+pbias  ,E  =
+1
+  N,V,E 
+,  8 
+and so
+acc o→n  = min 1,
+  N,V,Eo 
+  N,V,En 
+.  9 
+Hence, the temperature disappears from the sampling
+scheme, and the biasing function required to achieve uniform
+sampling of E is the density of potential-energy states, with
+N and V fixed.
+B. Uniform sampling of V: The isothermal-isobaric
+ensemble
+To obtain a biased simulation that samples the volume V
+uniformly for fixed N and T, consider the isothermal-isobaric
+ NPT  ensemble. The joint Boltzmann distribution for   and
+V is
+p  ,V  =
+VNexp −  U    −  PV 
+N !  3NQ N,P,T 
+,  10 
+where
+Q N,P,T  =  0
+ 
+Q N,V,T exp −  PV dV  11 
+is the isothermal-isobaric partition function. The volume distribution
+is
+p V  =  p  ,V d  =
+Q N,V,T exp −  PV 
+Q N,P,T 
+.  12 
+Substituting Eqs.  10  and  12  into Eq.  2  leads to
+pbias  ,V  =
+VNexp −  U    
+N !  3NQ N,V,T 
+,  13 
+and so
+acc o→n  = min 1,
+Q N,Vo,T 
+Q N,Vn,T 
+·
+Vn
+Nexp −  U  n  
+Vo
+Nexp −  U  o  
+.
+ 14 
+Hence, the pressure disappears from the scheme, and the
+biasing function required to achieve uniform sampling of V
+is the canonical partition function expressed as a function of
+V, with N and T fixed. In applications, it may be more convenient
+to sample ln V uniformly rather than V, in which
+case the factors of VN in Eq.  14  should be replaced with
+VN+1.
+C. Uniform sampling of N: The grand-canonical
+ensemble
+To obtain a biased simulation that samples the particle
+number N uniformly for fixed V and T, consider the grandcanonical
+ 
+VT  ensemble. The joint Boltzmann distribution
+for   and N is
+p  ,N  =
+VNexp  
+N −  U    
+N !  3NQ 
+,V,T 
+,  15 
+where
+Q 
+,V,T  =  
+N=0
+ 
+Q N,V,T exp  
+N   16 
+154504-3 Phase equilibria in complex fluids J. Chem. Phys. 127, 154504  2007 
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+is the grand-canonical partition function. The particlenumber
+distribution is
+p N  =  p  ,N d  =
+Q N,V,T exp  
+N 
+Q 
+,V,T 
+.  17 
+Substituting Eqs.  15  and  17  into Eq.  2  yields
+pbias  ,N  =
+VNexp −  U    
+N !  3NQ N,V,T 
+,  18 
+and so
+acc o→n 
+= min 1,
+Q No,V,T 
+Q Nn,V,T 
+·
+VNnNo !  3Noexp −  U  n  
+VNoNn !  3Nnexp −  U  o  
+.
+ 19 
+Hence, the chemical potential disappears from the scheme,
+and the biasing function required to achieve uniform sampling
+of N is the canonical partition function expressed as a
+function of N with V and T fixed. Equation  19  is equivalent
+to Eqs.  15  and  16  of Ref. 9.
+D. Uniform sampling of N or V, and E
+Of course, the simple prescription outlined in this section
+should also give the correct MC rules for sampling the
+joint density of states of number density and potential energy.
+In the grand-canonical ensemble
+p N,E  =  p  ,N   U    − E d 
+=
+VN  N,V,E exp  
+N −  E 
+N !  3NQ 
+,V,T 
+,  20 
+and so pbias  ,N,E =1/  N,V,E . A scheme for sampling
+V and E can also be derived. In the isothermal-isobaric ensemble
+p V,E  =  p  ,V   U    − E d 
+=
+VN  N,V,E exp −  E −  PV 
+N !  3NQ N,P,T 
+,  21 
+and so pbias  ,V,E =1/  N,V,E . These are the wellknown
+results employed in Refs. 7–10.
+E. Wang-Landau scheme
+It remains to specify how to obtain the required biasing
+functions    or Q . In all cases discussed above, the partition
+function of the ensemble to be sampled is given by a Laplace
+transform of the biasing function. In the following we consider
+the canonical ensemble, but the extension to other ensembles
+is straightforward. The canonical partition function
+is given by
+Q N,V,T  =
+VN
+N !  3N   N,V,E exp −  E dE.  22 
+Because Laplace transforms are unique, knowledge of the
+biasing function implies knowledge of the ensemble partition
+function, which is of course just the quantity we want during
+the simulation. It is here where the WL algorithm7 comes in,
+as it provides a route to finding   N,V,E  in a selfconsistent
+way. At the beginning of the simulation, an initial
+guess is made, e.g.,   N,V,E =constant ∀E. As the simulation
+proceeds, the current estimates of   N,V,E  are used
+for determining whether a trial move is accepted or not.
+Whenever a specific energy Ei is sampled,   N,V,Ei  is
+updated by the operation   N,V,Ei →f   N,V,Ei ,
+where f is an arbitrary convergence factor greater than unity.
+Also, a histogram of visited energies H Ei  is kept during the
+course of the simulation. Due to the dynamic updating of
+  N,V,E , the simulation is always pushed away from the
+current E in the next move and H E  will eventually become
+flat. When this is the case f is reduced, e.g., by letting
+f = f and H E  is reset to zero. The simulation is run until f
+reaches a value fmin which is arbitrarily close to unity so that
+future updates of   N,V,E  are negligible. The canonical
+partition function, and hence the Helmholtz free energy F,
+can be obtained by substituting for   N,V,E  in Eq.  22 
+and then using the fundamental relation  F=−ln Q N,V,T .
+F is determined up to an additive constant, which is sufficient
+for locating the conditions for phase coexistence  equal
+chemical potential and pressure . Even though there is substantial
+freedom in the parameters of this recipe, like the
+initial choice of f and the criterion for judging whether H E 
+is “flat,” the convergence of the WL algorithm has been formally
+proved.18
+For the grand-canonical and isothermal-isobaric ensembles
+the principle is exactly the same. The weights are
+now given by the canonical partition functions Q N,V,T ,
+which are set to a constant value at the beginning of the
+simulation and are dynamically updated with the current
+state given by N or V, according to the scheme outlined
+above. In the following, we will abbreviate the grandcanonical
+and the isothermal-isobaric WL schemes as
+GCWL and NPTWL, respectively. The methodological advantage
+over traditional simulation techniques like multicanonical
+sampling is that, without prior specification of coexistence
+parameters, the whole equation of state  pressure as a
+function of density  is obtained from a single simulation. A
+phase transition is most easily located by varying the external
+field  pressure or chemical potential  until a peak in the
+compressibility is found. The value of 
+ or P for phase coexistence
+is then further refined by tuning the bimodal number
+density probability distribution until both peaks have
+equal area.
+III. SIMULATION RESULTS
+A. Lennard-Jones fluid
+In order to assess the performance of the GCWL and
+NPTWL approaches, we compare results against existing
+high-quality grand-canonical MC  GCMC  TM data13,19 for
+the Lennard-Jones potential,
+154504-4 G. Ganzenmüller and P. J. Camp J. Chem. Phys. 127, 154504  2007 
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+u rij  = 4  
+
+
+rij 12
+− 
+
+
+rij 6
+,  23 
+truncated at rij=3
+. Following Ref. 13, GCWL simulations
+were run at exactly the same system size, i.e., V=512
+3, and
+with the usual long-range corrections applied.20 For the
+NPTWL calculations we chose N=216. The density ranges
+sampled during the WL simulations were as follows: with
+GCWL, 0 N 454 corresponding to 0  *=N
+3 /V 0.89;
+with NPTWL, 10−3  * 0.9. While there is a natural discretization
+of Q N,V,T  if the particle number is varied  as
+in GCWL , this is not the case for the continuous variable V
+ as in NPTWL . Therefore, an arbitrary binning scheme has
+to be employed which is fine enough to capture the curvature
+of p V , but does not use too many bins because otherwise
+computational efficiency deteriorates. We decided to use 100
+histogram bins with a uniform spacing in ln V, and in the
+NPTWL update scheme we performed changes in ln V with
+a maximum step size of twice the bin width. For this model
+and the other simulations reported below, f started from
+ln f =1 and a run was considered converged when it reached
+ln f =10−8 for GCWL and ln f =10−5 for NPTWL. f was reduced
+according to the rule f = f as soon as all entries in H
+had been visited at least 1000 times for GCWL and 500
+times for NPTWL. Maximum displacements for singleparticle
+moves were adjusted to give acceptance ratios of
+50%. The time required to converge the simulations was 4
+and 12 h for GCWL and NPTWL, respectively. All simulation
+times reported here are for Intel Xeon processors
+clocked at 2.4 GHz.
+In the case of GCWL, coexisting vapor and liquid densities
+were obtained from the converged estimates of
+Q N,V,T  by integrating the low and high-density branches
+in the particle number probability distribution p N , with the
+chemical potential adjusted such that both branches have
+equal area. If the boundary so determined is at N=Nb, then
+the average densities in the vapor  N Nb  and liquid  N
+ Nb  branches are given by
+  vap  =
+ N Nb N/V Q N,V,T e 
+N
+ N Nb
+Q N,V,T e 
+N ,
+  liq  =
+ N Nb N/V Q N,V,T e 
+N
+ N Nb
+Q N,V,T e 
+N .  24 
+The boundary Nb between vapor and liquid peaks was identified
+with the value of N where p N  is at a minimum. In the
+case of NPTWL, the procedure is completely analogous but
+with N replaced by V, and sums replaced by integrals,
+  vap  =
+ Vb
+   N/V VNQ N,V,T e− PVdV
+ Vb
+  VNQ N,V,T e− PVdV
+,
+  liq  =
+ 0
+Vb N/V VNQ N,V,T e− PVdV
+ 0
+VbVNQ N,V,T e− PVdV
+.  25 
+Coexistence results are shown in Fig. 1, with a maximum
+deviation between WL and TM data13,19 of 1.0% and an average
+deviation of 0.4%. The good agreement of the coexistence
+densities is also reflected in rough estimates of the critical
+parameters, obtained by fitting the universal equation
+ ± =  c + At ± Bt  ,  26 
+where t= T−Tc  /Tc and   =0.3265 is the 3D Ising orderparameter
+exponent.21 The apparent critical temperatures and
+densities are Tc
+*=kBTc /  =1.300 4  and  c
+*=0.314 1  from
+GCWL, and Tc
+*=1.290 6  and  c
+*=0.313 4  from NPTWL.
+These are to be compared with fits to TM data:13,19 Tc
+*
+=1.2950 6  and  c
+*=0.3125 8 . Estimates of the uncertainties
+in the last decimal places are given in brackets; these were
+taken from the fitting errors and are therefore underestimated
+compared to the true statistical error.
+B. Charged soft spheres
+While there have been a number of publications on the
+WL simulation of phase coexistence in fluids, almost all of
+these have been applied to simple systems like the Lennard-
+Jones potential. In this study, we aim to show the general
+applicability of WL sampling by applying the method to
+complex fluids. The restricted primitive model  RPM  is one
+such complex fluid. It consists of an equimolar mixture of
+hard spheres with charges ±q and equal diameters 
+HS. The
+vapor-phase structure is characterized by the strong association
+of oppositely charged ions to form dumbbells.22,23 After
+a significant number of intensive simulation studies, the location
+of the critical point and the universality class  Ising 
+have been established unambiguously.24,25 Such systems are
+much harder to simulate than the Lennard-Jones fluid because
+insertions and deletions have to be effected using pairs
+of oppositely charged particles in order to maintain charge
+neutrality; moreover, the favored separation and orientation
+of each inserted ion pair have to be selected in a biased
+fashion.26 Here, we have chosen to use a soft repulsive potential
+as this facilitates volume scaling moves in the
+NPTWL simulations: if a hard core was used, even an infinitesimal
+overlap after a volume contraction move would lead
+to rejection. The interaction potential of the “charged soft
+spheres”  CSSs  is defined by
+FIG. 1. Vapor-liquid coexistence envelopes for the Lennard-Jones fluid from
+simulations  points  and fits to the simulation points using Eq.  26   lines :
+transition matrix MC  Refs. 13 and 19 : squares and dotted lines; GCWL:
+crosses and solid lines; NPTWL: circles and dashed lines.
+154504-5 Phase equilibria in complex fluids J. Chem. Phys. 127, 154504  2007 
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+u rij  = 4 
+
+
+rij 12
++
+qiqj
+Drij
+,  27 
+where D=4  0. Long-range interactions were treated with
+the Ewald sum and conducting boundary conditions.20 The
+soft repulsive potential was cut at r=2.5
+. In order to compare
+our results for CSSs with the data available for the
+RPM, we fixed the reduced charge at q*= q2 /D
+  = 48,
+which sets the minimum in the cation-anion potential at r
+=
+. The characteristic cation-anion interaction energy is
+therefore  ±=−u 
+ =44 . In order to increase the efficiency
+of ion-pair insertions and deletions in GCWL simulations,
+we employed a distance-biased scheme similar to that in Ref.
+26, but with a Gaussian biasing function. In GCWL simulations,
+ion numbers within the fixed volume V=1000
+3 varied
+in the range 0 N/2 163, corresponding to ion densities of
+0  *=N
+3 /V 0.326; in NPTWL simulations, N=128 ions
+were simulated at densities in the range 10−4  * 0.4. The
+WL simulation protocol was the same as that described in
+Sec. III A.
+The coexistence envelopes are shown in Fig. 2. GCWL
+and NPTWL results do not coincide perfectly at all temperatures,
+but we attribute this to strong finite-size effects connected
+with the particle number; in GCWL, the number of
+ion pairs in the vapor phase is very small, whereas in
+NPTWL, the number of ions is fixed. There is a substantial
+amount of scatter in the data points, which is caused by very
+broad and flat number-density probability distributions,
+which in turn complicates the identification of a boundary
+between liquid and vapor peaks and the subsequent computation
+of   vap  and   liq . In order to assess the statistical
+errors, we performed four independent GCWL simulations at
+each temperature and calculated the statistical uncertainties
+based on 1 standard deviation; these are shown as horizontal
+error bars in Fig. 2. It was not possible to improve the accuracy
+of the individual simulations by requiring a lower fmin
+or a higher minimum count of visited states. Average simulation
+times for one state point were 4 h with GCWL and 48
+h with NPTWL.
+Rough estimates of the critical temperatures and densities
+obtained using fits of Eq.  26  are Tc
+*=kBTc /  =2.07 1 
+and  c
+*=0.073 2  using GCWL, and Tc
+*=2.059 3  and  c
+*
+=0.070 1  using NPTWL. Interestingly, the critical density
+for CSSs obtained here is quite close to the corresponding
+value for the RPM,  c
+*= 
+HS
+3 =0.0790 25 .25 The RPM critical
+temperature is kBTcD
+HS/q2=0.05069 2 ,25 where
+q2 /D
+HS is the magnitude of the minimum cation-anion energy;
+the corresponding parameter for CSSs is  ±=44 , leading
+to an “ionic” critical temperature of kBTc / ± 0.047,
+which is comparable to that for the RPM. We note that the
+use of Eq.  26  is questionable because corrections to scaling,
+and a crossover between classical and Ising regimes, are
+expected to occur within the range of temperatures being
+fitted. Nonetheless, the resulting curves look reasonable, and
+the apparent critical temperatures serve as useful estimates.
+We also investigated the possibility of “parallelizing”
+GCWL simulations by splitting up the interval in N to be
+sampled, and running separate simulations for each subinterval.
+This greatly reduces the time required to sample all relevant
+particle numbers uniformly. A simplistic argument is as
+follows. Consider an interval in N to be sampled, which we
+denote by  N. If the sampling process is approximated by a
+one-dimensional random walk in N  which is valid in the
+limit f→1 , then the sampling time required to visit all states
+in the interval is proportional to the square of the size of the
+interval, i.e., t   N 2. If  N is divided into n subintervals of
+width  N= N/n, then the simulation time t n   N 2
+=  N 2 /n. This implies that to sample a given range  N, the
+total simulation time is reduced by a factor comparable to the
+number of subintervals. As an illustration, GCWL simulations
+of CSSs in the density range 0  * 0.3 at T*=1.9 and
+V=2197
+3 were run until ln fmin=10−6. We allowed for an
+overlap of 10 particles between neighboring subintervals and
+joined Q N,V,T  from each subinterval by scaling them
+such that the midpoints of the overlapping regions were
+aligned. By simultaneously running simulations over equal
+subintervals in N, the total simulation times were 9.4, 4.7,
+and 3.0 h with one, two, and four subintervals, respectively,
+roughly conforming to a 1/n scaling. For a larger system
+with V=4096
+3, the total simulation time required to reach
+convergence within four equal subintervals was 10.7 h,
+which is to be compared with the time of 3.0 h for calculations
+with the same number of subintervals but with half of
+the volume and hence half the value of  N; these results are
+roughly in line with the suggested   N 2 scaling.
+C. Stockmayer fluid
+The phase behavior of strongly dipolar fluids is the subject
+of a long-running and somewhat controversial debate,
+which has been comprehensively reviewed several times.27,28
+In brief, de Gennes and Pincus suggested in 1970 that fluids
+of dipolar hard spheres should exhibit an entirely conventional
+phase diagram—with vapor, liquid, supercritical fluid,
+and solid phases—because the leading-order isotropic interaction
+obtained by a Boltzmann-weighted orientational average
+of the dipole-dipole interaction potential varies like
+−1/ r6, just like dispersion interactions.29 The results of computer
+simulations published in the 1990s suggested otherwise.
+In the case of dipolar hard spheres, Caillol could find
+FIG. 2. Vapor-liquid coexistence envelopes for the charged soft sphere fluid
+from simulations  points  and fits to the simulation points at T* 1.85 using
+Eq.  26   lines : GCWL: crosses and solid lines; NPTWL: circles and
+dashed lines.
+154504-6 G. Ganzenmüller and P. J. Camp J. Chem. Phys. 127, 154504  2007 
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+no evidence of a vapor-liquid transition,30 although more recent
+work suggests that this was due to the simulated isotherms
+being supercritical.31,32 Another widely studied dipolar
+system is the Stockmayer fluid, the interaction potential
+for which is
+u rij  = 4  
+
+
+rij 12
+− 
+
+
+rij 6
++
+ i
+· j
+rij
+3 −
+3 rij ·  
+i  rij · j 
+rij
+5 ,
+ 28 
+where  
+i is the dipole moment on particle i, and the dipole
+strength 
+ =  i  is the same for all particles. The conventional
+reduced units are temperature T*=kBT/ , number density
+ *= 
+3, and dipole strength 
+*= 
+2 / 
+3. Gibbs ensemble
+MC  GEMC  simulations of the Stockmayer
+potential suggested that the vapor-liquid transition is absent
+from the phase diagram when  
+* 2 24.3.33–35  Note that
+van Leeuwen and Smit33 actually simulated a slightly different
+potential, but one that can be mapped onto the Stockmayer
+potential;35 therefore, we only quote equivalent results
+for the Stockmayer potential.  The disappearance of the
+vapor-liquid transition has been put down to the formation of
+chainlike aggregates at low temperatures, with the dipoles in
+the chains aligned “nose-to-tail.”36 The absence of the transition
+in some simulations is almost certainly connected with
+aggregation, but it may be an artifact rather than a real physical
+effect. The GEMC technique relies on effecting a sufficient
+number of particle and volume transfers between two
+different simulation boxes,37 but the presence of strong aggregation
+drastically reduces the probability of accepting a
+simultaneous particle deletion  from one box  and particle
+insertion  in the other box . In addition, the network of
+chainlike aggregates severely restricts volume moves. Therefore,
+it is possible that the disappearance of the vapor-liquid
+transition in GEMC simulations is actually due to the simulations
+failing to achieve equilibration and convergence.
+Any sort of grand-canonical simulation of strongly dipolar
+particles is going to be hard work, because of the requirement
+to execute sufficient numbers of particle insertions and
+deletions. Nonetheless, we managed to perform GCWL
+simulations of the Stockmayer fluid with dipole strengths
+ 
+* 2=24, 27, and 30; the phase behavior at low dipole
+strengths is already well established.33,35,38–41 The system
+volume was V=L3=1000
+3, with particle numbers in the
+range 0 N 600. The Lennard-Jones component of the potential
+was cut off at L/2 with no long-range correction applied,
+while the long-range dipolar interactions were handled
+using Ewald sums and conducting boundary conditions.20
+GCWL simulations were performed covering intervals of
+100 particles plus overlaps of 10 particles with neighboring
+intervals in order to help splice together the different portions
+of Q N,V,T . For  
+* 2=24, 27, and 30 we performed
+three, five, and ten independent runs, respectively, at each
+temperature and averaged the results. Higher dipole strengths
+required more independent runs due to the difficulty of sampling
+ by any means  strongly aggregated fluids. We could
+not simulate higher values of 
+* because the underlying density
+of states becomes extremely rough due to the presence of
+system-spanning chains, artificially stabilized by the periodic
+boundary conditions. This is a problem that we also experienced
+with simulations of charged hard dumbbells in a recent
+attack on the transition in dipolar hard spheres.32 Note that
+this is a limitation of the finite-size system, and not a failure
+of the simulation technique per se.
+The phase diagrams for systems with  
+* 2=24, 27, and
+30 are shown in Fig. 3; the apparent critical parameters obtained
+by fits of Eq.  26  are  Tc
+*=7.18, c
+*=0.188 ,  Tc
+*
+=7.89, c
+*=0.173 , and  Tc
+*=8.50, c
+*=0.165 , respectively. In
+Fig. 4 we compare our critical parameters with a wide selection
+of GEMC results33,35,38–40 and the results of recent
+constant-pressure molecular dynamics simulations.41 Figure
+4 a  shows the inverse of the critical temperature Tc
+* plotted
+against  
+* 2. The agreement between our new results and
+the existing literature results is excellent. It has been noted
+before35 that at large values of 
+* the apparent critical temperatures
+from GEMC simulations vary like Tc
+*  
+* 2. Accordingly,
+we fitted all of the available simulation data for
+ 
+* 2 10 with the equation
+Tc
+* = A + B 
+* 2,  29 
+where A=0.937±0.066 and B=0.2617±0.0031.  In Ref. 35,
+A=1.06 and B=0.254.  This fit is shown as the solid curve in
+Fig. 4 a . Note that in the limit 
+*→ , the characteristic
+dipolar temperature kBTc
+3 /
+2=Tc
+* /  
+* 2 tends to a finite
+value of 0.2617.
+Figure 4 b  shows the critical densities  c
+* plotted against
+ 
+* 2. There is good general agreement between our new
+results and most of the literature values, although it appears
+that the values of  c
+* obtained by Bartke and Hentschke41 are
+systematically low, particularly at high values of 
+*. They
+obtained the phase diagrams and apparent critical points by
+measuring the equation of state and performing the Maxwell
+construction, and the long-range dipolar interactions were
+handled using the reaction-field approach. The source of the
+discrepancies between their results and the rest of the literature
+values is unclear.
+Our results at  
+* 2=24 are consistent with earlier work,
+and following Bartke and Hentschke,41 we confirm that the
+FIG. 3. Vapor-liquid coexistence envelopes for the Stockmayer fluid from
+GCWL simulations  points  and fits to the simulation points using Eq.  26 
+ lines :  
+* 2=24: squares;  
+* 2=27: circles;  
+* 2=30: diamonds. The
+critical points are indicated with filled symbols.
+154504-7 Phase equilibria in complex fluids J. Chem. Phys. 127, 154504  2007 
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+transition persists at higher dipole strengths, at least up to
+ 
+* 2=30. But, as noted above, studying much higher dipole
+strengths is essentially impossible due to pronounced finitesize
+effects. In recent work on dipolar hard particles32 we
+provided estimates of the critical parameters for dipolar hard
+spheres with diameter 
+ and dipole strength 
+. In reduced
+units we found that kBTc
+3 /
+2=0.153 1  and  c
+3 0.1. It
+would be useful to compare these predictions with the results
+for the Stockmayer fluid, but mapping one system onto the
+other is going to be problematic due to the presence of the
+soft repulsive core in the Stockmayer potential. One might
+attempt to identify an effective hard-core diameter for the
+Stockmayer potential, but the anisotropy of the strong, attractive
+part of the potential will cause problems. Therefore,
+to effect a meaningful comparison we consider the dimensionless
+ratio g=kBTc / c
+2 which does not require any mapping
+between the different systems. Figure 4 c  shows g
+=Tc
+* / c
+* 
+* 2 for the Stockmayer system plotted against
+ 
+* 2. Most of the existing literature results suggest that g
+tends toward some kind of universal, constant value. This
+value should be characteristic of a purely dipole-driven
+vapor-liquid transition because, with large values of 
+*, the
+dipole-dipole interaction must dominate over the Lennard-
+Jones attraction. The results of Bartke and Hentschke for
+ 
+* 2 30 suggest a slight upward trend, but since their critical
+temperatures appear accurate  from Fig. 4 c  , this feature
+may be traced to the systematic underestimation of the critical
+densities apparent in Fig. 4 b . For comparison, in Fig.
+4 c  we show the dipolar hard sphere value g=1.53 according
+to Ref. 32. The agreement between most of the literature
+results for the Stockmayer potential with large values of 
+*,
+and that for dipolar hard spheres,32 is excellent and strongly
+suggests the existence of a vapor-liquid transition driven exclusively
+by dipole-dipole interactions.
+D. Gay-Berne mesogens
+The isotropic-nematic  I−N  transition in the Gay-Berne
+model of liquid crystals involves a very small change in
+density and requires an enormous number of traditional NPT
+MC simulations to locate accurately.42–44 The Gay-Berne potential
+is given by
+u rij,ui,uj  = 4  rij,ui,uj    
+0
+d rij,ui,uj 
+12
+−   
+0
+d rij,ui,uj 
+6 ,  30 
+where rij is the interparticle separation vector, ui is the orientational
+vector along the symmetry axis of particle i, and
+d rij ,ui ,uj = rij −
+ rij ,ui ,uj +
+0. The quantities
+  rij ,ui ,uj  and 
+ rij ,ui ,uj  are orientation dependent and
+proportional to the basic energy and range parameters  0 and
+
+0, respectively. The full expressions are given in Ref. 42,
+but we note that they depend on two further parameters:  ,
+which defines the aspect ratio of the  roughly  ellipsoidal
+molecules; and   , which sets the ratio between the
+potential-energy wells for the side-by-side and end-to-end
+configurations. We focus our attention on the system with
+  =3 and   =5 as studied in previous work.42–44 Using thermodynamic
+integration techniques, de Miguel43 determined
+the coexistence properties at a temperature T*=kBT/ 0
+=1.25 to be P*=P
+0
+3 / 0=5.20,  I
+*= I
+0
+3 =0.3152, and  N
+*
+= N
+0
+3 =0.3219.
+With the output from a single WL simulation, we can
+calculate the isothermal compressibility  T for a range of
+pressures. In a finite-size simulation, a peak in  T plotted as
+a function of P can signal a first-order transition between two
+phases differing in density. Statistical expectation values in
+the NPT ensemble can be calculated with Q N,V,T  obtained
+from NPTWL simulations by numerical integration,
+as in Eq.  25 . The compressibility as a function of P is thus
+readily obtained from the fluctuation formula,20
+ T = −
+1
+V
+ V
+ P N,T
+=
+ V2  −  V 2
+ V kBT
+.  31 
+In the NPTWL simulations N=192 particles were used, and
+the potential was truncated at r=4
+0 with no long-range corrections
+applied. We did not attempt GCWL simulations for
+this model because the number of successful particle
+insertions/deletions is expected to be prohibitively low in the
+density range 0.25  * 0.35 considered here. Rotations
+and translations were performed independently, with maxi-
+FIG. 4. Critical parameters for the Stockmayer fluid:  a  reciprocal of the
+critical temperature Tc
+*;  b  critical density  c
+*;  c  dimensionless ratio g
+=kBTc / c
+2. Symbols: Smit et al.  Ref. 38 : right triangles; van Leeuwen et
+al.  Ref. 39 : down triangles; van Leeuwen and Smit  Ref. 33 : left triangles;
+van Leeuwen  Ref. 40 : up triangles; Stevens and Grest  Ref. 35 : diamonds;
+Bartke and Hentschke  Ref. 41 : squares; this work: filled circles. In  a  the
+solid curve is the fit Tc
+*=0.937+0.2617 
+* 2; in  c  the solid horizontal line
+at g=1.53 is the dipolar hard sphere value from Ref. 32.
+154504-8 G. Ganzenmüller and P. J. Camp J. Chem. Phys. 127, 154504  2007 
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+mum displacements chosen to give acceptance ratios of approximately
+50%.
+Results for the equation of state, compressibility, and
+nematic order parameter S  computed as described in Ref.
+45  are shown in Fig. 5, along with available existing canonical
+molecular dynamics data for N=500 particles.42,43 In addition
+to the NPTWL results, we show the results of our own
+standard NPT simulations with N=192 particles. Using the
+NPTWL data, we also calculated  P  as a function of    canonical
+ensemble average  by differentiating F=
+−kBT ln Q N,V,T  numerically, but the results were indistinguishable
+from those obtained by computing     as a function
+of P  NPT ensemble average . This is due to the fact
+that there is no observable “van der Waals” loop in the
+canonical-ensemble equation of state, and no pronounced
+hysteresis in the NPT results; the absences of these features
+in simulations of weak I−N transitions have been noted
+before.45 A clear peak in  T emerges at P* 5.25  corresponding
+to a density  * 0.32 , which coincides with the
+jump in the nematic order parameter. This pressure is quite
+close to the coexistence pressure P*=5.20 identified by de
+Miguel.43 It proved impossible to resolve a bimodal density
+distribution from the NPTWL results at the apparent coexistence
+pressure because the change in density is too small.
+In an attempt to improve on this we performed simulations
+on a slightly larger system with N=324, but it was still not
+possible to observe a bimodal distribution; the peak in  T
+occurs at essentially the same pressure as in the N=192 system.
+The overall agreement between standard NPT, NPTWL,
+and canonical molecular dynamics42,43 simulations is good.
+Therefore, the NPTWL offers a viable route to mapping out
+the equation of state at fixed temperature from a single
+simulation—even for dense fluids. A similar simulation has
+been reported in Ref. 14, where the athermal isotropiccubatic
+phase transition of cuboidal particles constructed
+from hard spheres was probed using a TM-based flathistogram
+method. In that case, however, the transition is
+strongly first order with a difference in density between isotropic
+and cubatic phases of approximately 10%.
+IV. DISCUSSION
+In this work, a robust method for determining phase coexistence
+has been presented. The major advantage over traditional
+multicanonical MC techniques is that only the density
+range and temperature at which a transition is expected
+have to be specified in advance. The effect of the external
+field, given by the external pressure in the NPT ensemble, or
+the chemical potential in the grand-canonical ensemble, is
+determined after the simulation has converged and it is thus
+possible to obtain number-density distributions at arbitrary
+values of the external field  provided a sufficient range of
+densities has been sampled in the first place . This also implies
+that the equation of state for the density range considered
+can be obtained from a single simulation.
+The algorithms described here—GCWL and
+NPTWL—belong to the visited-states class of flat-histogram
+techniques for determining partition functions. GCWL effects
+changes in the number density by particle insertions
+and deletions at fixed volume, while NPTWL varies the volume
+at fixed number of particles. We have applied both algorithms
+to the vapor-liquid transitions in the Lennard-Jones
+fluid, charged soft spheres, and Stockmayer fluids with high
+dipole strengths.
+For the Lennard-Jones fluid, we find that both algorithms
+reproduce existing high-quality transition-matrix data with
+good accuracy. At strongly subcritical temperatures, one
+might expect deviations between the GCWL and NPTWL
+results for the vapor coexistence density, because the number
+of particles in the GCWL simulation is very low compared to
+that in the NPT simulation. However, for the Lennard-Jones
+fluid, we find that this effect is not significant.
+Surprisingly, the coexistence curves for charged soft
+spheres from GCWL and NPTWL simulations are consistent
+with one another over the entire temperature range considered,
+but there is a significant amount of statistical scatter.
+Rough estimates of the critical parameters obtained from fitting
+an Ising-type scaling law are Tc
+* 2.06 and  c
+*=0.07.
+The apparent critical parameters—expressed in “ionic” reduced
+units—are in good accord with those for charged hard
+spheres  restricted primitive model .24,25
+The vapor-liquid coexistence curves for the Stockmayer
+fluid with high dipole strengths could be generated reliably
+FIG. 5. Results for Gay-Berne mesogens.  a  Equation of state from
+NPTWL simulations  line , standard NPT-MC simulations  circles , and
+canonical molecular dynamics simulations  Refs. 42 and 43   crosses .  b 
+Isothermal compressibility  T
+* = T 0 /
+0
+3 from NPTWL simulations.  c 
+Nematic order parameter S from standard NPT-MC simulations particles
+ circles  and canonical molecular dynamics simulations  Refs. 42 and 43 
+ crosses .
+154504-9 Phase equilibria in complex fluids J. Chem. Phys. 127, 154504  2007 
+Downloaded 08 Mar 2013 to 131.211.208.19. Redistribution subject to AIP license or copyright; see http://jcp.aip.org/about/rights_and_permissions
+using the GCWL approach. Our results—like those of Bartke
+and Hentschke41—indicate that the transition persists well
+above the critical dipole strength identified by van Leeuwen
+and Smit.33 In fact, the apparent disappearance of the transition
+in GEMC simulations33–35 is more than likely associated
+with failures of the simulation methodology. The results at
+high dipolar strengths compare well with recent data for dipolar
+hard spheres,32 supporting the existence of a vaporliquid
+transition driven by purely dipolar interactions.
+The natural discretization of N renders the GCWL approach
+computationally more straightforward than NPTWL.
+Simulation times for GCWL reported here are moderate. In
+addition, parallelization of the algorithm is simple because
+the density range can be split into multiple intervals for
+which independent simulations are performed. The resulting
+numerical estimates of the canonical partition functions from
+each subinterval are then scaled so that they match up at the
+boundaries.7,8 Preliminary investigations of this approach
+showed that the total time needed to complete a simulation is
+reduced by a factor comparable to the number of subintervals.
+In the light of these results, the application of parallelized
+GCWL simulations to very large systems is an attractive
+proposition. Based on these observations, we can recommend
+using GCWL for locating vapor-liquid transitions.
+In general, we observed that it was not possible to reduce
+errors in vapor and liquid coexistence densities by increasing
+the primary adjustable parameters in the WL
+scheme—the final value of the convergence factor and the
+flatness of the histogram of visited states. It has been noted
+before that the WL algorithm does not improve on the statistical
+error after f has reached a certain value.10 We therefore
+propose that if very accurate results are required, a combination
+of GCWL and GCMC with multicanonical biasing could
+be employed: the required value for the chemical potential
+and a good guess for the multicanonical bias is obtained
+from a preliminary GCWL simulation; a multicanonical
+GCMC simulation can then be run, which also enables the
+use of histogram reweighting.
+The isotropic-nematic transition of Gay-Berne mesogens
+is only feasible using NPTWL simulations because the packing
+fraction in the vicinity of the transition is too high to
+effect particle insertions and deletions. Unfortunately, the
+transition is so weak that a bimodal density distribution
+could not be obtained; this property of the isotropic-nematic
+transition gives rise to problems in other “direct” simulation
+techniques.45 Nonetheless, by calculating the compressibility
+and equation of state from a single simulation, we could
+locate the transition pressure. Therefore, the NPTWL technique
+might also find application in the simulation of strong,
+first-order phase transitions at high densities.
+ACKNOWLEDGMENTS
+We thank Professor Alexey O. Ivanov and Dr. Sofia S.
+Kantorovich for discussions on the Stockmayer fluid. The
+support of the UK Engineering and Physical Sciences Research
+Council Grant No. EP/D002656/1 is gratefully acknowledged.
+This work has made use of the resources provided
+by the EaStCHEM Research Computing Facility,
+which is partially supported by the eDIKT initiative.
+1 A. Z. Panagiotopoulos, J. Phys.: Condens. Matter 12, R25  2000 .
+2 B. A. Berg and T. Neuhaus, Phys. Rev. Lett. 68, 9  1992 .
+3 A. P. Lyubartsev, A. A. Martsinovski, S. V. Shevkunov, and P. N.
+Vorontsov-Velyaminov, J. Chem. Phys. 96, 1776  1992 .
+4 Q. Yan and J. J. de Pablo, J. Chem. Phys. 111, 9509  1999 .
+5 C. R. A. Abreu and F. A. Escobedo, J. Chem. Phys. 124, 054116  2006 .
+6 J. Lee, Phys. Rev. Lett. 71, 211  1993 .
+7F. Wang and D. P. Landau, Phys. Rev. Lett. 86, 2050  2001 .
+8M. S. Shell, P. G. Debenedetti, and A. Z. Panagiotopoulos, Phys. Rev. E
+66, 056703  2002 .
+9 Q. Yan, R. Faller, and J. J. de Pablo, J. Chem. Phys. 116, 8745  2002 .
+10M. S. Shell, P. G. Debenedetti, and A. Z. Panagiotopoulos, J. Chem.
+Phys. 119, 9406  2003 .
+11 C. H. Bennett, J. Comput. Phys. 22, 245  1976 .
+12F. A. Escobedo and C. R. A. Abreu, J. Chem. Phys. 124, 104110  2006 .
+13 J. R. Errington, J. Chem. Phys. 118, 9915  2003 .
+14 I. D. Gospodinov and F. A. Escobedo, J. Chem. Phys. 122, 164103
+ 2005 .
+15Y. Okamoto, J. Mol. Graph. Model. 22, 425  2004 .
+16 A. M. Ferrenberg and R. H. Swendsen, Phys. Rev. Lett. 61, 2635  1988 .
+17 D. Frenkel and B. Smit, Understanding Molecular Simulation: From Algorithms
+to Applications, 2nd ed.  Academic, San Diego, 2001 .
+18 C. Zhou and R. N. Bhatt, Phys. Rev. E 72, 025701  2005 .
+19 J. R. Errington, URL: http://www.cstl.nist.gov/srs/LJ_PURE/
+sattmmc.htm  2003 .
+20M. P. Allen and D. J. Tildesley, Computer Simulation of Liquids  Clarendon,
+Oxford, 1987 .
+21 A. M. Ferrenberg and D. P. Landau, Phys. Rev. B 44, 5081  1991 .
+22 J.-M. Caillol and J.-J. Weis, J. Chem. Phys. 102, 7610  1995 .
+23 J. C. Shelley and G. N. Patey, J. Chem. Phys. 103, 8299  1995 .
+24 J.-M. Caillol, D. Levesque, and J.-J. Weis, J. Chem. Phys. 116, 10794
+ 2002 .
+25 E. Luijten, M. E. Fisher, and A. Z. Panagiotopoulos, Phys. Rev. Lett. 88,
+185701  2002 .
+26 G. Orkoulas and A. Z. Panagiotopoulos, J. Chem. Phys. 101, 1452
+ 1994 .
+27P. I. C. Teixeira, J. M. Tavares, and M. M. Telo da Gama, J. Phys.:
+Condens. Matter 12, R411  2000 .
+28 C. Holm and J.-J. Weis, Curr. Opin. Colloid Interface Sci. 10, 133
+ 2005 .
+29P. G. de Gennes and P. A. Pincus, Phys. Kondens. Mater. 11, 189  1970 .
+30 J.-M. Caillol, J. Chem. Phys. 98, 9835  1993 .
+31P. J. Camp, J. C. Shelley, and G. N. Patey, Phys. Rev. Lett. 84, 115
+ 2000 .
+32 G. Ganzenmüller and P. J. Camp, J. Chem. Phys. 126, 191104  2007 .
+33M. E. van Leeuwen and B. Smit, Phys. Rev. Lett. 71, 3991  1993 .
+34M. J. Stevens and G. S. Grest, Phys. Rev. Lett. 72, 3686  1994 .
+35M. J. Stevens and G. S. Grest, Phys. Rev. E 51, 5976  1995 .
+36 J. J. Weis and D. Levesque, Phys. Rev. Lett. 71, 2729  1993 .
+37 A. Z. Panagiotopoulos, Mol. Phys. 61, 813  1987 .
+38 B. Smit, C. P. Williams, E. M. Hendriks, and S. W. de Leeuw, Mol. Phys.
+68, 765  1989 .
+39M. E. van Leeuwen, B. Smit, and E. M. Hendriks, Mol. Phys. 78, 271
+ 1993 .
+40M. E. van Leeuwen, Mol. Phys. 82, 383  1994 .
+41 J. Bartke and R. Hentschke, Phys. Rev. E 75, 061503  2007 .
+42 E. de Miguel, Phys. Rev. E 47, 3334  1993 .
+43 E. de Miguel, Mol. Phys. 100, 2449  2002 .
+44 E. de Miguel and C. Vega, J. Chem. Phys. 117, 6313  2002 .
+45P. J. Camp, C. P. Mason, M. P. Allen, A. A. Khare, and D. A. Kofke, J.
+Chem. Phys. 105, 2837  1996 
