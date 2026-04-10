@@ -52,11 +52,12 @@ function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVar
                     flush(progress_log)
                 end
 
-                if wl.iters % 100_000_000 == 0 # progress log every 100,000,000 moves probably approximately every 10 minutes
+                if wl.iters % 100_000_000 == 0   # Progress log every time 100,000,000 iters, approximately every ten minutes 
                     println(progress_log,"Phase 2 flatness check: H_λ,N min/mean = ",round(H_min/H_avg*100), " %, total iters: ",wl.iters, " min: ",H_min," ", Dates.format(now(), "yyyy-mm-dd HH:MM:SS")  )
                     flush(progress_log)
                 end
             end
+
         end
 
         update_wl!(wl,μ)
@@ -69,13 +70,14 @@ function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVar
                 if H_min ≥  1 # checking flatness for phase 1 of algorithm in line with Pereyra
                     wl.logf = 0.5*wl.logf
                     println(progress_log,"New WL phase 1 epoch!, now at ",wl.logf," and the time is ", Dates.format(now(), "yyyy-mm-dd HH:MM:SS")) # MOSTLY FOR DEBUGGING AND MONITORING LONG CALCULATIONS
-                    flush(progress_log)
+                    flush(progress_log) 
 
                     monte_carlo_time = wl.iters/num_active_bins 
-                    if wl.logf ≤ 1/(monte_carlo_time) # Pererya 2007 phase transition criterion
+                    if wl.logf ≤ 1/(monte_carlo_time) # Pererya 2007 phase transition criterion 
                         wl.phase2 = true
-                        println(progress_log,"Now entering phase 2! It took ", wl.iters, " monte carlo moves (wl.iters) to get to phase 2!", Dates.format(now(), "yyyy-mm-dd HH:MM:SS"))
-                        println(progress_log, "That is a monte carlo time of: ", round(monte_carlo_time))
+
+                        println(progress_log,"Now entering phase 2! It took ", wl.iters, " monte carlo moves (wl.iters) to get to phase 2! ", Dates.format(now(), "yyyy-mm-dd HH:MM:SS"))
+                        println(progress_log, "That is a monte carlo time of: ", Int64(monte_carlo_time))
                         flush(progress_log)
                     end
                     
