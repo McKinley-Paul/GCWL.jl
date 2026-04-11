@@ -1,3 +1,0 @@
-1775583868
-  Activating project at `~/Documents/montecarlo/segc_wl`
-Runtime: 3977 seconds

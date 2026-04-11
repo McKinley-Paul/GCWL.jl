@@ -22,8 +22,8 @@ BUGGY:  r_frac left at ghost position (stale, unrelated to r_i)
 """
 
 import Pkg
-Pkg.activate("/Users/mckinleypaul/Documents/montecarlo/segc_wl")
-using segc_wl
+Pkg.activate("/Users/mckinleypaul/Documents/montecarlo/gc_wl")
+using gc_wl
 using StaticArrays
 using Printf
 import Random

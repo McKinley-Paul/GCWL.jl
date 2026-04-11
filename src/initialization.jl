@@ -53,7 +53,7 @@ struct SimulationParams # immutable because structs are by default immutable in 
     dynamic_δr_max_box::Bool # set to true if you want to dynamically adjust δr_max_box during the run, false if you want to use a static one specified from the start
 
     # Now using an "Inner Constructor" to compute the derived parameters from only the input ones
-    function SimulationParams(; N_max,N_min,T_σ,Λ_σ,λ_max,r_cut_σ,input_filename="",L_σ::Float64=0.0,save_directory_path,rng=MersenneTwister(),maxiter=10^9,dynamic_δr_max_box=true)
+    function SimulationParams(; N_max,N_min,T_σ,Λ_σ,r_cut_σ,input_filename="",L_σ::Float64=0.0,save_directory_path,rng=MersenneTwister(),maxiter=10^9,dynamic_δr_max_box=true)
         # the semicolon above in (; N_max ... ) makes it so all these are keyword arguments, not positional ones so you set them with like 'N_max=100' when initializing a SimulationParams struct
         # Compute derived quantities: L_σ can be supplied directly or read from an input config file
         if input_filename != ""
@@ -66,7 +66,7 @@ struct SimulationParams # immutable because structs are by default immutable in 
         r_cut_box = r_cut_σ/L_σ
         r_cut_squared_box = r_cut_box^2
 
-        new(N_max,N_min,T_σ,Λ_σ,λ_max,r_cut_σ,input_filename,save_directory_path,rng,maxiter,
+        new(N_max,N_min,T_σ,Λ_σ,r_cut_σ,input_filename,save_directory_path,rng,maxiter,
             L_σ,V_σ,L_squared_σ,r_cut_box ,r_cut_squared_box,dynamic_δr_max_box)
     end
 end # SimulationParams
@@ -250,8 +250,6 @@ function print_simulation_params(params::SimulationParams,start::Bool=true)
     
     @printf("Nmax = %d\n", params.N_max)
     @printf("Nmin = %d\n", params.N_min)
-    @printf("λmax = %d\n", params.λ_max)
-
     @printf("r_cut = %.4f σ\n", params.r_cut_σ)
     println("Directory files saved in: ", params.save_directory_path)
 end #print_simulation_params
@@ -259,9 +257,8 @@ end #print_simulation_params
 function print_microstate(μ::microstate,print_r::Bool=false)
     println()
     println("Current microstate:")
-    @printf("N = %.4f\n", μ.N)
-    @printf("λ = %.4f\n", μ.λ)
-    if print_r 
+    @printf("N = %d\n", μ.N)
+    if print_r
         println("Positions of full particles in box units: ")
         display(μ.r_box)
     end

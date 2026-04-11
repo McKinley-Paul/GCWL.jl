@@ -1,4 +1,0 @@
-the point of this is to replicate figure 1b which is at T=99.49 which should be T* = 99.49/117.05
-figure out what is going on with these peaked plots
-
-maybe plot vs data in 1a and scale both by lnQ* max to see if overlap or not due to finite size effects

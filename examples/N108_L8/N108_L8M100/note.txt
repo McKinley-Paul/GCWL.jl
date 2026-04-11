@@ -1,9 +1,0 @@
-made this run after doing       
-      #i = length(μ_prop.r_box) # @@@@@@@@ POSSIBLE BUG  always picking Nmax @@@@@@@@@@@@@@
-            i = μ_prop.N ############ 
-            E_proposed = potential_1_normal(μ_prop.r_box , μ_prop.r_box[i],i,μ_prop.r_frac_box,μ_prop.λ,sim.λ_max,μ_prop.N,sim.L_squared_σ,sim.r_cut_squared_box, μ_prop.ϵ_ξ,μ_prop.σ_ξ_squared)
-like claude suggested as an error in lambda metropolis λ_metropolis_pm1
-maybe this will make lnQ better?
-
-
-now running after fixing shallow copy bug in copy_microstate!

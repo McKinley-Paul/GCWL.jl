@@ -1,4 +1,4 @@
-module segc_wl
+module gc_wl
 using StaticArrays
 using Dates # mostly for debugging/monitoring long calculations
 using Statistics # used for 80% average flatness criterion
@@ -17,7 +17,7 @@ export microstate,SimulationParams,init_microstate,check_inputs, print_simulatio
 # utils exports:
 export euclidean_distance, min_config_distance, euclidean_distance_squared_pbc, translate_by_random_vector!, metropolis
 # lj exports:
-export argon_deBroglie, E_12_LJ, potential_1, N_metropolis_pm1
+export argon_deBroglie, E_12_LJ, potential_1, N_metropolis
 # thermo stuff:
 export correct_logQ, ideal_gas_logQNVT, ideal_gas_logQ_loggamma
 
@@ -52,7 +52,7 @@ function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVar
                     flush(progress_log)
                 end
 
-                if wl.iters % 100_000_000 == 0   # Progress log every time 100,000,000 iters, approximately every ten minutes 
+                if wl.iters % 500_000_000 == 0   # Progress log every time 500,000,000 iters, approximately every ten minutes 
                     println(progress_log,"Phase 2 flatness check: H_λ,N min/mean = ",round(H_min/H_avg*100), " %, total iters: ",wl.iters, " min: ",H_min," ", Dates.format(now(), "yyyy-mm-dd HH:MM:SS")  )
                     flush(progress_log)
                 end
@@ -100,7 +100,8 @@ function translation_move!(sim::SimulationParams,μ::microstate,wl::WangLandauVa
     # wrote the body of all these functions before refactoring into structs, could rewrite at some point because ugly
     wl.translation_moves_proposed += 1
 
-    c.ζ_idx = rand(sim.rng,1: μ.N) # randomly pick atom to move
+    if μ.N == 0; return(nothing); end # nothing to translate
+    c.ζ_idx = rand(sim.rng,1:μ.N) # randomly pick atom to move
 
     c.ri_proposed_box .= μ.r_box[c.ζ_idx]
     translate_by_random_vector!(c.ri_proposed_box, wl.δr_max_box, sim.rng,c) # Trial move to new position (in box=1 units), this used to be ri_proposed_box before cache
@@ -155,11 +156,10 @@ function N_move!(sim::SimulationParams,μ::microstate,wl::WangLandauVars,c::SimC
         accept = N_metropolis(μ, c.μ_prop,idx_deleted, wl,sim)
         if accept == true
             wl.N_moves_accepted += 1
-            μ.N = c.μ_prop.N
             if idx_deleted != μ.N # only do the swap if we actually deleted a particle that wasn't the last one
-                μ.r_box[idx_deleted] .= μ.r_box[μ.N] # swap last particle into deleted slot in actual microstate
+                μ.r_box[idx_deleted] .= μ.r_box[μ.N] # swap last particle into deleted slot using original μ.N
             end
-            μ.N -= 1
+            μ.N -= 1 # single decrement, after swap
 
         else # reset the cache state if rejected
             c.μ_prop.N += 1
@@ -174,7 +174,7 @@ function N_move!(sim::SimulationParams,μ::microstate,wl::WangLandauVars,c::SimC
         end
 
         @inbounds for i in 1:3 # inserting new particle at random spot
-            c.μ_prop.r_box[c.μ_prop.N] = rand(sim.rng) - 0.5
+            c.μ_prop.r_box[c.μ_prop.N][i] = rand(sim.rng) - 0.5
         end
         idx_deleted = 0
 
@@ -205,16 +205,16 @@ function  N_metropolis(μ::microstate,
         logQ_diff = wl.logQ_N[μ.N+1] - wl.logQ_N[μ_prop.N+1]
         partition_ratio = exp(logQ_diff)
         
-        V_Λ_prefactor = sim.V_σ^(μ.N - μ_prop.N) * sim.Λ_σ^(3*(μ.N - μ_prop.N))
+        V_Λ_prefactor = sim.V_σ^(μ_prop.N - μ.N) * sim.Λ_σ^(3*(μ.N - μ_prop.N))
 
         # now we compute the exponential part of the criterion having to do with the configurational potential energy
 
-        if μ.N > μ_prop.N # deletion move 
-            factorial_prefactor = μ.N # (N+1)! /N! = N+1
-            # old energy is energy of destroyed particle with rest of full particles 
-            # new configurational energy is interaction of fractional particle with others
+        if μ.N > μ_prop.N # deletion move
+            factorial_prefactor = μ.N # N! / (N-1)! = N
+            # ΔU = U(N-1) - U(N) = -(energy of deleted particle with all others)
+            # so E_old = interaction of deleted particle with all N-1 remaining, E_proposed = 0
             E_old = potential_1(μ.r_box , μ.r_box[idx_deleted],idx_deleted,μ.N,sim.L_squared_σ,sim.r_cut_squared_box)
-            E_proposed = potential_1(μ_prop.r_box,μ_prop.r_box[μ_prop.N], μ_prop.N, μ_prop.N ,sim.L_squared_σ,sim.r_cut_squared_box)
+            E_proposed = 0.0
 
         else # insertion move
             factorial_prefactor = 1/μ_prop.N  # N! / (N+1)! = 1/(N+1)
@@ -238,16 +238,16 @@ function  N_metropolis(μ::microstate,
 end #N_metropolis
 
 function update_wl!(wl::WangLandauVars,μ::microstate)
-    wl.logQ_λN[μ.λ+1,μ.N+1] += wl.logf
-    wl.H_λN[μ.λ+1,μ.N+1] += 1
+    wl.logQ_N[μ.N+1] += wl.logf
+    wl.H_N[μ.N+1]    += 1
     wl.iters +=1
 end #update_wl!
 
 function post_run(sim::SimulationParams,μ::microstate,wl::WangLandauVars)
     println("Wang Landau converged or reached max iterations, logf has reached ", wl.logf, " and convergence is achieved when logf reaches ", log( exp(10^(-8))) )
-    println("Iterations: ", (wl.translation_moves_proposed+wl.λ_moves_proposed), " with maxiters: ", sim.maxiter )
+    println("Iterations: ", (wl.translation_moves_proposed+wl.N_moves_proposed), " with maxiters: ", sim.maxiter )
     println("Total translation moves proposed: ", wl.translation_moves_proposed, ", translation moves accepted: ", wl.translation_moves_accepted, ", Acceptance ratio: ", wl.translation_moves_accepted/wl.translation_moves_proposed)
-    println("Total λ moves proposed: ", wl.λ_moves_proposed, ", λ moves accepted: ", wl.λ_moves_accepted, ", Acceptance ratio: ", wl.λ_moves_accepted/wl.λ_moves_proposed)
+    println("Total N moves proposed: ", wl.N_moves_proposed, ", N moves accepted: ", wl.N_moves_accepted, ", Acceptance ratio: ", wl.N_moves_accepted/wl.N_moves_proposed)
     save_wanglandau_jld2(wl,sim,"final_wl.jld2")
     save_microstate_jld2(μ,sim,"final_microstate.jld2")
     println("Final Microstate and Wang Landau variables saved")
