@@ -4,6 +4,15 @@ using Printf
 using JLD2
 using Random
 
+abstract type PairPotential end # Pair potential is an abstract type used to define pair potentials
+# it is implemented like so for example in lj.jl:
+
+# struct LennardJones <: PairPotential end
+
+# pair_energy(::LennardJones, r2_σ::Float64) = E_12_LJ(r2_σ)
+
+
+
 
 mutable struct microstate # holds the variables of the actual current or proposed state
     N::Int64 # number of particles in the microstate
@@ -25,18 +34,18 @@ mutable struct SimCache
 end
 
 
-struct SimulationParams # immutable because structs are by default immutable in julia
+struct SimulationParams{P <: PairPotential} # immutable because structs are by default immutable in julia
     # SimulationParams is kind of like the user inputs to the simulation and things that will remain fixed throughout the simulation
     # could also add other meta params like the convergence threshold to this, how often to do a flatness check (10,000 rn), the minimum visits to be considered flat and so on but just leaving that stuff hard coded for now
-    # add a maximum iteration? 
+    # add a maximum iteration?
 
     # ~~~~~~~ Input parameters ~~~~~~~~~
     N_max::Int64 # maximum number of atoms in the simulation
     N_min::Int64 # minimum number of atoms in simulation
-    T_σ::Float64 # temperature for Q(N,V,T,λ) in lennard jones units
+    T_σ::Float64 # temperature for Q(N,V,T) in lennard jones units
     Λ_σ::Float64 # DeBroglie Wavelength for system, just passing in as somethign you compute instead of doing inside inner constructor for module loading dependency reasons
 
-    r_cut_σ::Float64 # cutoff to stop evaluating the potential
+    r_cut_σ::Float64 # cutoff to stop evaluating the potential in reduced/input units
 
     input_filename::String
     save_directory_path::String #path to save variables to like binaries of microstate during checkpoints and after runs and so on
@@ -45,15 +54,18 @@ struct SimulationParams # immutable because structs are by default immutable in 
     maxiter::Int64 # maximum monte carlo iterations, can set to 1 to test single steps
 
     # ~~~~~~~ Derived parameters ~~~~~~~~~
-    L_σ::Float64 # length of box in LJ units, read in from input file 
+    L_σ::Float64 # length of box in LJ units, read in from input file
     V_σ::Float64 # volume
     L_squared_σ::Float64 # used to convert between box units (L_box=1) and LJ units
     r_cut_box::Float64
     r_cut_squared_box::Float64 # used for cutoff to avoid computing sqrts
     dynamic_δr_max_box::Bool # set to true if you want to dynamically adjust δr_max_box during the run, false if you want to use a static one specified from the start
 
+    potential::P # pair interaction potential; defaults to LennardJones(). Must be a subtype of PairPotential
+                 # and implement pair_energy(pot, r2_σ::Float64)::Float64
+
     # Now using an "Inner Constructor" to compute the derived parameters from only the input ones
-    function SimulationParams(; N_max,N_min,T_σ,Λ_σ,r_cut_σ,input_filename="",L_σ::Float64=0.0,save_directory_path,rng=MersenneTwister(),maxiter=10^9,dynamic_δr_max_box=true)
+    function SimulationParams(; N_max,N_min,T_σ,Λ_σ,r_cut_σ,input_filename="",L_σ::Float64=0.0,save_directory_path,rng=MersenneTwister(),maxiter=10^9,dynamic_δr_max_box=true,potential=LennardJones())
         # the semicolon above in (; N_max ... ) makes it so all these are keyword arguments, not positional ones so you set them with like 'N_max=100' when initializing a SimulationParams struct
         # Compute derived quantities: L_σ can be supplied directly or read from an input config file
         if input_filename != ""
@@ -66,16 +78,16 @@ struct SimulationParams # immutable because structs are by default immutable in 
         r_cut_box = r_cut_σ/L_σ
         r_cut_squared_box = r_cut_box^2
 
-        new(N_max,N_min,T_σ,Λ_σ,r_cut_σ,input_filename,save_directory_path,rng,maxiter,
-            L_σ,V_σ,L_squared_σ,r_cut_box ,r_cut_squared_box,dynamic_δr_max_box)
+        new{typeof(potential)}(N_max,N_min,T_σ,Λ_σ,r_cut_σ,input_filename,save_directory_path,rng,maxiter,
+            L_σ,V_σ,L_squared_σ,r_cut_box,r_cut_squared_box,dynamic_δr_max_box,potential)
     end
 end # SimulationParams
 
 mutable struct WangLandauVars
     # WangLandauVars holds variables related to the wang landau monte carlo process that will change throughout the course of the simulation
     logf::Float64 # natural log of f, the modification factor in the Wang Landau scheme which is initiall set to f = the euler constant
-    H_N::Vector{Int64} # histogram of number of times each (λ,N) pair has been visited.  λ_max rows, N_max columns.
-    logQ_N::Vector{Float64} # "density of states" for Wang Landau method in SEGC is the extended canonical partition functions Q(NVT,λ) because V and T are fixed for given sim., they are left out of name, λ on rows and N on columns
+    H_N::Vector{Int64} # histogram of number of times each (N) has been visited. N_max columns.
+    logQ_N::Vector{Float64} # "density of states" for Wang Landau method in GCWL is the canonical partition functions Q(NVT) because V and T are fixed for given sim., they are left out of name, N+1 entries because N=0 included
     translation_moves_proposed::Int64
     translation_moves_accepted::Int64
     N_moves_proposed::Int64

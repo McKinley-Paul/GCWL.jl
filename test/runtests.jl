@@ -67,7 +67,7 @@ end
     N, L_σ, r_σ = load_configuration(cfg)
     r_box = r_σ ./ L_σ
     test_idx = 1 .+ [0, 2, 3, 56, 100, 34, 222, 255, 78, 89]
-    E_test = [potential_1(r_box, r_box[idx], idx, N, L_σ^2, (3/L_σ)^2)
+    E_test = [potential_1(LennardJones(), r_box, r_box[idx], idx, N, L_σ^2, (3/L_σ)^2)
               for idx in test_idx]
     allen_tildesly_results = [-11.932319723716308, -11.932319753958657, -11.932319753958655,
                                -11.932319756099865, -11.9323197764367,   -11.932319756566486,
@@ -487,13 +487,106 @@ end
     @test length(c.μ_prop.r_box) == sim.N_max
 end
 
+
+println("")
+println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now Running Detailed Balance Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+println("")
+
+#=
+Detailed balance requires that the raw acceptance argument product for a forward/reverse
+move pair equals 1 (independent of any Q bias, which cancels exactly):
+
+    [V_Λ_fwd × factorial_fwd × exp(-βΔU_fwd)] × [V_Λ_rev × factorial_rev × exp(-βΔU_rev)] = 1
+
+This reduces to two independent checks:
+  (a) V_Λ_fwd × V_Λ_rev × factorial_fwd × factorial_rev = 1   (prefactor symmetry)
+  (b) ΔU_fwd + ΔU_rev = 0                                      (energy antisymmetry)
+=#
+
+@testset "Detailed balance: translation move ΔU antisymmetry" begin
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                           r_cut_σ=3.0,
+                           input_filename=input_path,
+                           save_directory_path=@__DIR__,
+                           rng=MersenneTwister(1))
+    μ = init_microstate(sim=sim, filename=input_path)
+
+    i     = 2
+    r_old = MVector{3,Float64}(μ.r_box[i])
+    r_new = MVector{3,Float64}(r_old .+ 0.05)
+
+    E_at_r_old = potential_1(sim.potential, μ.r_box, r_old, i, μ.N, sim.L_squared_σ, sim.r_cut_squared_box)
+    E_at_r_new = potential_1(sim.potential, μ.r_box, r_new, i, μ.N, sim.L_squared_σ, sim.r_cut_squared_box)
+
+    ΔU_fwd = E_at_r_new - E_at_r_old
+    ΔU_rev = E_at_r_old - E_at_r_new
+    @test ΔU_fwd + ΔU_rev ≈ 0.0 atol=1e-12
+end
+
+@testset "Detailed balance: insertion/deletion V_Λ prefactor symmetry" begin
+    #= For direct GCWL insertion/deletion the acceptance arguments must be reciprocals:
+         insertion  (N → N+1): V/Λ³  × 1/(N+1)
+         deletion   (N+1 → N): Λ³/V  × (N+1)
+       Product = 1. A wrong exponent in V_Λ_prefactor would break this. =#
+    T_σ = 1.0; L_σ = 8.0
+    sim = SimulationParams(N_max=10, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                           r_cut_σ=3.0, L_σ=L_σ,
+                           save_directory_path=@__DIR__,
+                           rng=MersenneTwister(1))
+    for N in [0, 1, 4, 9]
+        V_Λ_ins = sim.V_σ^(1) * sim.Λ_σ^(-3)          # insertion N→N+1: V/Λ³
+        f_ins   = 1.0 / (N + 1)
+        V_Λ_del = sim.V_σ^(-1) * sim.Λ_σ^(3)          # deletion N+1→N: Λ³/V
+        f_del   = Float64(N + 1)
+
+        @test V_Λ_ins ≈ sim.V_σ / sim.Λ_σ^3           atol=1e-10
+        @test V_Λ_del ≈ sim.Λ_σ^3 / sim.V_σ           atol=1e-10
+        @test V_Λ_ins * f_ins * V_Λ_del * f_del ≈ 1.0 atol=1e-10
+    end
+end
+
+@testset "Detailed balance: insertion/deletion ΔU antisymmetry" begin
+    #= Insert a particle at r_new into an N-particle system.
+       Then delete that same particle. The ΔU values must be exact negatives.
+       This is the GCWL equivalent of the r_frac detailed balance test in SEGC-WL:
+       ΔU_ins = potential_1(new particle at r_new with N existing)
+       ΔU_del = 0 - potential_1(same particle at r_new with N existing) = -ΔU_ins
+       Sum = 0.  If the energy function is inconsistent this will not hold. =#
+    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
+    T_σ = 1.0
+    sim = SimulationParams(N_max=9, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
+                           r_cut_σ=3.0,
+                           input_filename=input_path,
+                           save_directory_path=@__DIR__,
+                           rng=MersenneTwister(1))
+    μ = init_microstate(sim=sim, filename=input_path)  # N=8
+
+    r_new = MVector{3,Float64}(0.05, -0.03, 0.02)     # interior position, no overlap
+
+    # Insertion: new particle is slot N+1 = 9 in a 9-particle proposed state
+    r_box_Np1 = [MVector{3,Float64}(μ.r_box[j]) for j in 1:sim.N_max]
+    r_box_Np1[μ.N+1] .= r_new
+    ΔU_ins = potential_1(sim.potential, r_box_Np1, r_new, μ.N+1, μ.N+1, sim.L_squared_σ, sim.r_cut_squared_box)
+
+    # Deletion: delete the particle just inserted (particle μ.N+1 at r_new from N+1 system)
+    # E_old = energy of that particle with remaining N particles
+    E_del = potential_1(sim.potential, r_box_Np1, r_new, μ.N+1, μ.N+1, sim.L_squared_σ, sim.r_cut_squared_box)
+    ΔU_del = 0.0 - E_del
+
+    @test ΔU_ins + ΔU_del ≈ 0.0 atol=1e-12
+    @test exp(-(ΔU_ins + ΔU_del) / T_σ) ≈ 1.0 atol=1e-10
+end
+
+
 println("")
 println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now Running Physics Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 println("")
 
 ############ Physics: comparison to analytic values ############
 
-@testset "Comparison to Analytic Values of Q(N=1), Q(N=2)" begin
+@testset "Comparison to Analytic Values of Q(N=1), Q(N=2) for Lennard Jones system" begin
     #= Run 5 independent WL simulations on a small 4-atom box and average.
        Reference values computed analytically in test/mathematica_verification.nb. =#
     logQ_N1 = 0.0; logQ_N2 = 0.0
@@ -585,93 +678,38 @@ end
             joinpath(@__DIR__, "high_N_ideal_gas_logQ_comparison.png"))
 end
 
-println("")
-println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Now Running Detailed Balance Tests ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-println("")
-
-#=
-Detailed balance requires that the raw acceptance argument product for a forward/reverse
-move pair equals 1 (independent of any Q bias, which cancels exactly):
-
-    [V_Λ_fwd × factorial_fwd × exp(-βΔU_fwd)] × [V_Λ_rev × factorial_rev × exp(-βΔU_rev)] = 1
-
-This reduces to two independent checks:
-  (a) V_Λ_fwd × V_Λ_rev × factorial_fwd × factorial_rev = 1   (prefactor symmetry)
-  (b) ΔU_fwd + ΔU_rev = 0                                      (energy antisymmetry)
-=#
-
-@testset "Detailed balance: translation move ΔU antisymmetry" begin
-    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
-    T_σ = 1.0
-    sim = SimulationParams(N_max=8, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
-                           r_cut_σ=3.0,
-                           input_filename=input_path,
-                           save_directory_path=@__DIR__,
-                           rng=MersenneTwister(1))
-    μ = init_microstate(sim=sim, filename=input_path)
-
-    i     = 2
-    r_old = MVector{3,Float64}(μ.r_box[i])
-    r_new = MVector{3,Float64}(r_old .+ 0.05)
-
-    E_at_r_old = potential_1(μ.r_box, r_old, i, μ.N, sim.L_squared_σ, sim.r_cut_squared_box)
-    E_at_r_new = potential_1(μ.r_box, r_new, i, μ.N, sim.L_squared_σ, sim.r_cut_squared_box)
-
-    ΔU_fwd = E_at_r_new - E_at_r_old
-    ΔU_rev = E_at_r_old - E_at_r_new
-    @test ΔU_fwd + ΔU_rev ≈ 0.0 atol=1e-12
+# Julia scoping requires these be globals and thus must be defined outside of @testset which has a local scope so gcwl.jl can find them
+struct HardSphere <: PairPotential end 
+# because cutoff check happens in potential_1, we can just set SimulationParams.r_cut_σ = 1 and return +∞ energy if pair_energ(HardSphere, r2_σ) ever gets called
+function gc_wl.pair_energy(p::HardSphere, r2_σ::Float64)::Float64 # have to have gc_wl prefix so gc_wl.jl and associated functions can find this
+    # ONLY WORKS IF YOU SET SimulationParams.r_cut_σ = 1 
+    return(typemax(Float64))
 end
 
-@testset "Detailed balance: insertion/deletion V_Λ prefactor symmetry" begin
-    #= For direct GCWL insertion/deletion the acceptance arguments must be reciprocals:
-         insertion  (N → N+1): V/Λ³  × 1/(N+1)
-         deletion   (N+1 → N): Λ³/V  × (N+1)
-       Product = 1. A wrong exponent in V_Λ_prefactor would break this. =#
-    T_σ = 1.0; L_σ = 8.0
-    sim = SimulationParams(N_max=10, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
-                           r_cut_σ=3.0, L_σ=L_σ,
-                           save_directory_path=@__DIR__,
-                           rng=MersenneTwister(1))
-    for N in [0, 1, 4, 9]
-        V_Λ_ins = sim.V_σ^(1) * sim.Λ_σ^(-3)          # insertion N→N+1: V/Λ³
-        f_ins   = 1.0 / (N + 1)
-        V_Λ_del = sim.V_σ^(-1) * sim.Λ_σ^(3)          # deletion N+1→N: Λ³/V
-        f_del   = Float64(N + 1)
-
-        @test V_Λ_ins ≈ sim.V_σ / sim.Λ_σ^3           atol=1e-10
-        @test V_Λ_del ≈ sim.Λ_σ^3 / sim.V_σ           atol=1e-10
-        @test V_Λ_ins * f_ins * V_Λ_del * f_del ≈ 1.0 atol=1e-10
+@testset "Hard sphere partition functions" begin
+    logQ_avg = zeros(13)
+    for _ in 1:5
+        T_σ = 1.0
+        sim = SimulationParams(N_max=12, N_min=0, T_σ=T_σ, Λ_σ=1.0, # Λ = 1 just for ease
+                               r_cut_σ=1.0, # CRITICAL FOR HARD SPHERE
+                               L_σ = 20.0, # dilute
+                               save_directory_path=@__DIR__,
+                               maxiter=100_000_000, potential = HardSphere())
+        μ     = init_microstate(sim)
+        wl    = init_WangLandauVars(sim)
+        cache = init_cache(sim, μ)
+        run_simulation!(sim, μ, wl, cache)
+        logQ   = correct_logQ(wl)
+        logQ_avg = logQ_avg .+ logQ 
     end
-end
+    logQ_avg = logQ_avg ./ 5
 
-@testset "Detailed balance: insertion/deletion ΔU antisymmetry" begin
-    #= Insert a particle at r_new into an N-particle system.
-       Then delete that same particle. The ΔU values must be exact negatives.
-       This is the GCWL equivalent of the r_frac detailed balance test in SEGC-WL:
-       ΔU_ins = potential_1(new particle at r_new with N existing)
-       ΔU_del = 0 - potential_1(same particle at r_new with N existing) = -ΔU_ins
-       Sum = 0.  If the energy function is inconsistent this will not hold. =#
-    input_path = joinpath(@__DIR__, "cube_vertices_home_made.inp")
-    T_σ = 1.0
-    sim = SimulationParams(N_max=9, N_min=0, T_σ=T_σ, Λ_σ=argon_deBroglie(T_σ),
-                           r_cut_σ=3.0,
-                           input_filename=input_path,
-                           save_directory_path=@__DIR__,
-                           rng=MersenneTwister(1))
-    μ = init_microstate(sim=sim, filename=input_path)  # N=8
+    println("Hard sphere partition functions: ",logQ_avg )
 
-    r_new = MVector{3,Float64}(0.05, -0.03, 0.02)     # interior position, no overlap
-
-    # Insertion: new particle is slot N+1 = 9 in a 9-particle proposed state
-    r_box_Np1 = [MVector{3,Float64}(μ.r_box[j]) for j in 1:sim.N_max]
-    r_box_Np1[μ.N+1] .= r_new
-    ΔU_ins = potential_1(r_box_Np1, r_new, μ.N+1, μ.N+1, sim.L_squared_σ, sim.r_cut_squared_box)
-
-    # Deletion: delete the particle just inserted (particle μ.N+1 at r_new from N+1 system)
-    # E_old = energy of that particle with remaining N particles
-    E_del = potential_1(r_box_Np1, r_new, μ.N+1, μ.N+1, sim.L_squared_σ, sim.r_cut_squared_box)
-    ΔU_del = 0.0 - E_del
-
-    @test ΔU_ins + ΔU_del ≈ 0.0 atol=1e-12
-    @test exp(-(ΔU_ins + ΔU_del) / T_σ) ≈ 1.0 atol=1e-10
+    mathematica_hardsphere_logQs = [0.0,8.9872,16.5881,23.378,29.5925,35.3607,40.7642,45.8594,
+                                    50.6875,55.2799,59.6617,63.8527,67.8698] # starts from N=0 and goes to N=12, computed from known virial coefficients in mathematica_verification.nb
+    
+    for ii in range(1,length(logQ_avg))
+        @test logQ_avg[ii] ≈ mathematica_hardsphere_logQs[ii] atol = 0.05*mathematica_hardsphere_logQs[ii]
+    end
 end

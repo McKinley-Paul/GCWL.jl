@@ -13,8 +13,8 @@ julia test/runtests.jl
 
 **Run a simulation (from an example directory):**
 ```julia
-using segc_wl
-sim = SimulationParams(N_max=..., N_min=..., T_σ=..., Λ_σ=..., λ_max=..., r_cut_σ=...,
+using gc_wl
+sim = SimulationParams(N_max=..., N_min=..., T_σ=..., Λ_σ=..., r_cut_σ=...,
                        input_filename=..., save_directory_path=..., maxiter=...)
 μstate = init_microstate(sim=sim, filename=input_path)
 wl     = init_WangLandauVars(sim)
@@ -37,25 +37,25 @@ wl     = load_wanglandau_jld2(path)
 
 ## Architecture
 
-The package computes expanded canonical partition functions Q(N,V,T,λ) for Lennard-Jones fluids using the **Single-Particle Extended Grand Canonical (SEGC) Wang-Landau** algorithm (Desgranges & Delhommelle 2012/2016).
+The package computes canonical partition functions Q(N,V,T) for Lennard-Jones fluids using the **Grand Canonical (GC) Wang-Landau** algorithm. Particles are inserted and deleted directly (integer ΔN = ±1); there is no fractional particle or λ-staging.
 
 ### Source files (`src/`)
 
 | File | Role |
 |------|------|
-| `segc_wl.jl` | Module entry, main loop `run_simulation!`, move proposals (`translation_move!`, `λ_move!`), `update_wl!`, `post_run` |
+| `gc_wl.jl` | Module entry, main loop `run_simulation!`, move proposals (`translation_move!`, `N_move!`), `update_wl!`, `post_run`, `N_metropolis` |
 | `initialization.jl` | All structs (`microstate`, `SimulationParams`, `WangLandauVars`, `SimCache`), `init_*` functions, checkpointing (JLD2), PBC wrapping |
-| `lj.jl` | LJ energy functions (`E_12_LJ`, `E_12_frac_LJ`, `potential_1_normal`, `potential_1_frac`), λ-move acceptance criterion `λ_metropolis_pm1` |
+| `lj.jl` | LJ energy functions (`E_12_LJ`, `potential_1`) |
 | `utils.jl` | PBC distance, random translation, standard Metropolis criterion |
-| `thermo.jl` | `correct_logQ` (normalization via Q(0,λ=0)=1), ideal gas partition function (Stirling and exact via loggamma) |
+| `thermo.jl` | `correct_logQ` (normalization via Q(N=0)=1), ideal gas partition function (Stirling and exact via loggamma) |
 
 ### Key data structures
 
-**`SimulationParams`** (immutable) — set once at startup. Input fields: `N_max/N_min`, `T_σ`, `Λ_σ`, `λ_max`, `r_cut_σ`, `maxiter`, `dynamic_δr_max_box`. Derived fields computed in inner constructor: `L_σ`, `V_σ`, `r_cut_box`, etc.
+**`SimulationParams`** (immutable) — set once at startup. Input fields: `N_max/N_min`, `T_σ`, `Λ_σ`, `r_cut_σ`, `maxiter`, `dynamic_δr_max_box`. Derived fields computed in inner constructor: `L_σ`, `V_σ`, `r_cut_box`, etc.
 
-**`microstate`** (mutable) — current configuration: `N` (particle count), `λ` (coupling integer 0…λ_max), `r_box` (positions in box=1 units), `r_frac_box`, precomputed couplings `ϵ_ξ` and `σ_ξ_squared`.
+**`microstate`** (mutable) — current configuration: `N` (particle count), `r_box` (positions in box=1 units, pre-allocated to `N_max` slots).
 
-**`WangLandauVars`** (mutable) — WL state: `logf`, `H_λN` histogram, `logQ_λN` density-of-states matrix, move counters, `δr_max_box`.
+**`WangLandauVars`** (mutable) — WL state: `logf`, `H_N` histogram (length `N_max+1`), `logQ_N` density-of-states vector (length `N_max+1`), move counters, `δr_max_box`, `phase2::Bool`, `flat::Bool`.
 
 **`SimCache`** (mutable) — pre-allocated scratch buffers (`ζ_Mvec`, `ri_proposed_box`, `μ_prop`) to avoid heap allocations in the inner loop.
 
@@ -68,23 +68,39 @@ The package computes expanded canonical partition functions Q(N,V,T,λ) for Lenn
 
 Two MC move types each step (75/25 split):
 - **Translation**: Metropolis accept/reject on ΔE for one particle.
-- **λ-move**: Change coupling by ±1 (fractional particle appears/disappears); acceptance uses the SEGC criterion in `λ_metropolis_pm1` (includes factorial and V/Λ³ prefactors).
+- **N-move**: Insert or delete one full particle (ΔN = ±1); acceptance uses `N_metropolis` (Ganzmuller & Camp 2007, Eq. 19).
 
-Wang-Landau updates `logQ_λN` and `H_λN` after every accepted move.
+Wang-Landau updates `logQ_N` and `H_N` after every MC step (accepted or rejected).
+
+#### Metropolis acceptance criterion for N-moves
+
+Reference: Ganzmuller & Camp, *J. Chem. Phys.* **127**, 154504 (2007), Eq. 19. All cases written in terms of Q(N_old)/Q(N_new) from the WL density of states.
+
+**Insertion** (N → N+1):
+```
+acc = min(1,  Q(N)/Q(N+1) × (V/Λ³) × 1/(N+1) × exp(−βΔU) )
+```
+ΔU = interaction energy of the new particle with all N existing ones.
+
+**Deletion** (N → N−1):
+```
+acc = min(1,  Q(N)/Q(N-1) × (Λ³/V) × N × exp(−βΔU) )
+```
+ΔU = −(interaction energy of the deleted particle with all N−1 remaining).
+
+Both cases are implemented in `N_metropolis` (`gc_wl.jl`). The function computes `V_Λ_prefactor = V^(ΔN) × Λ^(−3ΔN)` and `factorial_prefactor` (N for deletion, 1/(N+1) for insertion) and multiplies them with `partition_ratio = exp(logQ_N[N_old+1] − logQ_N[N_new+1])`.
 
 #### 1/t Wang-Landau update schedule (Pereyra 2007 hybrid)
 
-The current implementation uses a two-phase 1/t WL schedule rather than pure halving to logf < 1e-8:
+The implementation uses a two-phase 1/t WL schedule rather than pure halving to logf < 1e-8:
 
-**Phase 1** (standard WL halving): logf starts at 1 and is halved each epoch. An epoch ends when `min(H_λN) ≥ 1000` over all active (λ,N) bins. After each halving, compute the Monte Carlo time `t = wl.iters / num_active_bins` (where `num_active_bins = (N_max−N_min+1) × (λ_max+1)`). Phase 1 ends and phase 2 begins when `logf ≤ 1/t` — typically around halving 14–17 depending on how hard the state space is to sample.
+**Phase 1** (standard WL halving): logf starts at 1 and is halved each epoch. An epoch ends when `min(H_N) ≥ 1` over all active N bins (checked every 1000 Monte Carlo time steps). After each halving, compute the Monte Carlo time `t = wl.iters / num_active_bins` (where `num_active_bins = N_max − N_min + 1`). Phase 1 ends and phase 2 begins when `logf ≤ 1/t`.
 
-**Phase 2** (1/t schedule): `logf = num_active_bins / wl.iters` is set continuously each MC step (logf tracks 1/t exactly). No halving or histogram reset occurs. Phase 2 exits — and the simulation terminates — when `min(H_λN) / mean(H_λN) > 0.8` (80% flatness criterion), checked every 1,000,000 steps. `wl.iters` is never reset; it counts total MC steps from the start of the run.
+**Phase 2** (1/t schedule): `logf = num_active_bins / wl.iters` is set continuously each MC step. No halving or histogram reset occurs. Phase 2 exits — and the simulation terminates — when `min(H_N) / mean(H_N) > 0.8` (80% flatness criterion), checked every 1,000,000 steps. `wl.iters` is never reset; it counts total MC steps from the start of the run.
 
-**Why**: Classic pure-halving WL (Desgranges 2012) continues halving until logf < 1e-8 (~26 halvings), doing redundant sweeps after the DoS is already converged. The 1/t schedule eliminates the asymptotic saturation error inherent in fixed-logf WL and exits once the histogram is genuinely flat rather than after an arbitrary number of halvings.
+**Why**: The 1/t schedule eliminates the asymptotic saturation error inherent in fixed-logf WL and exits once the histogram is genuinely flat rather than after an arbitrary number of halvings.
 
-**References**: Pereyra et al., *J. Chem. Phys.* **126**, 124111 (2007); Shchur & Janke, *J. Phys.: Conf. Ser.* **2025** (2019) (tunneling time and histogram-flatness ↔ TMES equivalence).
-
-**Key fields added to `WangLandauVars`**: `phase2::Bool` (false until 1/t crossover), `flat::Bool` (true when 80% flatness reached and simulation exits).
+**References**: Pereyra et al., *J. Chem. Phys.* **126**, 124111 (2007); Shchur & Janke, *Phys. Rev. E* **96**, 043307 (2017).
 
 ### Input config format (`.inp`)
 
@@ -104,23 +120,22 @@ x2 y2 z2
 
 Files in `literature/`: `desgranges2012.pdf`, `desgranges2012.txt` (copy-paste with artifacts), `correspondence.txt` (email exchange with Prof. Desgranges, Jul–Oct 2025), `figure1adata/*.csv` (plot-digitized data from Fig. 1a; x = N, y = ln Q*; subject to pixel-picking error).
 
+This paper uses the SEGC algorithm (fractional-particle λ-staging), which is the predecessor approach. The current code targets the same Q(N,V,T) but via direct GCMC insertion/deletion.
+
 ---
 
-### Exact argon simulation parameters (Figure 1a)
+### Exact argon simulation parameters (Figure 1a, Desgranges 2012)
 
 | Parameter | Value |
 |-----------|-------|
 | Box       | V = 512 σ³ → L = 8σ |
 | N_max     | 450 |
 | r_cut     | 3σ |
-| M (stages)| 100 (l = 0 … 99, so `λ_max = 99`) |
 | ε/k_B     | 117.05 K |
 | σ         | 3.4 Å |
 | logf₀     | 1 (i.e. f = e) |
-| logf_min  | 10⁻⁸ |
-| Flatness  | every (N, l) visited ≥ 1000 times per epoch |
 | Statistics| std dev over **4 independent** runs |
-| MC split  | 75% translation / 25% λ-move |
+| MC split  | 75% translation / 25% N-move |
 
 **Temperatures** (10 isotherms, T* = kT/ε):
 
@@ -141,7 +156,7 @@ Files in `literature/`: `desgranges2012.pdf`, `desgranges2012.txt` (copy-paste w
 
 ### Q* definition and normalization
 
-**Definition** (Eq. 2 + Fig. 1a caption):
+**Definition** (Desgranges 2012, Eq. 2 + Fig. 1a caption):
 ```
 Q*(N,V,T) = Λ^(3N) × Q(N,V,T)
            = V^N / N! × <exp(-βU)>_config      (ideal gas → V^N / N!)
@@ -149,60 +164,9 @@ Q*(N,V,T) = Λ^(3N) × Q(N,V,T)
 
 Confirmed by Desgranges (email Aug 12, 2025): "we multiply our value Q(N,V,T) by Λ³ to obtain Q*(N,V,T)."  Note this means Λ³ *cancels* the Λ^(3N) denominator inside Q, leaving only configurational integrals.
 
-**Normalization**: Q(N=0, l=0) = 1  →  logQ*(N=0) = 0 (anchor for the WL DoS). The `correct_logQ` function in `thermo.jl` enforces this.
-
-**Final output**: Desgranges confirmed — only the l=0 slice is used: Q(N,V,T) ≡ Q(N,V,T,l=0).
+**Normalization**: Q(N=0) = 1  →  logQ*(N=0) = 0 (anchor for the WL DoS). The `correct_logQ` function in `thermo.jl` enforces this.
 
 **Approximate scale at N=450, T*=0.75**: ln Q* ≈ 2527.  At T*=1.2, N≈349: ln Q* ≈ 1071 (from digitized data).  Curves are nearly linear in N but slope is ~10–40× the ideal-gas slope due to attractive LJ interactions.
-
----
-
-### Metropolis acceptance criteria (Eqs. 10–12)
-
-All written in terms of the *ratio* Q(old state) / Q(new state), which is what the WL density-of-states tracks.
-
-**Eq. 10** — translation move OR λ-move where both l_old and l_new are either both 0 or both > 0 (N unchanged):
-```
-acc = min(1,  Q(N, l_o) / Q(N, l_n) × exp(−βΔU) )
-```
-For a pure translation (l_o = l_n, N unchanged) this reduces to the standard Metropolis criterion.
-
-**Eq. 11** — λ-move from l=0 → l=1 (fractional particle *created*, N stays same):
-```
-acc = min(1,  Q(N, 0) / Q(N, 1) × (V / Λ³) × exp(−βΔU) )
-```
-The `V/Λ³` factor arises from the V^(N+1) vs V^N and Λ^(3N) vs Λ^(3(N+1)) difference.
-
-**Eq. 12** — λ-move from l>0 → l=0 (fractional particle *destroyed* or *fully inserted*):
-
-*Case A*: l=1 → l=0, N unchanged (fractional disappears):
-```
-acc = min(1,  Q(N, 1) / Q(N, 0) × (Λ³ / V) × exp(−βΔU) )
-```
-
-*Case B*: l=λ_max → l=0, N → N+1 (fractional becomes a full particle, complete insertion):
-```
-acc = min(1,  Q(N, λ_max) / Q(N+1, 0) × 1/(N+1) × exp(−βΔU) )
-```
-The `1/(N+1)` is the factorial ratio N!/(N+1)!.  The V/Λ³ factors cancel when No=N, Nn=N+1.
-
-*Case C* (reverse of B): l=0, N → N−1, l → λ_max (begin deletion):
-```
-acc = min(1,  Q(N, 0) / Q(N−1, λ_max) × N × exp(−βΔU) )
-```
-
-The `λ_metropolis_pm1` function in `lj.jl` implements all these cases.
-
----
-
-### Fractional-particle LJ coupling (Eq. 16)
-
-Coupling exponents from Ref. 35 (Kaminski 1994):
-```
-ε_ξ(l)        = (l/M)^(1/3) × ε        [well depth scales as l^(1/3)]
-σ_ξ²(l)       = (l/M)^(1/2) × σ²       [exclusion diameter: σ_ξ = (l/M)^(1/4) σ]
-```
-These correspond to `ϵ_ξ` and `σ_ξ_squared` in the `microstate` struct.
 
 ---
 
@@ -215,30 +179,6 @@ To compare to Desgranges Fig. 1a, apply the Λ correction:
 logQ_star(N) = logQ_raw[N+1] + 3*N*log(Λ_σ)
 ```
 For argon at T*=1.2: `logQ_raw[N+1] ≈ logQ_star + 8.04*N` (Λ³ ≈ 3.22e-4 σ³).
-
----
-
-### Deletion bug (fixed Apr 2026) — detailed balance violation
-
-**Root cause**: In `λ_move!` (`segc_wl.jl`), the deletion branch (λ_proposed == -1) left `r_frac_box` at the stale ghost position instead of setting it to the deleted particle's position. This violated detailed balance: the forward move (delete particle at r_i, frac appears at ghost) and the reverse move (insert from ghost, particle appears at ghost ≠ r_i) connected *different* pairs of microstates. No choice of WL DoS can satisfy detailed balance for such a scheme.
-
-**Effect**: Systematic overestimation of logQ* at high N. Grew linearly with N and with M (number of λ stages): M=3 gave −39% (underestimate), M=10 gave +14%, M=100 gave +97% at N=350.
-
-**Fix** (3 lines in `λ_move!`):
-```julia
-# Before λ_metropolis_pm1 call:
-c.μ_prop.r_frac_box .= μ.r_box[idx_deleted]
-# In acceptance block, BEFORE the r_box swap:
-μ.r_frac_box .= μ.r_box[idx_deleted]
-# In rejection block:
-c.μ_prop.r_frac_box .= μ.r_frac_box
-```
-
-**Validation**: M=10, N=108, T*=1.2 → logQ*(108) = 347 vs reference 350 (−0.8%). M=100, N=50, T*=1.2 → logQ*(50) = 180.1 vs reference 182 (−1.1%).
-
-**Regression tests**: `test/runtests.jl` contains a "Detailed balance: insertion/deletion ΔU antisymmetry" testset that directly catches this bug if reintroduced (checks ΔU_del + ΔU_ins = 0, which only holds when r_frac is set to r_deleted). The high-N ideal gas test (T*=1e6) also catches it.
-
-**Key principle**: In any extended-ensemble MC move that changes N, the forward and reverse moves must connect the *same* pair of microstates. For deletion: the fractional particle must appear at the deleted particle's position so that insertion (the reverse) recreates the original state exactly. This is a microstate-level detailed balance requirement, invisible if you only check the (N,λ) macrostate histogram.
 
 ---
 
