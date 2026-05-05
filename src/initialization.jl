@@ -3,14 +3,14 @@ using StaticArrays
 using Printf
 using JLD2
 using Random
+using InteractiveUtils: @which
+
 
 abstract type PairPotential end # Pair potential is an abstract type used to define pair potentials
 # it is implemented like so for example in lj.jl:
-
 # struct LennardJones <: PairPotential end
-
-# pair_energy(::LennardJones, r2_σ::Float64) = E_12_LJ(r2_σ)
-
+# gc_wl.pair_energy(::LennardJones, r2_σ::Float64) = E_12_LJ(r2_σ)
+# if parameters are needed in the potential definition, do not use anonymous definition shown here for the pair energy
 
 
 
@@ -251,8 +251,8 @@ end
 function print_simulation_params(params::SimulationParams,start::Bool=true)
     println()
     if start
-        println("           Starting SEGC Wang Landau Simulation        ")
-        println("Due to the occurence of Λ in the metropolis criterion, this simulation cannot be fully carried out for lennard jonesium and is here specific to Argon")
+        println("           Starting 1/t GC Wang Landau Simulation        ")
+        println("Be aware that Λ and thus implicitly the mass appears in the metropolis criterion")
     end
     @printf("T* = %.4f\n", params.T_σ)
     @printf("V = %.4f σ³\n", params.V_σ)
@@ -299,9 +299,17 @@ function print_wl(wl::WangLandauVars,verbose=true)
     end
 end # print_wl
 
+function print_potential(sim::SimulationParams)
+    println()
+    println("Pair potential: ", typeof(sim.potential))
+    println("pair_energy method: ", @which pair_energy(sim.potential, 1.0))
+end
+
 function initialization_check(sim::SimulationParams, μ::microstate,wl::WangLandauVars)
     check_inputs(sim,μ,wl) # tell user the min distance in config and similar things
     print_simulation_params(sim)
+    save_sim_jld2(sim,"sim.jld2")
+    print_potential(sim)
     print_microstate(μ,true)
     flush(stdout)
 end
@@ -310,6 +318,16 @@ end
 function save_wanglandau_jld2(wl::WangLandauVars,sim::SimulationParams, filename::String)
     filepath = joinpath(sim.save_directory_path,filename)
     jldsave(filepath; wl=wl)
+end
+
+
+function save_sim_jld2(sim::SimulationParams, filename::String)
+    filepath = joinpath(sim.save_directory_path,filename)
+    jldsave(filepath; sim=sim)
+end
+
+function load_sim_jld2(filename::String)::SimulationParams
+    return load(filename, "sim")
 end
 
 function load_wanglandau_jld2(filename::String)::WangLandauVars

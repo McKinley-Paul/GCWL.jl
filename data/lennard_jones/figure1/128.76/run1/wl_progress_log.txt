@@ -1,0 +1,27 @@
+Starting run_simulation!(), time is 2026-05-04 10:09:20
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-04 10:09:22
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-04 10:09:24
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-04 10:09:26
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-04 10:09:29
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-04 10:09:31
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-04 10:09:34
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-04 10:09:37
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-04 10:09:38
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-04 10:09:51
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-04 10:09:55
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-04 10:09:59
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-04 10:10:03
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-04 10:10:17
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-04 10:10:27
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-04 10:10:43
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-04 10:11:03
+New WL phase 1 epoch!, now at 7.62939453125e-6 and the time is 2026-05-04 10:11:10
+New WL phase 1 epoch!, now at 3.814697265625e-6 and the time is 2026-05-04 10:11:23
+Now entering phase 2! It took 59319000 monte carlo moves (wl.iters) to get to phase 2! 2026-05-04 10:11:23
+That is a monte carlo time of: 169000
+Phase 2 flatness check: H(N) min/mean = 65.0 %, total iters: 500000000 min: 810236 2026-05-04 10:23:09
+Phase 2 flatness check: H(N) min/mean = 66.0 %, total iters: 1000000000 min: 1779622 2026-05-04 10:36:52
+Phase 2 flatness check: H(N) min/mean = 77.0 %, total iters: 1500000000 min: 3170704 2026-05-04 10:51:05
+Flatness criterion reached in phase 2 after 1693000000 total iterations 2026-05-04 10:57:07
+H(N) min/mean = 80.0 %
+H(N) max = 4944195

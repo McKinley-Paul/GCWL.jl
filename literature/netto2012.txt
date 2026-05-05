@@ -1,0 +1,558 @@
+Wang-Landau sampling: Improving accuracy
+A. A. Caparica1 and A. G. Cunha-Netto2
+1Instituto de F´ısica, Universidade Federal de Goi´as, C.P. 131, CEP 74001-970 Goiˆania, GO, Brazil
+2Departamento de F´ısica, Instituto de Ciˆencias Exatas, and National Institute of Science and Technology for Complex Systems,
+Universidade Federal de Minas Gerais, C.P. 702, 30123-970 Belo Horizonte, Minas Gerais, Brazil
+(Received 16 September 2011; revised manuscript received 19 December 2011; published 5 April 2012)
+In this work, we investigate the behavior of the microcanonical and canonical averages of the two-dimensional
+Ising model during the Wang-Landau simulation. The simulations were carried out using conventional Wang-
+Landau sampling and the 1/t scheme. Our findings reveal that the microcanonical average should not be
+accumulated during the initial modification factors f, and they outline a criterion to find this limit, which we
+define as fmicro. We show that updating the density of states only after every L2 spin-flip trials leads to a much
+better precision. We present a mechanism to determine for the given model up to what final modification factor
+ffinal the simulations should be carried out. Altogether these small adjustments lead to an improved procedure
+for simulations with much more reliable results. We compare our results with 1/t simulations. We also present
+an application of the procedure to a self-avoiding homopolymer.
+DOI: 10.1103/PhysRevE.85.046702 PACS number(s): 02.70.−c
+I. INTRODUCTION
+In recent years, Wang-Landau sampling (WLS) [1,2] has
+been applied to many systems and has become a wellestablished
+Monte Carlo algorithm. The heuristic idea of the
+method is based on the fact that if one performs a random
+walk in energy space with a probability proportional to the
+reciprocal of the density of states, a flat histogram is generated
+for the energy distribution. Since the density of states produces
+huge numbers, instead of estimating g(E), the simulation
+is performed for S(E) ≡ ln g(E), and a histogram H(E) is
+accumulated during the simulations to control the frequency
+of visits to the energy levels.At the beginning of the simulation,
+we set S(E) = 0 for all energy levels. The random walk in the
+energy space runs through all energy levels from Emin to Emax
+with a probability
+p(E → E
+ ) = min ( exp [S(E) − S(E
+ )],1), (1)
+whereE andE
+  are the energies of the current and the newpossible
+configurations.Whenever a configuration is accepted, we
+update H(E
+ ) → H(E
+ ) + 1 and S(E
+ ) → S(E
+ ) + F, where
+F = ln f (f is the so-called modification factor). The initial
+modification factor is taken as f = f0 = e = 2.718 28 . . . . If
+the trial configuration is not accepted, then the currents H(E)
+and S(E) are updated again. The flatness of the histogram
+is checked after a number of Monte Carlo (MC) steps, and
+usually the histogram is considered flat if H(E) > 0.8 H  for
+all energies, where  H  is an average over the energies. If
+the flatness condition is fulfilled, we update the modification
+factor to a finer one by setting fi+1 =
+√
+fi and reset the
+histogram H(E) = 0. Simulations are in general halted when
+ln f ∼ 10−8. Having in hand the density of states, one can
+calculate the canonical average of any thermodynamic variable
+as
+ X T =  E
+ X Eg(E)e
+−βE
+ E g(E)e−βE
+, (2)
+where  X E is themicrocanonical average accumulated during
+the simulations and β = 1/kBT , kB is the Boltzmann constant,
+and T is the temperature. One of the interesting features of the
+method is that it can also access some quantities, such as the
+free energy and entropy, which are not directly available from
+conventional Monte Carlo simulations.
+As described above, the convergence of themethod depends
+on both the flatness criterion and the final f when the simulation
+is interrupted, but the best choice of each is not obvious for
+each model to be studied.
+Recently, some authors have asserted that although achieving
+a flat histogram is the initial motivation of the WLS, the
+flatness is not a necessary criterion to reach convergence [3–6].
+They argue that in the conventional WLS, the error saturates
+to a constant, while if ln f decreases as 1/t, where t is
+a normalized Monte Carlo time, the error would decrease
+monotonically as well. The 1/t algorithm is divided into
+two steps. Initially the conventional WLS is followed, starting
+from S(E) = 0 and then constructing S(E) using a histogram
+updated in every new accepted configuration. S(E) is updated
+as in the conventional WLS, S(E) = S(E) + Fi , with the
+initial value F0 = 1. After a number of moves (e.g., 1000 MC
+sweeps), we check H(E) to verify whether all the levels were
+visited by the random walker at least once and then update
+Fi = Fi/2 and reset H(E) = 0. (The flatness criterion is not
+required, even in this first stage.) Simulation is performed
+while Fi   1/t = N/j, where j is the number of trial moves
+and N is the number of energy levels. In the remainder of the
+simulation, Fi is updated every new configuration as Fi = 1/t
+up to a final chosen precision Ffinal.
+The efficiency, convergence, and limitations of the WLS
+have been quantitatively studied [7,8]. In the present work, we
+perform a practical, computational study on the convergence
+and the accuracy of the method.
+In this paper, we investigate the behavior of the maxima of
+the specific heat,
+C =  (E −  E )2 /T 2, (3)
+and the susceptibility,
+χ = L2 (m −  |m| )2 /T, (4)
+1539-3755/2012/85(4)/046702(8) 046702-1 ©2012 American Physical Society
+A. A. CAPARICA AND A. G. CUNHA-NETTO PHYSICAL REVIEW E 85, 046702 (2012)
+where E is the energy of the configurations and m is the
+corresponding magnetization per spin during the conventional
+WLS and the 1/t algorithm simulations for the Ising model
+on a square lattice [9]. We observe (as in [4–6,10]) that a
+considerable part of the conventionalWang-Landau simulation
+is not very useful because the error saturates.We propose some
+strategies to improve the efficiency of the WLS and compare
+our results with exact calculations [11]. Our findings lead to a
+new way of performing the WLS simulations.
+II. A NEW PROCEDURE FOR SIMULATIONS
+In order to test how far the simulations should go, during
+the WLS, beginning from f17, we calculate the specific heat
+and the susceptibility defined in Eqs. (3) and (4), as well as
+the energy and the magnetization at some fixed temperatures.
+We use the current g(E), and from this time on these mean
+values are updated whenever we check the flatness of the
+histogram. Figure 1 shows the evolution of the temperature
+of the maximum of the specific heat calculated for L = 32 for
+eight independent runs as a function of the MonteCarlo sweeps
+(MCS) [12] and compares these results with the value obtained
+using the exact data of Ref. [11] [Tc(L = 32) = 2.293 929 79].
+The dots label the MCS when the modification factor was
+updated, the leftmost in each run corresponding to f17. One
+can see that around ln f23 = 1.1921 × 10−7, all the curves
+become stabilized in values displaced close to the exact value.
+Any further computational effort for lnf < ln f23 does not
+lead to a better convergence.
+In order to investigate how these results are displaced
+around the exact value, we performed 100 000 independent
+runs of WLS for L = 8 using the 80%- and the 90%-flatness
+criteria and built up histograms using bins of width 0.001.
+In Fig. 2, we show that the histograms form nice Gaussians
+centered close, but not precisely in the exact value. In Fig. 3,we
+show the same evolution for the temperature of the maximum
+of the susceptibility. One can see that in this case the curves
+do not flow to steady values.
+FIG. 1. (Color online) Evolution of the temperature of the
+extremum of the specific heat during the WLS, beginning from f17,
+for eight independent runs using the 80%-flatness criterion. The dots
+show where the modification factors were updated and the straight
+line is the result obtained using the exact data from Ref. [11].
+FIG. 2. (Color online) Histograms of the locations of the peak of
+the specific heat for the 2D Ising model during the WLS, using the
+80%- and 90%-flatness criteria, each for 100 000 independent runs,
+along with their best-fit Gaussians. The central line corresponds to
+the exact temperature of the maximum of the specific heat obtained
+with data from Ref. [11].
+A strategy to improve the precision of the WLS is to
+update the density of states periodically (i.e., after every p
+trial configuration), instead of updating S(E) every spin-flip
+trial. In order to investigate how this change affects the final
+result, we performed 100 000 independent runs (L = 8) using
+the 80%-flatness criterion and constructed again histograms
+of the locations of the peak of the specific heat. We tested the
+WLS with different values for p. Figure 4 shows the Gaussian
+best fits for p = 1 (conventional WLS), p = L, and p = L2.
+The vertical line indicates the exact value using Ref. [11].
+One can see that the higher the values of p, the narrower are
+the Gaussian curves. Defining the relative error ε(X) for any
+FIG. 3. (Color online) Evolution of the temperature of the
+extremum of the susceptibility during the WLS, beginning from f17,
+for eight independent runs using the 80%-flatness criterion. The dots
+show where the modification factors were updated and the straight
+line is the result obtained using the exact data from Ref. [11].
+046702-2
+WANG-LANDAU SAMPLING: IMPROVING ACCURACY PHYSICAL REVIEW E 85, 046702 (2012)
+FIG. 4. (Color online) Best-fit Gaussians for the histograms of the
+temperatures of the peak of the specific heat for the 2D Ising model
+during the WLS up to ln f = 10−4, using the 80%-flatness criterion,
+each for 100 000 independent runs with the density of states being
+updated every p spin-flip trial. The central line corresponds to the
+exact temperature obtained with data from Ref. [11].
+quantity X by
+ε(X) =
+|Xsim − Xexact|
+Xexact
+, (5)
+we obtain the relative errors of the simulated mean values
+with respect to the result using Ref. [11] for p = 1, L, and
+L2 as 0.000 43, 0.000 19, and 0.000 13, respectively. These
+results suggest that one would obtain even higher accuracy
+for p > L2, but the consumption of CPU time would be
+prohibitive. Therefore, one should update the density of states
+only after L2 trial moves since it leads to more accurate results
+[13,14]. In other words, adopting the Monte Carlo step (L2
+trial moves), as is conventional in the METROPOLIS algorithm,
+is also convenient in the Wang-Landau algorithm.
+FIG. 5. (Color online) Evolution of the temperature of the
+extremum of the specific heat during the WLS, beginning from f9,
+for eight independent runs. The density of states was updated after
+every L2 trialmove and the flatness criterion was 80%. The dots show
+where the modification factor was updated and the straight line is the
+result obtained using the exact data from Ref. [11].
+FIG. 6. (Color online) Evolution of the microcanonical average of
+the magnetization for the 2D Ising model for L = 32 at E = −1024
+and −1536 during the simulations over 1000 independent runs for
+each flatness stage.
+In Fig. 5, we show the evolution of the location of the
+maximum of the heat capacity during WLS in which the
+density of states was updated only after every L2 spin-flip
+trial, beginning from f9. We see that now the curves flow
+to steady values around ln f = ln f13 = 1.2208 × 10−4 and
+simulations with higher orders of the modification factor are
+unnecessary. One can see that if the simulations adopting
+the Monte Carlo step become longer, the canonical averages
+converge to constant values much earlier.
+Before investigating the behavior of the peak of the susceptibility
+during the simulations, we turn our attention to another
+important detail. What is the behavior of the microcanonical
+averages  M E and  M2 E during the sampling process?
+We have also evaluated the microcanonical averages during
+the simulations. In order to estimate the mean value of the
+FIG. 7. (Color online) Evolution of the temperature of the
+extremum of the susceptibility during the WLS, beginning from f9,
+for eight independent runs. The density of states was updated after
+every L2 trial move and the flatness criterion was 80%. The dots
+show where the modification factor was updated and the straight line
+is the result obtained using the exact data from Ref. [11] with the
+microcanonical average accumulated from ln f = ln f7.
+046702-3
+A. A. CAPARICA AND A. G. CUNHA-NETTO PHYSICAL REVIEW E 85, 046702 (2012)
+FIG. 8. (Color online) Evolution of the temperature of the
+extremum of the susceptibility during the WLS, beginning from f9,
+for eight independent runs, using a common microcanonical average
+in 24 independent runs. The density of states was updated after every
+L2 trialmove and the flatness criterionwas 80%. The dots showwhere
+the modification factor was updated and the straight line is the result
+obtained using the exact data from Ref. [11] with the microcanonical
+average accumulated from ln f = ln f7.
+magnetization during each flatness stage, we carried out 1000
+independent runs and calculated  M E for each fi with i =
+0,1,2, . . . ,26. In Fig. 6, we show these results for two energy
+levels and see that they flow to relatively stable values around
+fmicro = f7. We therefore conclude that the microcanonical
+averages should not be accumulated before ln f   ln fmicro =
+ln f7 = 7.843 × 10−3 for the 2D Ising model.
+In Fig. 7, we show the evolution of the maximum of
+the susceptibility during the simulations beginning from
+f9, updating the density of states after every L2 spin-flip
+trial and accumulating the microcanonical averages only for
+ln f   ln fmicro = ln f7. We observe that even for ln f =
+ln f26 ≈ 10−8, we do not obtain stable values like those
+of Fig. 5. However, if one takes the mean value of the
+microcanonical averages in 24 independent runs and uses
+this result for calculating the canonical averages during the
+simulations, the averages do flow to stable values, as shown in
+Fig. 8. Since the mean values obtained from each independent
+run are well distinct from each other, one can define ffinal
+on the very beginning of the straight line that occurs in each
+case. The results shown in Figs. 5 and 8 define, therefore, that
+the simulations should be continued only up to ffinal = f13 for
+the 2D Ising model. The evolution of the canonical averages
+of the energy and the magnetization at a given temperature
+yields evidently patterns similar to those of Figs. 5 and 8 with
+the same limit modification factors.
+By applying the method to a new model, one should take
+a representative size and find out when the corresponding
+canonical averages obtained from a few independent runs
+would come to steady values, defining, therefore, ffinal for
+the given model. We would like to stress that all modification
+factors defined above using the canonical and microcanonical
+averages during the simulations apply to the 2D Ising model,
+and it is important to perform studies similar to those of Figs. 5,
+6, and 8 before adopting this new procedure to other models
+FIG. 9. (Color online) Evolution of the temperature of the
+extremum of the specific heat during the 1/t simulations for eight
+independent runs beginning from the second stage. The straight line
+is the result obtained using the exact data from Ref. [11]. Simulations
+were halted when the CPU time matched the mean time of WLS.
+to be sure about where to halt the simulations and where to
+begin accumulating the microcanonical averages.
+In viewof the above observations,we propose the following
+new procedure for simulations:
+(i) Instead of updating the density of states after every
+spin-flip, we ought to update it after each Monte Carlo sweep.
+(ii) WLS should be carried out only up to ln f = ln ffinal
+defined by the canonical averages during the simulations.
+(iii) The microcanonical averages should not be accumulated
+before ln f   ln fmicro defined by the microcanonical
+averages during the simulation.
+III. COMPARISON WITH 1/T SIMULATIONS
+Figure 9 shows the evolution of the maxima of the specific
+heat during the simulations using the 1/t scheme, beginning
+from the second stage and halting the simulations when the
+CPU time matched up the mean time of the simulations of
+Fig. 5.
+In order to compare these results, we performed 100 000
+independent runs of WLS for L = 8 up to lnffinal = ln f13
+using 80%- and 90%-flatness criteria (WL.f13.80% and
+WL.f13.90%) and built up the histograms. Next we carried
+out similar simulations using the 1/t algorithm, halting the
+simulation when the CPU time matched up those of WL.f13
+(1/t80% and 1/t90%). In Fig. 10, we show the best-fit
+Gaussians of the histograms. One can see that they are not
+really centered around the exact value. The relative errors of the
+simulatedmean values with respect to the result using Ref. [11]
+yield 0.000 41 and 0.000 36, respectively, forWL.f13.80% and
+WL.f13.90%, and 0.0017 and 0.000 81 for 1/t80% and 1/t90%,
+with final Fk reaching 5.1 × 10−7 and 2.4 × 10−7.We see that
+although the widths of the 1/t curves are smaller, their centers
+are farther apart from the exact value than those of WLS,
+revealing a biased estimation effect in the 1/t method.
+046702-4
+WANG-LANDAU SAMPLING: IMPROVING ACCURACY PHYSICAL REVIEW E 85, 046702 (2012)
+FIG. 10. (Color online) Best-fit Gaussians for the histograms of
+the temperatures of the peak of the specific heat for the 2D Ising model
+during the WLS up to ffinal = f13, using the 80%- and 90%-flatness
+criteria, each for 100 000 independent runs. The 1/t simulations were
+carried out within the same CPU time. The central line corresponds
+to the exact temperature obtained with data from Ref. [11].
+IV. FINITE-SIZE SCALING
+According to finite-size scaling theory [15–17] from the
+definition of the free energy one can obtain the zero-field scaling
+expressions for the magnetization and the susceptibility,
+respectively, by
+m ≈ L
+−β/νM(tL1/ν ), (6)
+χ ≈ Lγ/νX(tL1/ν ). (7)
+We see that the locations of the maxima of these functions
+scale asymptotically as
+Tc(L) ≈ Tc + aqL
+−1/ν , (8)
+FIG. 11. (Color online) Size dependence of the locations of the
+extrema in the specific heat and the susceptibility for conventional
+WLS (top) and using our procedure (bottom) assuming ν = 1.
+FIG. 12. (Color online) Log-log plot of the size dependence of
+the finite-lattice susceptibility at Tc(L) with 80%-flatness criterion
+for conventional WLS (top) and using our procedure (bottom).
+where aq is a quantity-dependent constant, allowing then the
+determination of Tc.
+In order to compare the efficiency of the conventional WLS,
+the 1/t scheme, and our procedure, we performed simulations
+with L = 32, 36, 40, 44, 48, 52, 56, 64, 72, and 80, taking
+N = 24, 24, 20, 20, 20, 16, 16, 16, 12, and 12 independent
+runs for each size, respectively.
+Using these scaling functions, we estimated the critical
+temperature and the critical exponents β and γ . Taking a
+microcanonical average including all independent runs was
+important to reveal in Fig. 8 that for quantities that involve
+the magnetization, the simulations can also be carried out only
+up to ffinal = f13, but such a procedure does not lead to better
+results for the estimation of the canonical averages.
+Assuming ν = 1, we can use Eq. (11) to determine Tc as the
+extrapolation to L→∞(L
+−1/ν = 0) of the linear fits given
+FIG. 13. (Color online) Log-log plot of the size dependence
+of the finite-lattice magnetization with 80%-flatness criterion for
+conventional WLS at Tc = 2.266 99 (top) and using our procedure
+at Tc = 2.269 34 (bottom).
+046702-5
+A. A. CAPARICA AND A. G. CUNHA-NETTO PHYSICAL REVIEW E 85, 046702 (2012)
+TABLE I. Finite-size scaling results for the critical temperature and the critical exponents β and γ . The CPU times are expressed in terms
+of the time spent by the conventional WLS with 80% flatness.
+Case Tc β γ CPU time
+Exact 2.269 185 3 . . . 0.125 1.75
+1/t
+1 × 10−6 2.262 1(11) 0.197(14) 1.943(35) 0.15
+5 × 10−7 2.264 2(11) 0.147 9(84) 1.846(18) 0.30
+1 × 10−7 2.268 48(35) 0.129 7(31) 1.7833(46) 1.51
+5 × 10−8 2.269 04(25) 0.125 9(21) 1.7708(23) 3.03
+1 × 10−8 2.269 44(11) 0.126 47(94) 1.7616(17) 15.13
+Conventional WLS
+80% 2.266 99(55) 0.129 5(45) 1.7812(63) 1.00
+90% 2.268 29(33) 0.138 6(51) 1.7899(87) 1.75
+Our procedure
+80% 2.269 34(23) 0.127 0(16) 1.7631(27) 9.78
+90% 2.269 16(12) 0.124 94(68) 1.7555(32) 22.21
+by the locations of the maxima of the specific heat and the
+susceptibility defined by Eqs. (3) and (4). In Fig. 11, we show
+the linear fits that converge to Tc at L
+−1/ν = 0 for conventional
+WLS and the new procedure, both using the 80%-flatness
+criterion. The final estimate for Tc was taken as the mean
+value obtained from both fits.
+Since Tc is now estimated, we can calculate the critical
+exponents β and γ . According to Eq. (7), the maximum of the
+finite-lattice susceptibility defined by Eq. (4) is asymptotically
+proportional to Lγ/ν. In Fig. 12, we show these results
+for the conventional WLS and our procedure, both using
+the 80% criterion of flatness. In the vicinity of the critical
+temperature, the magnetization scales as L
+−β/ν . We can use
+Eq. (6) at the critical point to calculate the exponent β
+directly from the slope of the log-log graph and find β. In
+Fig. 13, we show again the results for conventional WLS
+and our procedure for this exponent. One can see that in all
+cases our procedure is more accurate than the conventional
+WLS.
+For the conventional WLS and the new procedure proposed
+here, simulations were carried out using 80%- and 90%-
+flatness criteria, and for the 1/t scheme the simulations
+were halted for ln f = 10−6,5 × 10−7,10−7,5 × 10−8, and
+10−8. In Table I, we show the results for the 1/t simulations,
+the conventional WLS, and our procedure along
+with the exact values. The 1/t results become accurate only
+when ln f ∼ 5 × 10−8, and for lower values of ln f they
+become worse, giving the impression that they are already
+fluctuating around the true value. The conventional WLS
+displays problems of accuracy, while our results are adequately
+accurate for both 80%- and 90%-flatness criteria. It is worth
+mentioning that we have obtained high-resolution values
+using the 90%-flatness criterion, which should be compared
+with the erratic behavior of the 1/t simulations for lnf <
+5 × 10−8, but such a stringent level of flatness is difficult
+to apply to other systems [14,18–20], resulting sometimes in
+nonconvergence or even more inaccurate values.Moreover, the
+90%-flatness criterion simulations are very time consuming.
+We conclude, therefore, that the widely adopted 80%-flatness
+criterion is indeed the best guess, since it is applicable to all
+systems.
+V. APPLICATION TO A SELF-AVOIDING
+HOMOPOLYMER
+In this section, we apply to a homopolymer the initial tests
+to determine up to which modification factor ffinal one should
+continue the WLS and from which fmicro the microcanonical
+averages should be accumulated.We consider a homopolymer
+consisting of N monomers which may assume any selfavoiding
+walk (SAW) configuration on a two-dimensional
+lattice.
+Assuming that the polymer is in a bad solvent, there is an
+effective monomer-monomer attraction in addition to the selfavoidance
+constraint representing excluded volume. For every
+pair of nonbonded nearest-neighbor monomers, the energy of
+the polymer is reduced by ε. The Hamiltonian for the model
+can be written as
+H = −ε 
+ i,j  
+σiσj , (9)
+FIG. 14. (Color online) Evolution of the microcanonical
+average of the mean-square end-to-end distance for N = 50 at
+E = −6 and −30 during the simulations over 100 independent runs
+for each flatness stage.
+046702-6
+WANG-LANDAU SAMPLING: IMPROVING ACCURACY PHYSICAL REVIEW E 85, 046702 (2012)
+where σ = 1 (0) if the site i is occupied (vacant), and the sum
+is over nearest-neighbor pairs [21]. (The sum is understood to
+exclude pairs of bonded segments along the chain.)We used the
+so-called reptation or “slithering snake” move, which consists
+of randomly adding a monomer from one end of the chain and
+removing a monomer from the other end, maintaining the size
+of the polymer constant. We define one Monte Carlo step as
+N attempted moves.
+In this model, besides the energy, another quantity of
+interest is the mean-square end-to-end distance given by
+ R2  =  [(xN − x0)2 + (yN − y0)2] . (10)
+As prescribed in Sec. II, we updated the density of states
+and the histogram only after each Monte Carlo step. In order to
+define from which modification factor to begin accumulating
+the microcanonical averages, we estimated  R2 E for each fi
+during the simulations for several energy levels. In Fig. 14,
+we show these results for E = −6 and −30 (the ground state
+of the N = 50 homopolymer is Emin = −36). One can see
+that the microcanonical averages should be accumulated from
+fmicro = f10. On the other hand, to estimate ffinal for halting
+the simulations, we calculated the canonical average of the
+energy and the mean-square end-to-end distance during the
+simulations for five fixed temperatures, namely, T = 0.5, 1.5,
+2.5, 3.5, and 4.5. In Fig. 15,we showthe behavior of the energy
+at T = 1.5, and in Fig. 16 we show the behavior of the meansquare
+end-to-end distance at T = 4.5. All the graphs we have
+constructed for these quantities for the temperatures mentioned
+above have a similar performance. We see, therefore, that for
+this model the simulations should be carried out up to ffinal =
+f18.
+Other more elaborate models, such as the HP model of
+protein folding [22] or continuous (off-lattice) models of
+polymers [23,24], will require a test similar to the one made
+in this section that may point to different values for fmicro
+and ffinal. Notwithstanding that, our results suggest that this
+final modification factor will occur far before f26 ≈ 1 + 10−8,
+leading to considerable CPU time savings.
+FIG. 15. (Color online) Evolution of the energy at T = 1.5 during
+theWLS for eight independent runs beginning from f12. The straight
+line is the mean value obtained from 100 independent runs.
+FIG. 16. (Color online) Evolution of the mean-square end-to-end
+distance at T = 4.5 during the WLS for eight independent runs
+beginning from f12. The straight line is the mean value obtained
+from 100 independent runs.
+VI. CONCLUSIONS
+We have demonstrated that the conventional WLS presents
+problems of accuracy. However, with very few changes in
+the implementation of the method—namely, updating the
+density of states only after each Monte Carlo step, halting
+the simulations for lnf < ln ffinal, with ffinal determined
+by the canonical averages during the simulations, and accumulating
+the microcanonical averages only for lnf < ln fmicro,
+where fmicro is found from the behavior of the microcanonical
+averages in each modification factor—it becomes quite accurate.
+Adopting the Monte Carlo step to update the density of
+states and delaying the start of the microcanonical averaging
+are changes that lead to an improved accuracy of the algorithm,
+while the proper definition of when to stop the simulation
+(ffinal) saves a lot of CPU time.
+It should be pointed out that a direct comparison of the
+density of states with exact calculations, although pictorially
+very impressive, is not a good test for algorithms that estimate
+the density of states. The canonical and microcanonical
+averages during the simulations are a more adequate checking
+parameter for convergence. Another important conclusion
+is that no single simulation in particular tends to the exact
+value. One can obtain results as close as possible to
+the exact value by increasing the number of independent
+runs.
+The great advantage of our findings is that all existing codes
+usingWLS can be promptly adapted to this new procedure just
+adding a few lines to the computer program.
+ACKNOWLEDGMENTS
+This work was supported by the Brazilian agencies CNPq
+and FUNAPE-UFG. We thank Salviano de Ara´ujo Le˜ao
+for his helpful and substantial advice and support with the
+computations.
+046702-7
+A. A. CAPARICA AND A. G. CUNHA-NETTO PHYSICAL REVIEW E 85, 046702 (2012)
+[1] F. Wang and D. P. Landau, Phys. Rev. Lett. 86, 2050 (2001).
+[2] F. Wang and D. P. Landau, Phys. Rev. E 64, 056101 (2001).
+[3] C. Zhou and J. Su, Phys. Rev. E 78, 046705 (2008).
+[4] R. E. Belardinelli and V. D. Pereyra, Phys. Rev. E 75, 046701
+(2007).
+[5] R. E. Belardinelli, S. Manzi, and V. D. Pereyra, Phys. Rev. E 78,
+067701 (2008).
+[6] R. E. Belardinelli and V. D. Pereyra, J. Chem. Phys. 127, 184105
+(2007).
+[7] P. Dayal, S. Trebst, S. Wessel, D. Wurtz, M. Troyer,
+S. Sabhapandit, and S. N. Coppersmith, Phys. Rev. Lett. 92,
+097201 (2004).
+[8] C. Zhou and R. N. Bhatt, Phys. Rev. E 72, 025701(R) (2005).
+[9] See, e.g., M. Plichske and B. Bergersen, Equilibrium Statistical
+Physics (Cambridge University Press, Cambridge, 2008).
+[10] A. D. Swetnam and M. P. Allen, J. Comput. Chem. 32(5), 816
+(2011).
+[11] P. D. Beale, Phys. Rev. Lett. 76, 78 (1996).
+[12] A Monte Carlo sweep consists of L2 spin-flip trials.
+[13] The study performed in [14] was carried out updating the
+density of states after every L2 trial move. Thanks to a fortunate
+misunderstanding, the authors have adopted the Monte Carlo
+sweep in analogy with the METROPOLIS algorithm.
+[14] C. J. Silva, A. A. Caparica, and J. A. Plascak, Phys. Rev. E 73,
+036702 (2006).
+[15] M. E. Fisher, in Critical Phenomena, edited by M. S. Green
+(Academic, New York, 1971).
+[16] M. E. Fisher andM. N. Barber, Phys. Rev. Lett. 28, 1516 (1972).
+[17] Phase Transitions and Critical Phenomena, edited by C. Domb
+and J. L. Lebowitz, Vol. 8 (Academic, New York, 1974).
+[18] C. J. Silva, A. G. Cunha-Netto, A. A. Caparica, and R. Dickman,
+Braz. J. Phys. 36, 619 (2006).
+[19] A. G. Cunha-Netto, R. Dickman, and A. A. Caparica, Comput.
+Phys. Commun. 180, 583 (2009).
+[20] D. T. Seaton, T.W¨ust, andD. P. Landau, Phys. Rev. E 81, 011802
+(2010).
+[21] R. Dickman, J. Chem. Phys. 96, 1516 (1992).
+[22] T. W¨ust and D. P. Landau, Comput. Phys. Commun. 179, 124
+(2008).
+[23] T.W¨ust and D. P. Landau, Phys. Rev. Lett. 102, 178101 (2009).
+[24] M. P. Taylor,W. Paul, andK.Binder, J. Chem. Phys. 131, 114907
+(2009).

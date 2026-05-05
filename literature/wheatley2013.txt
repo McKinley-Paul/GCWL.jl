@@ -1,0 +1,366 @@
+Calculation of High-Order Virial Coefficients with Applications to Hard and Soft Spheres
+Richard J. Wheatley
+School of Chemistry, University of Nottingham, University Park, Nottingham NG7 2RD, United Kingdom
+(Received 12 March 2013; published 14 May 2013)
+A virial expansion of fluid pressure in powers of the density can be used to calculate a wealth of
+thermodynamic information, but the Nth virial coefficient, which multiplies the Nth power of the density
+in the expansion, becomes rapidly more complicated with increasing N. This Letter shows that the Nth
+virial coefficient can be calculated using a method that scales exponentially with N in computer time and
+memory. This is orders of magnitude more efficient than any existing method for large N, and the method
+is simple and general. New results are presented for N ¼ 11 and 12 for hard spheres, and N ¼ 9 and 10 for
+soft spheres.
+DOI: 10.1103/PhysRevLett.110.200601 PACS numbers: 05.70.Ce, 05.10.Ln, 05.20. y
+Introduction.—The pressure P of a fluid at temperature
+T can be expanded in powers of the number density   using
+the virial series
+ P ¼   þ B2ðTÞ 2 þ B3ðTÞ 3 . . . (1)
+where   ¼ 1=ðkTÞ, k is the Boltzmann constant, and BN is
+the virial coefficient of order N. The convergence is slow
+for dense fluids, and it is often more accurate to find an
+analytical representation of the pressure (such as a rational
+function) that agrees with the calculated virial coefficients
+[1]. High-order virial coefficients are extremely valuable,
+whether or not direct summation of the series is used, but
+they are difficult to calculate.
+Calculation of the virial coefficient for hard spheres, in
+particular, is an important and long-studied problem in
+science. The hard-sphere potential is one of the simplest
+potentials that can be used to describe departures from the
+ideal gas law, and hard-sphere systems are structurally
+similar to assemblies of real spherical particles. Virial
+coefficients can be calculated more easily for hard spheres
+than for more realistic potentials. The second, third, and
+fourth virial coefficients are all known exactly. The fifth
+virial coefficient was first calculated numerically by
+Rosenbluth and Rosenbluth in 1954 [2]. In the 1960s the
+work of Ree and Hoover, who calculated the sixth [3] and
+seventh [4] virial coefficients, set out the methodology
+which has been adopted in most subsequent studies. The
+eighth virial coefficient was first calculated by van
+Rensburg in 1993 [5], the ninth by Labik, Kolafa, and
+Malijevsky in 2005 [6], and the tenth by Clisby and
+McCoy in 2006 [7]. In general, these calculations also
+improved on the precision of the lower-order virial coefficients.
+The convergence of the virial series is an important
+unsolved problem, which has also been considered
+recently by Maestre et al. [8]. Higher-order virial coefficients
+are needed to resolve alternative theories concerning
+the convergence of the virial series, but the enormous
+number of integrals that need to be evaluated to obtain
+eleventh and higher-order virial coefficients has prevented
+any such calculations until now.
+Virial coefficients for a system of spherical particles,
+which interact through a pairwise potential U of their
+separation r, are formally calculated as integrals over
+products of Mayer f functions:
+BN ¼ 1   N
+N!
+Z
+. . .
+Z
+fBðrNÞdr12 . . . dr1N; (2)
+where the functions fB are defined by
+fBðrNÞ ¼
+X
+G
+ Y
+ij2G
+fðrijÞ
+ 
+(3)
+and fðrijÞ is the Mayer f function given by fðrijÞ ¼
+exp½  Uðr12Þ    1. The sum is over all the biconnected
+graphs G on N vertices, where each vertex is associated
+with a different particle [9]. The pairs of particles ij in the
+product are all the pairs of vertices that are joined by edges
+in graph G. Hence, BN is a sum of ‘‘diagram integrals’’,
+with one diagram integral for each biconnected graph G.
+In Fig. 1, (a) and (b) are biconnected graphs, (c) and (d)
+are not.
+There are 2NðN 1Þ=2 possible graphs on N vertices, and
+most of these are biconnected for large N, so the time
+required for the direct evaluation of the fB function using
+Eq. (3) increases very rapidly as a function of N. The
+computer memory needed to maintain a list of all the
+biconnected graphs G increases at a similar rate.
+Evaluation of BN by performing the integrals in Eqs. (2)
+and (3) directly is not possible forN >10 for hard spheres
+and N >8 for soft spheres, even when the permutation
+symmetry of the graphs is taken into account for a
+1-component system, which reduces the number of different
+graphs to approximately 2NðN 1Þ=2=N! (that is, about
+900 million for N ¼ 11, and over 170 times more than this
+for N ¼ 12).
+Method.—It is shown here that the function fB for N
+particles can be evaluated using of order 3NN calculations,
+PRL 110, 200601 (2013) PHYSICAL REVIEW LETTERS
+week ending
+17 MAY 2013
+0031-9007=13=110(20)=200601(4) 200601-1   2013 American Physical Society
+which means that the effort for N ¼ 12 is less than 3.3 times
+that for N ¼ 11, and similarly for other values of N. The
+saving in computer time relative to summing directly over
+graphs increases rapidly with N. Furthermore, the memory
+required is of order 2NN, which is available on modern
+computers for values of N in excess of 20.
+The sum of all 2NðN 1Þ=2 diagram integrals, including
+graphs which are not biconnected or even connected, is
+denoted fQ, and it can easily be calculated as a product
+over all NðN   1Þ=2 pairs of particles:
+fQðrNÞ ¼
+Y
+ij
+½1 þ fðrijÞ : (4)
+From this function fQ, all diagram integrals corresponding
+to disconnected graphs [such as Fig. 1(c)] are removed to
+leave fC, which is defined as the sum of diagram integrals
+of all connected graphs. This is done as follows. All disconnected
+diagram integrals on N vertices can be
+expressed uniquely as the product of a connected diagram
+on a proper subset S (size 1 to N   1) of the vertices, which
+contains the lowest-numbered vertex, and all diagrams
+(connected or not) on the complement of S, called S .
+Therefore,
+fCðrNÞ ¼ fQðrNÞ  
+X
+S
+fCðSÞfQðS Þ; (5)
+where (S) denotes the coordinates of the vertices present
+in S, and (S ) denotes the coordinates of the vertices
+not present in S. Since the sets S and S  both have sizes
+less than N, the functions fC can be calculated recursively,
+starting from all N sets of size one (for which fQ ¼
+fC ¼ 1), then all NðN   1Þ=2 sets fijg of size two (for
+which fQ ¼ fðrijÞ þ 1 and fC ¼ fðrijÞ), and continuing
+the recursion up to size N. Overall, this requires of order
+3N mathematical operations and 2N storage.
+Finally, from fC another recursive procedure is used to
+remove all the articulated (connected but not biconnected)
+diagram integrals (such as Fig. 1(d)), whose sum is called
+fA, to leave the required function fB. The function fA is a
+sum of functions fA;v, which are defined as the sum of all
+articulated diagram integrals with an articulation point at
+v (i.e., connected graphs which can be disconnected by
+removing vertex v), and with no articulation points at
+vertices numbered lower than v. All diagram integrals
+contained in fA;v can be expressed uniquely as the product
+of a two diagrams. The first is a connected diagram on a
+proper subset S (size 2 to N   1) of the vertices, which
+contains both v and the lowest-numbered vertex excluding
+v, and which does not have an articulation point at v or at
+any lower-numbered vertices. The second is a connected
+diagram on S  [ v (the complement of S plus the vertex v),
+which does not have an articulation point at a lowernumbered
+vertex than v. Therefore,
+fA;vðrNÞ ¼
+X
+S
+fB;vðSÞðfB;vðS  [ vÞ þ fA;vðS  [ vÞÞ; (6)
+where fB;v is the sum of all connected diagram integrals
+which do not have an articulation point at v or at any lowernumbered
+vertices. The function fB;v can easily be
+obtained from fA;v; for example, in the final step of the
+recursion,
+fB;1ðrNÞ ¼ fCðrNÞ   fA;1ðrNÞ (7)
+and for all v, 0<v<N,
+fB;vþ1ðrNÞ ¼ fB;vðrNÞ   fA;vþ1ðrNÞ: (8)
+Overall, this recursion requires of order 3NN mathematical
+operations and 2NN storage, but the evaluation of equation
+(6), which is the only step scaling as 3NN, can be implemented
+in an efficient manner, such that the time scaling in
+practice appears to be no slower than 3N for the values of N
+considered here.
+Results.—The inverse twelfth-power potential U=" ¼
+ð =rÞ12 is a commonly-used soft sphere potential, which
+approximately represents short-ranged repulsion between
+atoms and molecules. The temperature scaling of the virial
+coefficients is trivial for inverse power potentials, and each
+virial coefficient can be calculated as a single reduced
+value in units of  " and  . Hence, for simplicity, a reduced
+interaction energy and separation can be used, with  U ¼
+r 12. The Mayer f function is negative; it is close to –1 for
+(a) (b)
+(c) (d)
+FIG. 1. Examples of graphs for N ¼ 6. Graphs (a) and (b) are
+biconnected, (c) is disconnected, and (d) is articulated.
+PRL 110, 200601 (2013) PHYSICAL REVIEW LETTERS
+week ending
+17 MAY 2013
+200601-2
+small r, increases quickly around r ¼ 1, and approaches
+zero with an asymptotic behavior of  r 12 for large r.
+The integrations to give the virial coefficients are done
+numerically, and the behavior of the Mayer f function
+motivates the use of a Monte Carlo integration scheme
+where interparticle distances are chosen based on a continuous,
+normalized probability function P ¼ ð9=4Þr2 for
+r   1 and P ¼ ð9=4Þr 10 for r > 1. This includes the
+Jacobian factor of r2 for a three-dimensional system.
+Particle 1 is fixed, then particle 2 is placed relative to 1
+by choosing r12 randomly according to this probability
+function, and choosing a random orientation for the r12
+vector. The remainder of the particles, v ¼ 3 to N, are
+similarly placed relative to the previous particle v   1.
+Once all N particles have been placed, the function fB is
+calculated using the recursive scheme described above.
+The integral of fB is defined as a weighted sum over
+functions fB calculated for a large number n of these
+N-particle configurations. In principle,
+BN   1   N
+N!
+Xn
+i¼1
+ðfBðrNÞ=PðrNÞÞ; (9)
+where PðrNÞ is the product of all N   1 probability functions
+for the interparticle distances, but this equation cannot
+be used in practice, as it is possible to have a diagram
+with significant fB and very small P (such as a regular
+polygon with sides of unit length where the adjacent
+vertices are not sequentially numbered). Instead, for a
+1-component system the permutation symmetry of fB is
+used. The total probability of obtaining a particular
+N-particle configuration with any of the possible N! labelings
+of the particles is given by PðrNÞ averaged over all N!
+permutations of the particles, and this average is used as
+the denominator in Eq. (9). The average over permutations
+of the particles is calculated recursively for each random
+configuration by considering chains of increasing length
+from 2 to N.
+For the inverse twelfth-power potential, the calculation
+is numerically stable for almost all configurations, but
+occasionally a situation is encountered where particles
+are a long way apart, the average P is near zero, and fB
+should also be near zero, but because of round-off errors
+it acquires a value close to the numerical precision of
+the computer ( 10 14) and gives a significant contribution
+to BN. In practice, this problem is avoided by setting all
+values of jfBj below this threshold to zero and checking
+that the choice of threshold does not affect the final result.
+Its effect is found to be negligible with respect to the
+quoted uncertainty in all results.
+Results for the inverse twelfth-power potential are given
+in Table I. They agree with previous calculations within
+their standard errors, and improve on their precision. The
+longest calculations, for B10, took approximately 440 h real
+time when run in parallel on 100 CPU cores. In the case of
+B5, the increased accuracy is simply a result of using more
+sampling points, but for higher N the new calculation
+method rapidly becomes more efficient. The efficiency of
+the new method can be seen by comparing the computer
+time required per Monte Carlo point (which increases by
+about two orders of magnitude from N ¼ 5 to N ¼ 10) to
+the number of diagrams contributing to the integrand at
+each Monte Carlo point (which increases by about 6 orders
+of magnitude over the same range). The results will be
+valuable in constructing approximate equations of state for
+the important inverse twelfth-power potential. This is the
+‘‘hardest’’ inverse power potential for which negative virial
+coefficients (here B8 and B9) are known in three dimensions,
+and the data in Table I suggest that the higher virial
+coefficients may oscillate around zero. Oscillations in the
+signs of virial coefficients of increasing order have been
+observed for other inverse power potentials [10], but it is
+not known from the existing data whether the oscillations
+will continue to infinite order, how they affect the convergence
+of the virial series, and whether they reflect the
+existence of poles in the complex plane.
+The same sampling scheme and probability distribution
+are used for hard spheres as for the inverse power potential;
+each sphere is placed relative to the previous one in exactly
+the same way as described above. More optimal sampling
+schemes have been devised for N   10 for hard spheres
+[7], but the general-purpose sampling scheme used here
+does not increase the uncertainty greatly (see Table II), and
+it can be used without modification forN >10. Since fB is
+always an integer, there are no round-off problems in the
+TABLE I. Reduced virial coefficients BN for the inverse twelfth-power potential. Standard
+errors in the last 1–2 digits are in parentheses. The number of Monte Carlo points is n, the
+relative computer time required per point is trel, and the relative number of biconnected graphs
+not related by permutation symmetry is NðGÞrel. Literature values are from [10] (N ¼ 5) and
+[11] (N >5).
+N 5 6 7 8 9 10
+BN 2.11494(2) 0.76953(4) 0.09043(12)  0:0742ð6Þ  0:035ð3Þ 0.040(9)
+n=1011 20 20 20 10 4 6
+trel 1 2.3 5.4 13 35 97
+NðGÞrel 1 5.6 47 710 19 000 970 000
+Literature 2.1150(1) 0.7695(2) 0.0908(5)  0:074ð2Þ . . . . . .
+PRL 110, 200601 (2013) PHYSICAL REVIEW LETTERS
+week ending
+17 MAY 2013
+200601-3
+calculation for hard spheres. For hard spheres, fB is zero
+for almost all of the random configurations, and the procedure
+can be made more efficient by identifying as many
+zero values as possible without doing the full recursive
+calculation of fB. A graph Gn is created for each configuration
+n, with edges between all ij pairs with rij   1
+(hence f ¼  1). No edge is present for pairs separated
+by more than 1 (f ¼ 0). Then, if the graph Gn is not
+biconnected, fB is zero. This is tested using a standard
+Depth-First Search algorithm. However, even if graph Gn
+is biconnected, fB is still zero in more than 90% of cases.
+All biconnected graphs are therefore tested for the presence
+of a simple clique separator, which would cause fB to
+be zero. A simple clique separator is defined as a single
+vertex v connected by edges to m<N   1 other vertices,
+where all m vertices connected to v are also connected to
+one another. [Figure 1(a) has a clique separator with
+m¼2.] Graphs having clique separators with m¼2, 3, 4,
+and 5 are identified and their values are set to zero, then fB
+is calculated recursively for all remaining graphs. In practice,
+the remaining graphs are roughly equally divided
+between zero and nonzero fB, so further efforts to screen
+graphs for zero fB would give relatively little improvement
+in computer time.
+Tenth, eleventh, and twelfth reduced virial coefficients
+for hard spheres with unit diameter are given in Table II.
+Calculation of B12 took approximately 640 h real time
+when run in parallel on 100 CPU cores. The efficiency of
+the new method is again shown by the small increase in
+computer time per point with increasing N, compared to
+the rapid increase in the number of graphs. The tenth virial
+coefficient agrees with more precise literature calculations,
+the eleventh virial coefficient agrees well with estimates of
+0.198, 0.203(2), and 0.202(2) obtained by extrapolating
+lower-order virial coefficients ([7,12,13], respectively),
+and the twelfth virial coefficient agrees reasonably well
+with similar estimates [7,12,13] of 0.124, 0.128(3), and
+0.128(3), respectively, given its relatively large uncertainty.
+The current calculations therefore lend support to the
+extrapolation techniques used in the literature.
+The recursive method developed in this work is directly
+applicable to any two-body potentials, to mixtures, and to
+systems of different dimensionality such as hard disks. The
+method may also be adapted for calculating correlation
+functions. Extensions to non-pair-additive potentials
+(using a formulation related to that of Hellmann and
+Bich [14]), to flexible molecules, and to quantum statistics,
+should also be considered.
+The author is grateful to the University of Nottingham
+for a grant of time on its ‘‘Minerva’’ high-performance
+computing facility.
+[1] J. Tian, Y. Gui, and A. Mulero, J. Phys. Chem. B 114,
+13 399 (2010).
+[2] M. N. Rosenbluth and A.W. Rosenbluth, J. Chem. Phys.
+22, 881 (1954).
+[3] F. H. Ree and W. G. Hoover, J. Chem. Phys. 40, 939
+(1964).
+[4] F. H. Ree and W. G. Hoover, J. Chem. Phys. 46, 4181
+(1967).
+[5] E. J. J. van Rensburg, J. Phys. A 26, 4805 (1993).
+[6] S. Labik, J. Kolafa, and A. Malijevsky, Phys. Rev. E 71,
+021105 (2005).
+[7] N. Clisby and B. M. McCoy, J. Stat. Phys. 122, 15 (2006).
+[8] M. A. G. Maestre, A. Santos, M. Robles, and M. L. De
+Haro, J. Chem. Phys. 134, 084502 (2011).
+[9] T. L. Hill, Statistical Mechanics (McGraw-Hill, New York,
+1956).
+[10] R. J. Wheatley, J. Phys. Chem. B 109, 7463 (2005).
+[11] T. B. Tan, A. J. Schultz, and D. A. Kofke, Mol. Phys. 109,
+123 (2011).
+[12] M. Oncak, A. Malijevsky, J. Kolafa, and S. Labik,
+Condens. Matter Phys. 15, 23 004 (2012).
+[13] N. S. Barlow, A. J. Schultz, S. J. Weinstein, and D. A.
+Kofke, J. Chem. Phys. 137, 204102 (2012).
+[14] R. Hellmann and E. Bich, J. Chem. Phys. 135, 084117
+(2011).

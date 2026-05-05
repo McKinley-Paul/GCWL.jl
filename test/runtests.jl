@@ -706,10 +706,162 @@ end
 
     println("Hard sphere partition functions: ",logQ_avg )
 
-    mathematica_hardsphere_logQs = [0.0,8.9872,16.5881,23.378,29.5925,35.3607,40.7642,45.8594,
-                                    50.6875,55.2799,59.6617,63.8527,67.8698] # starts from N=0 and goes to N=12, computed from known virial coefficients in mathematica_verification.nb
-    
-    for ii in range(1,length(logQ_avg))
+    # Values from mathematica_verification.nb hard-sphere virial EOS (Ushcats recursion + SklogWiki Bn).
+    # The Ushcats recursion outputs Z_N/N! (symmetry-reduced), so logQ = ln(Z_N^Ushcats) - 3N ln(Λ).
+    # A previous version of the notebook incorrectly subtracted an extra ln(N!) — now fixed.
+    # Each entry below = old_wrong_value + ln(N!) to recover the correct logQ.
+    mathematica_hardsphere_logQs = [0.0,     # N=0:  0       + ln(0!) = 0  (normalization anchor)
+                                     8.9872,  # N=1:  8.9872  + ln(1!) = 8.9872
+                                     17.2812, # N=2:  16.5881 + ln(2!)
+                                     25.1698, # N=3:  23.378  + ln(3!)
+                                     32.7706, # N=4:  29.5925 + ln(4!)
+                                     40.1482, # N=5:  35.3607 + ln(5!)
+                                     47.3435, # N=6:  40.7642 + ln(6!)
+                                     54.3846, # N=7:  45.8594 + ln(7!)
+                                     61.2921, # N=8:  50.6875 + ln(8!)
+                                     68.0817, # N=9:  55.2799 + ln(9!)
+                                     74.7661, # N=10: 59.6617 + ln(10!)
+                                     81.3550, # N=11: 63.8527 + ln(11!)
+                                     87.8570] # N=12: 67.8698 + ln(12!)
+
+    @test logQ_avg[1] ≈ 0.0 atol = 1e-10  # N=0 is always exactly 0 by construction
+    for ii in 2:length(logQ_avg)
         @test logQ_avg[ii] ≈ mathematica_hardsphere_logQs[ii] atol = 0.05*mathematica_hardsphere_logQs[ii]
     end
 end
+
+# Gaussian gas potential: U(r) = -(1/β) ln(1 - exp(-(r/σ)²))
+# Mayer function: f(r) = -exp(-(r/σ)²), so βU = -ln(1 - exp(-r²)) is temperature-independent.
+# Running at T_σ=1 with pair_energy = βU gives exact Boltzmann factor exp(-βU) at any T.
+# Virial coefficients from Koning 2016 (J. Chem. Phys. 145, 194101), reference unit b=(1/2)(πσ²)^{3/2}.
+struct GaussianGas <: PairPotential end
+function gc_wl.pair_energy(p::GaussianGas, r2_σ::Float64)::Float64
+    # βU(r) = -ln(1 - exp(-r²/σ²)), with σ=1
+    return -log(1.0 - exp(-r2_σ))
+end
+
+@testset "Gaussian gas partition functions" begin
+    logQ_avg = zeros(13)
+    for _ in 1:5
+        T_σ = 1.0
+        sim = SimulationParams(N_max=12, N_min=0, T_σ=T_σ, Λ_σ=1.0,
+                               r_cut_σ=4.0,   # Gaussian decays as exp(-r²); negligible beyond 4σ
+                               L_σ = 20.0,    # dilute: ρ_max = 12/8000 ≈ 0.0015
+                               save_directory_path=@__DIR__,
+                               maxiter=100_000_000, potential = GaussianGas())
+        μ     = init_microstate(sim)
+        wl    = init_WangLandauVars(sim)
+        cache = init_cache(sim, μ)
+        run_simulation!(sim, μ, wl, cache)
+        logQ   = correct_logQ(wl)
+        logQ_avg = logQ_avg .+ logQ
+    end
+    logQ_avg = logQ_avg ./ 5
+
+    println("Gaussian gas partition functions: ", logQ_avg)
+
+    # Values from mathematica_verification.nb Gaussian Gas section (Ushcats recursion + Koning 2016 virials).
+    # Formula: logQ = ln(Z_N^Ushcats) - 3N ln(Λ)  [no -ln(N!) term; Ushcats Z_N encodes 1/N!].
+    # Parameters: σ=1, b=(1/2)(π)^{3/2}≈2.784, Λ=1, L=20 (V=8000).
+    mathematica_gaussiangas_logQs = [0.0,       # N=0
+                                      8.9872,    # N=1
+                                      17.2811,   # N=2
+                                      25.1693,   # N=3
+                                      32.7697,   # N=4
+                                      40.1468,   # N=5
+                                      47.3413,   # N=6
+                                      54.3816,   # N=7
+                                      61.2881,   # N=8
+                                      68.0767,   # N=9
+                                      74.7597,   # N=10
+                                      81.3473,   # N=11
+                                      87.8476]   # N=12
+
+    @test logQ_avg[1] ≈ 0.0 atol = 1e-10  # N=0 is always exactly 0 by construction
+    for ii in 2:length(logQ_avg)
+        @test logQ_avg[ii] ≈ mathematica_gaussiangas_logQs[ii] atol = 0.05*mathematica_gaussiangas_logQs[ii]
+    end
+end
+
+# ---------------------------------------------------------------------------
+# L=7 tests: denser box (ρ_max ≈ 0.035) where HS and GG differ by ~1.6% at N=12.
+# At L=20 the two systems are indistinguishable from ideal gas (Δ logQ ≈ 0.03).
+# At L=7, ρ·B2 ≈ 0.07 so virial corrections are somewhat visible, but not quite enough at this stage and the two
+# potentials diverge monotonically with N.  The 12-coefficient virial series
+# converges to better than 1 part in 10^10 at this density.
+# Reference values from the Mathematica notebook (L=7 section, Ushcats recursion).
+# ---------------------------------------------------------------------------
+
+# @testset "Hard sphere partition functions L=7" begin
+#     logQ_avg = zeros(13)
+#     for _ in 1:5
+#         sim = SimulationParams(N_max=12, N_min=0, T_σ=1.0, Λ_σ=1.0,
+#                                r_cut_σ=1.0,
+#                                L_σ=7.0,
+#                                save_directory_path=@__DIR__,
+#                                maxiter=100_000_000, potential=HardSphere())
+#         μ     = init_microstate(sim)
+#         wl    = init_WangLandauVars(sim)
+#         cache = init_cache(sim, μ)
+#         run_simulation!(sim, μ, wl, cache)
+#         logQ_avg = logQ_avg .+ correct_logQ(wl)
+#     end
+#     logQ_avg = logQ_avg ./ 5
+#     println("Hard sphere L=7 partition functions: ", logQ_avg)
+
+#     mathematica_hardsphere_logQs_L7 = [0.0,        # N=0
+#                                         5.8377304,  # N=1
+#                                        10.9819140,  # N=2
+#                                        15.7202302,  # N=3
+#                                        20.1704598,  # N=4
+#                                        24.3971386,  # N=5
+#                                        28.4410863,  # N=6
+#                                        32.3304711,  # N=7
+#                                        36.0859097,  # N=8
+#                                        39.7231481,  # N=9
+#                                        43.2546060,  # N=10
+#                                        46.6903312,  # N=11
+#                                        50.0386200]  # N=12
+
+#     @test logQ_avg[1] ≈ 0.0 atol = 1e-10
+#     for ii in 2:length(logQ_avg)
+#         @test logQ_avg[ii] ≈ mathematica_hardsphere_logQs_L7[ii] atol = 0.02*mathematica_hardsphere_logQs_L7[ii]
+#     end
+# end
+
+# @testset "Gaussian gas partition functions L=7" begin
+#     logQ_avg = zeros(13)
+#     for _ in 1:5
+#         sim = SimulationParams(N_max=12, N_min=0, T_σ=1.0, Λ_σ=1.0,
+#                                r_cut_σ=3.0,   # exp(-9) ≈ 1e-4; L/2 = 3.5 so 3.0 fits
+#                                L_σ=7.0,
+#                                save_directory_path=@__DIR__,
+#                                maxiter=100_000_000, potential=GaussianGas())
+#         μ     = init_microstate(sim)
+#         wl    = init_WangLandauVars(sim)
+#         cache = init_cache(sim, μ)
+#         run_simulation!(sim, μ, wl, cache)
+#         logQ_avg = logQ_avg .+ correct_logQ(wl)
+#     end
+#     logQ_avg = logQ_avg ./ 5
+#     println("Gaussian gas L=7 partition functions: ", logQ_avg)
+
+#     mathematica_gaussiangas_logQs_L7 = [0.0,        # N=0
+#                                          5.8377304,  # N=1
+#                                         10.9709497,  # N=2
+#                                         15.6868963,  # N=3
+#                                         20.1028819,  # N=4
+#                                         24.2829434,  # N=5
+#                                         28.2673664,  # N=6
+#                                         32.0837476,  # N=7
+#                                         35.7520885,  # N=8
+#                                         39.2874709,  # N=9
+#                                         42.7015950,  # N=10
+#                                         46.0037247,  # N=11
+#                                         49.2012988]  # N=12
+
+#     @test logQ_avg[1] ≈ 0.0 atol = 1e-10
+#     for ii in 2:length(logQ_avg)
+#         @test logQ_avg[ii] ≈ mathematica_gaussiangas_logQs_L7[ii] atol = 0.02*mathematica_gaussiangas_logQs_L7[ii]
+#     end
+# end

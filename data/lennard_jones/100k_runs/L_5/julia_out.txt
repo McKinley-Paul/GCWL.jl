@@ -1,0 +1,142 @@
+Starting from N=0, skipping minimum distance check.
+
+           Starting 1/t GC Wang Landau Simulation        
+Be aware that Λ and thus implicitly the mass appears in the metropolis criterion
+T* = 1.0000
+V = 125.0000 σ³
+Box Length L = 5.0000 σ
+DeBroglie Λ = 1.0000 σ
+Max Density (N/V [σ^-3]): ρ = 0.1600 N
+Nmax = 20
+Nmin = 0
+r_cut = 9.0000 σ
+Directory files saved in: /Users/mckinleypaul/Documents/montecarlo/gc_wl/data/lennard_jones/100k_runs/L_5
+
+Pair potential: LennardJones
+pair_energy method: pair_energy(::LennardJones, r2_σ::Float64) @ gc_wl ~/Documents/montecarlo/gc_wl/src/lj.jl:44
+
+Current microstate:
+N = 0
+Positions of full particles in box units: 
+20-element Vector{StaticArraysCore.MVector{3, Float64}}:
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+ [0.0, 0.0, 0.0]
+Run 1000 / 100000 — elapsed 2.7 min, ETA 271.0 min 2026-04-16 10:44:45
+Run 2000 / 100000 — elapsed 5.5 min, ETA 271.5 min 2026-04-16 10:47:33
+Run 3000 / 100000 — elapsed 8.4 min, ETA 270.4 min 2026-04-16 10:50:23
+Run 4000 / 100000 — elapsed 11.2 min, ETA 267.7 min 2026-04-16 10:53:10
+Run 5000 / 100000 — elapsed 14.0 min, ETA 266.4 min 2026-04-16 10:56:02
+Run 6000 / 100000 — elapsed 16.8 min, ETA 263.9 min 2026-04-16 10:58:52
+Run 7000 / 100000 — elapsed 19.7 min, ETA 261.1 min 2026-04-16 11:01:40
+Run 8000 / 100000 — elapsed 22.5 min, ETA 259.1 min 2026-04-16 11:04:33
+Run 9000 / 100000 — elapsed 25.3 min, ETA 256.2 min 2026-04-16 11:07:21
+Run 10000 / 100000 — elapsed 28.1 min, ETA 253.3 min 2026-04-16 11:10:09
+Run 11000 / 100000 — elapsed 30.9 min, ETA 249.9 min 2026-04-16 11:12:54
+Run 12000 / 100000 — elapsed 33.7 min, ETA 247.2 min 2026-04-16 11:15:44
+Run 13000 / 100000 — elapsed 36.6 min, ETA 244.7 min 2026-04-16 11:18:35
+Run 14000 / 100000 — elapsed 39.4 min, ETA 242.2 min 2026-04-16 11:21:26
+Run 15000 / 100000 — elapsed 42.3 min, ETA 239.7 min 2026-04-16 11:24:19
+Run 16000 / 100000 — elapsed 45.2 min, ETA 237.2 min 2026-04-16 11:27:12
+Run 17000 / 100000 — elapsed 48.0 min, ETA 234.2 min 2026-04-16 11:29:59
+Run 18000 / 100000 — elapsed 50.7 min, ETA 231.2 min 2026-04-16 11:32:46
+Run 19000 / 100000 — elapsed 53.6 min, ETA 228.3 min 2026-04-16 11:35:35
+Run 20000 / 100000 — elapsed 56.4 min, ETA 225.5 min 2026-04-16 11:38:24
+Run 21000 / 100000 — elapsed 59.2 min, ETA 222.6 min 2026-04-16 11:41:11
+Run 22000 / 100000 — elapsed 61.9 min, ETA 219.6 min 2026-04-16 11:43:57
+Run 23000 / 100000 — elapsed 64.8 min, ETA 217.0 min 2026-04-16 11:46:49
+Run 24000 / 100000 — elapsed 67.6 min, ETA 214.0 min 2026-04-16 11:49:35
+Run 25000 / 100000 — elapsed 70.4 min, ETA 211.1 min 2026-04-16 11:52:24
+Run 26000 / 100000 — elapsed 73.2 min, ETA 208.4 min 2026-04-16 11:55:14
+Run 27000 / 100000 — elapsed 76.0 min, ETA 205.6 min 2026-04-16 11:58:03
+Run 28000 / 100000 — elapsed 78.8 min, ETA 202.7 min 2026-04-16 12:00:50
+Run 29000 / 100000 — elapsed 81.6 min, ETA 199.8 min 2026-04-16 12:03:38
+Run 30000 / 100000 — elapsed 84.4 min, ETA 197.0 min 2026-04-16 12:06:27
+Run 31000 / 100000 — elapsed 87.2 min, ETA 194.2 min 2026-04-16 12:09:15
+Run 32000 / 100000 — elapsed 90.1 min, ETA 191.4 min 2026-04-16 12:12:04
+Run 33000 / 100000 — elapsed 92.8 min, ETA 188.5 min 2026-04-16 12:14:51
+Run 34000 / 100000 — elapsed 95.6 min, ETA 185.6 min 2026-04-16 12:17:38
+Run 35000 / 100000 — elapsed 98.4 min, ETA 182.8 min 2026-04-16 12:20:26
+Run 36000 / 100000 — elapsed 101.2 min, ETA 179.9 min 2026-04-16 12:23:12
+Run 37000 / 100000 — elapsed 104.0 min, ETA 177.1 min 2026-04-16 12:26:01
+Run 38000 / 100000 — elapsed 106.8 min, ETA 174.3 min 2026-04-16 12:28:51
+Run 39000 / 100000 — elapsed 109.6 min, ETA 171.5 min 2026-04-16 12:31:38
+Run 40000 / 100000 — elapsed 112.4 min, ETA 168.6 min 2026-04-16 12:34:26
+Run 41000 / 100000 — elapsed 115.2 min, ETA 165.8 min 2026-04-16 12:37:14
+Run 42000 / 100000 — elapsed 118.1 min, ETA 163.0 min 2026-04-16 12:40:04
+Run 43000 / 100000 — elapsed 120.9 min, ETA 160.2 min 2026-04-16 12:42:53
+Run 44000 / 100000 — elapsed 123.7 min, ETA 157.4 min 2026-04-16 12:45:41
+Run 45000 / 100000 — elapsed 126.5 min, ETA 154.6 min 2026-04-16 12:48:31
+Run 46000 / 100000 — elapsed 129.3 min, ETA 151.7 min 2026-04-16 12:51:16
+Run 47000 / 100000 — elapsed 132.1 min, ETA 149.0 min 2026-04-16 12:54:07
+Run 48000 / 100000 — elapsed 135.0 min, ETA 146.2 min 2026-04-16 12:56:59
+Run 49000 / 100000 — elapsed 137.8 min, ETA 143.4 min 2026-04-16 12:59:50
+Run 50000 / 100000 — elapsed 140.6 min, ETA 140.6 min 2026-04-16 13:02:37
+Run 51000 / 100000 — elapsed 143.4 min, ETA 137.8 min 2026-04-16 13:05:25
+Run 52000 / 100000 — elapsed 146.2 min, ETA 135.0 min 2026-04-16 13:08:13
+Run 53000 / 100000 — elapsed 149.1 min, ETA 132.2 min 2026-04-16 13:11:06
+Run 54000 / 100000 — elapsed 151.9 min, ETA 129.4 min 2026-04-16 13:13:58
+Run 55000 / 100000 — elapsed 154.7 min, ETA 126.6 min 2026-04-16 13:16:45
+Run 56000 / 100000 — elapsed 157.6 min, ETA 123.8 min 2026-04-16 13:19:35
+Run 57000 / 100000 — elapsed 160.4 min, ETA 121.0 min 2026-04-16 13:22:27
+Run 58000 / 100000 — elapsed 163.3 min, ETA 118.3 min 2026-04-16 13:25:20
+Run 59000 / 100000 — elapsed 166.1 min, ETA 115.5 min 2026-04-16 13:28:09
+Run 60000 / 100000 — elapsed 169.0 min, ETA 112.6 min 2026-04-16 13:30:58
+Run 61000 / 100000 — elapsed 171.8 min, ETA 109.8 min 2026-04-16 13:33:48
+Run 62000 / 100000 — elapsed 174.6 min, ETA 107.0 min 2026-04-16 13:36:39
+Run 63000 / 100000 — elapsed 177.5 min, ETA 104.2 min 2026-04-16 13:39:29
+Run 64000 / 100000 — elapsed 180.3 min, ETA 101.4 min 2026-04-16 13:42:17
+Run 65000 / 100000 — elapsed 183.0 min, ETA 98.6 min 2026-04-16 13:45:03
+Run 66000 / 100000 — elapsed 185.9 min, ETA 95.8 min 2026-04-16 13:47:54
+Run 67000 / 100000 — elapsed 188.7 min, ETA 92.9 min 2026-04-16 13:50:42
+Run 68000 / 100000 — elapsed 191.5 min, ETA 90.1 min 2026-04-16 13:53:32
+Run 69000 / 100000 — elapsed 194.3 min, ETA 87.3 min 2026-04-16 13:56:21
+Run 70000 / 100000 — elapsed 197.2 min, ETA 84.5 min 2026-04-16 13:59:10
+Run 71000 / 100000 — elapsed 200.0 min, ETA 81.7 min 2026-04-16 14:02:00
+Run 72000 / 100000 — elapsed 202.8 min, ETA 78.9 min 2026-04-16 14:04:50
+Run 73000 / 100000 — elapsed 205.6 min, ETA 76.0 min 2026-04-16 14:07:38
+Run 74000 / 100000 — elapsed 208.4 min, ETA 73.2 min 2026-04-16 14:10:25
+Run 75000 / 100000 — elapsed 211.2 min, ETA 70.4 min 2026-04-16 14:13:16
+Run 76000 / 100000 — elapsed 214.1 min, ETA 67.6 min 2026-04-16 14:16:05
+Run 77000 / 100000 — elapsed 216.9 min, ETA 64.8 min 2026-04-16 14:18:54
+Run 78000 / 100000 — elapsed 219.7 min, ETA 62.0 min 2026-04-16 14:21:44
+Run 79000 / 100000 — elapsed 222.5 min, ETA 59.1 min 2026-04-16 14:24:31
+Run 80000 / 100000 — elapsed 225.3 min, ETA 56.3 min 2026-04-16 14:27:19
+Run 81000 / 100000 — elapsed 228.1 min, ETA 53.5 min 2026-04-16 14:30:09
+Run 82000 / 100000 — elapsed 230.9 min, ETA 50.7 min 2026-04-16 14:32:58
+Run 83000 / 100000 — elapsed 233.8 min, ETA 47.9 min 2026-04-16 14:35:49
+Run 84000 / 100000 — elapsed 236.6 min, ETA 45.1 min 2026-04-16 14:38:36
+Run 85000 / 100000 — elapsed 239.4 min, ETA 42.2 min 2026-04-16 14:41:25
+Run 86000 / 100000 — elapsed 242.2 min, ETA 39.4 min 2026-04-16 14:44:16
+Run 87000 / 100000 — elapsed 245.0 min, ETA 36.6 min 2026-04-16 14:47:03
+Run 88000 / 100000 — elapsed 247.8 min, ETA 33.8 min 2026-04-16 14:49:51
+Run 89000 / 100000 — elapsed 250.7 min, ETA 31.0 min 2026-04-16 14:52:41
+Run 90000 / 100000 — elapsed 253.6 min, ETA 28.2 min 2026-04-16 14:55:35
+Run 91000 / 100000 — elapsed 256.3 min, ETA 25.4 min 2026-04-16 14:58:21
+Run 92000 / 100000 — elapsed 259.0 min, ETA 22.5 min 2026-04-16 15:01:03
+Run 93000 / 100000 — elapsed 261.8 min, ETA 19.7 min 2026-04-16 15:03:47
+Run 94000 / 100000 — elapsed 264.5 min, ETA 16.9 min 2026-04-16 15:06:28
+Run 95000 / 100000 — elapsed 267.1 min, ETA 14.1 min 2026-04-16 15:09:07
+Run 96000 / 100000 — elapsed 269.7 min, ETA 11.2 min 2026-04-16 15:11:42
+Run 97000 / 100000 — elapsed 272.3 min, ETA 8.4 min 2026-04-16 15:14:18
+Run 98000 / 100000 — elapsed 274.9 min, ETA 5.6 min 2026-04-16 15:16:55
+Run 99000 / 100000 — elapsed 277.6 min, ETA 2.8 min 2026-04-16 15:19:38
+Run 100000 / 100000 — elapsed 280.3 min, ETA 0.0 min 2026-04-16 15:22:18
+All 100000 runs completed in 280.3 min

@@ -1,0 +1,32 @@
+Starting run_simulation!(), time is 2026-05-04 13:21:59
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-04 13:22:11
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-04 13:22:13
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-04 13:22:28
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-04 13:22:39
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-04 13:22:47
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-04 13:23:04
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-04 13:23:23
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-04 13:23:47
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-04 13:24:21
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-04 13:25:30
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-04 13:27:31
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-04 13:29:09
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-04 13:33:25
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-04 13:44:16
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-04 13:52:44
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-04 14:27:13
+New WL phase 1 epoch!, now at 7.62939453125e-6 and the time is 2026-05-04 14:36:07
+New WL phase 1 epoch!, now at 3.814697265625e-6 and the time is 2026-05-04 15:29:15
+New WL phase 1 epoch!, now at 1.9073486328125e-6 and the time is 2026-05-04 15:59:18
+New WL phase 1 epoch!, now at 9.5367431640625e-7 and the time is 2026-05-04 16:30:27
+New WL phase 1 epoch!, now at 4.76837158203125e-7 and the time is 2026-05-04 16:56:33
+New WL phase 1 epoch!, now at 2.384185791015625e-7 and the time is 2026-05-05 01:48:01
+New WL phase 1 epoch!, now at 1.1920928955078125e-7 and the time is 2026-05-05 02:34:35
+New WL phase 1 epoch!, now at 5.960464477539063e-8 and the time is 2026-05-05 03:22:36
+New WL phase 1 epoch!, now at 2.9802322387695312e-8 and the time is 2026-05-05 04:46:15
+New WL phase 1 epoch!, now at 1.4901161193847656e-8 and the time is 2026-05-05 12:34:14
+New WL phase 1 epoch!, now at 7.450580596923828e-9 and the time is 2026-05-05 13:24:55
+Now entering phase 2! It took 37876784000 monte carlo moves (wl.iters) to get to phase 2! 2026-05-05 13:24:55
+That is a monte carlo time of: 83984000
+Phase 2 flatness check: H(N) min/mean = 0.0 %, total iters: 38000000000 min: 0 2026-05-05 13:28:51
+Phase 2 flatness check: H(N) min/mean = 0.0 %, total iters: 38500000000 min: 0 2026-05-05 13:47:28

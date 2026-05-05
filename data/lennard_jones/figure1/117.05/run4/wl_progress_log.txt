@@ -1,0 +1,59 @@
+Starting run_simulation!(), time is 2026-05-04 03:18:16
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-04 03:18:20
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-04 03:18:22
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-04 03:18:26
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-04 03:18:30
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-04 03:18:39
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-04 03:18:45
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-04 03:18:51
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-04 03:19:07
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-04 03:19:23
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-04 03:19:41
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-04 03:19:58
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-04 03:20:14
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-04 03:20:48
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-04 03:21:28
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-04 03:22:08
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-04 03:28:22
+New WL phase 1 epoch!, now at 7.62939453125e-6 and the time is 2026-05-04 03:32:02
+New WL phase 1 epoch!, now at 3.814697265625e-6 and the time is 2026-05-04 03:51:33
+New WL phase 1 epoch!, now at 1.9073486328125e-6 and the time is 2026-05-04 03:53:02
+New WL phase 1 epoch!, now at 9.5367431640625e-7 and the time is 2026-05-04 04:05:15
+New WL phase 1 epoch!, now at 4.76837158203125e-7 and the time is 2026-05-04 04:11:44
+New WL phase 1 epoch!, now at 2.384185791015625e-7 and the time is 2026-05-04 04:18:33
+New WL phase 1 epoch!, now at 1.1920928955078125e-7 and the time is 2026-05-04 04:20:53
+Now entering phase 2! It took 1765603000 monte carlo moves (wl.iters) to get to phase 2! 2026-05-04 04:20:53
+That is a monte carlo time of: 4403000
+Phase 2 flatness check: H(N) min/mean = 0.0 %, total iters: 2000000000 min: 0 2026-05-04 04:27:17
+Phase 2 flatness check: H(N) min/mean = 0.0 %, total iters: 2500000000 min: 0 2026-05-04 04:42:08
+Phase 2 flatness check: H(N) min/mean = 5.0 %, total iters: 3000000000 min: 155844 2026-05-04 04:57:19
+Phase 2 flatness check: H(N) min/mean = 4.0 %, total iters: 3500000000 min: 155844 2026-05-04 05:12:12
+Phase 2 flatness check: H(N) min/mean = 21.0 %, total iters: 4000000000 min: 1168133 2026-05-04 05:28:22
+Phase 2 flatness check: H(N) min/mean = 17.0 %, total iters: 4500000000 min: 1168133 2026-05-04 05:42:35
+Phase 2 flatness check: H(N) min/mean = 14.0 %, total iters: 5000000000 min: 1168133 2026-05-04 05:57:37
+Phase 2 flatness check: H(N) min/mean = 13.0 %, total iters: 5500000000 min: 1168133 2026-05-04 06:11:32
+Phase 2 flatness check: H(N) min/mean = 11.0 %, total iters: 6000000000 min: 1168133 2026-05-04 06:27:47
+Phase 2 flatness check: H(N) min/mean = 38.0 %, total iters: 6500000000 min: 4490535 2026-05-04 06:45:52
+Phase 2 flatness check: H(N) min/mean = 62.0 %, total iters: 7000000000 min: 8039892 2026-05-04 07:06:15
+Phase 2 flatness check: H(N) min/mean = 60.0 %, total iters: 7500000000 min: 8529809 2026-05-04 07:21:59
+Phase 2 flatness check: H(N) min/mean = 58.0 %, total iters: 8000000000 min: 9024277 2026-05-04 07:37:56
+Phase 2 flatness check: H(N) min/mean = 55.0 %, total iters: 8500000000 min: 9221514 2026-05-04 07:52:34
+Phase 2 flatness check: H(N) min/mean = 61.0 %, total iters: 9000000000 min: 10984860 2026-05-04 08:08:37
+Phase 2 flatness check: H(N) min/mean = 57.0 %, total iters: 9500000000 min: 10984860 2026-05-04 08:22:22
+Phase 2 flatness check: H(N) min/mean = 53.0 %, total iters: 10000000000 min: 10984860 2026-05-04 08:37:56
+Phase 2 flatness check: H(N) min/mean = 62.0 %, total iters: 10500000000 min: 13596093 2026-05-04 08:54:45
+Phase 2 flatness check: H(N) min/mean = 59.0 %, total iters: 11000000000 min: 13596093 2026-05-04 09:07:57
+Phase 2 flatness check: H(N) min/mean = 57.0 %, total iters: 11500000000 min: 13886633 2026-05-04 09:24:43
+Phase 2 flatness check: H(N) min/mean = 54.0 %, total iters: 12000000000 min: 13886633 2026-05-04 09:39:05
+Phase 2 flatness check: H(N) min/mean = 52.0 %, total iters: 12500000000 min: 13886633 2026-05-04 09:53:16
+Phase 2 flatness check: H(N) min/mean = 66.0 %, total iters: 13000000000 min: 18378818 2026-05-04 10:10:21
+Phase 2 flatness check: H(N) min/mean = 73.0 %, total iters: 13500000000 min: 21394142 2026-05-04 10:27:37
+Phase 2 flatness check: H(N) min/mean = 70.0 %, total iters: 14000000000 min: 21423081 2026-05-04 10:42:52
+Phase 2 flatness check: H(N) min/mean = 69.0 %, total iters: 14500000000 min: 21886076 2026-05-04 10:58:06
+Phase 2 flatness check: H(N) min/mean = 75.0 %, total iters: 15000000000 min: 24644944 2026-05-04 11:17:51
+Phase 2 flatness check: H(N) min/mean = 78.0 %, total iters: 15500000000 min: 26861964 2026-05-04 11:36:57
+Phase 2 flatness check: H(N) min/mean = 78.0 %, total iters: 16000000000 min: 27592929 2026-05-04 11:52:08
+Phase 2 flatness check: H(N) min/mean = 79.0 %, total iters: 16500000000 min: 29023862 2026-05-04 12:11:38
+Flatness criterion reached in phase 2 after 16837000000 total iterations 2026-05-04 12:24:15
+H(N) min/mean = 80.0 %
+H(N) max = 49848086

@@ -1,0 +1,866 @@
+Optimal modification factor and convergence of the Wang-Landau algorithm
+Chenggang Zhou (周成钢 *
+Quantitative Research, J. P. Morgan Chase and Company, 12th Floor, 277 Park Ave., New York, New York 10017, USA
+Jia Su (苏佳 
+Department of Chemistry, Princeton University, Princeton, New Jersey 08544, USA
+ Received 16 July 2008; published 20 October 2008 
+We propose a strategy to achieve the fastest convergence in the Wang-Landau algorithm with varying
+modification factors. With this strategy, the convergence of a simulation is at least as good as the conventional
+Monte Carlo algorithm, i.e., the statistical error vanishes as 1/ t, where t is a normalized time of the simulation.
+However, we also prove that the error cannot vanish faster than 1/ t. Our findings are consistent with the
+1/ t Wang-Landau algorithm discovered recently, and we argue that one needs external information in the
+simulation to beat the conventional Monte Carlo algorithm.
+DOI: 10.1103/PhysRevE.78.046705 PACS number s : 02.70.Tt, 02.50.Ey, 02.50.Fz, 02.70.Rr
+I. INTRODUCTION
+Many researchers in various fields have been interested in
+using and improving the Wang-Landau  WL  algorithm
+ 1,2 . This algorithm is in fact a general scheme to tackle
+problems that can be transformed into the problem of estimating
+a probability distribution. This probability distribution
+can represent the simple density of states as a function
+of energy only  1–5 , but the more interesting and challenging
+applications are the joint density of states as a function of
+energy and a second variable  6–14 . The second variable
+can be the volume of a liquid-gas system, the reaction coordinate
+of a polymer or a protein molecule, or the magnetization
+of a spin system. The  joint  density of states are subsequently
+used to calculate the partition function, but it is also
+possible to calculate the partition function directly with the
+WL algorithm without going through the density of states
+ 15 . Apart from these physical models, several authors have
+explored the possibility of performing numerical integration
+with the WL algorithm  16,17 . In contrast to alternative
+sampling methods, such as the umbrella sampling  18  and
+multicanonical algorithm  19 , the WL algorithm almost
+seems to be a universal approach, because it does not rely on
+working out a good range of energy or distribution function
+to sample in advance. However, most implementations of the
+WL algorithm involve some “proprietary” enhancements designed
+to best suit the problem being studied. Some general
+strategies to improve the algorithm for a large class of problems
+have also been proposed  11,20–22 .
+The original WL algorithm measures the histogram of the
+simulation, as soon as the histogram achieves a certain “flatness,”
+which is a tunable parameter in the simulation, the
+modification factor fn is reduced to fn+1= fn. Many possible
+modifications have already been suggested and tested empirically.
+One type of modification involves the flatness criterion.
+Although to achieve a flat histogram is the initial motivation
+of the WL algorithm, Ref.  23  suggested that the
+flatness is not a necessary criterion to achieve convergence.
+Usually, the flatness is defined as the ratio of the fluctuation
+of the histogram  or other equivalent quantities  to the average
+histogram. In fact, fluctuation of the histogram is an
+intrinsic property of the WL algorithm. A simulation with
+constant f always improves the flatness, due to the increasing
+average histogram, but the amplitude of fluctuation eventually
+saturates. The prediction in Ref.  23  that the fluctuation
+of histogram is proportional to 1/ ln f has been verified by
+different authors independently  24,25 . Therefore, many authors
+often replace the flatness criterion with that of a minimum
+histogram. This also suggests that one should instead
+focus on the fluctuation of the histogram rather than the flatness.
+Actually the average histogram is absorbed into the
+normalization constant of the density of states, so the flatness
+is not a good indicator of convergence.
+On the other hand, the exponential reduction of f mainly
+came out of the expectation to achieve an exponential convergence.
+Several authors have found the error of the original
+WL algorithm to saturate, while relaxing the exponential reduction
+rule seems to offer a better convergence and accuracy
+ 26–30 . We mention in passing that this type of error
+saturation is different from the  ln f statistical error for a
+fixed f. References  29,30  clearly illustrate that even if f is
+reduced to a very small value according to the original prescription,
+the statistical error stops to decrease at a certain
+point. This phenomenon suggests that exponentially reducing
+f is not the best strategy. Intuitive strategies to adjust f have
+been proposed, such as increasing f once in a while during
+the simulation  28 . The most impressive improvement has
+been observed for the simple 1/ t rule  29,30 . However a
+generic principle for achieving the optimal convergence is
+unknown.
+The purpose of this paper is to derive such a principle to
+adjust f in the simplest and most generic setting. The very
+first question one may ask is, what is the simplest and most
+generic setting of the WL algorithm? The literature so far is
+not clear on this issue. With implementation of improved
+algorithms mixed with unexplored models in different fields,
+the results are usually a convoluted mixture of modelspecific
+properties and the generic behavior of the WL algorithm.
+One may suggest that the Ising model is a generic
+model to start with. However, it is easy to see that in terms of
+*chenggang.x.zhou@jpmorgan.com measuring the performance of the algorithm, the Ising model
+PHYSICAL REVIEW E 78, 046705  2008 
+1539-3755/2008/78 4 /046705 8  046705-1 ©2008 The American Physical Society
+is not different from simply counting the number of states
+with the same total spin  23 . If we flip a single spin in each
+update, the total energy or total spin can only change by a
+small amount every time. The WL algorithm compares g Ei 
+and g Ef , i.e., density of states before and after a move, but
+it does not require Ei to be close to Ef. In principle, one can
+implement algorithms that allow “nonlocal” moves in the
+parameter space, e.g., cluster algorithm. The update schemes
+for the underlying model certainly have an effect on the outcome,
+which also makes rigorous analysis almost impossible.
+This is an effect that we want to factor out. So what models
+are more generic than the Ising model? Numerical integration
+ 16,17,30  is a better candidate, since the evaluation of
+the integrand and moving from one sampling point to the
+other are both fast. The time spent in selecting the next sampling
+point is thus negligible. Selecting the next sampling
+point X, may it be an energy, a two-dimensional vector, or a
+value of the integrand, is an encapsulated process that depends
+on the actual problem to solve. What the high-level
+WL “driver” asks for is only the next sampling point with
+probability distribution P X  g X  /g¯ X , where g X  and
+g¯ X  are the exact and estimated density of states, respectively.
+This is in fact the starting point of analysis in Ref.  23 ,
+which mainly dealt with the dynamics of the simulation with
+a fixed f. This fluctuation leads to a statistical error in the
+density of states proportional to  ln f. The multistage WL
+algorithm partially reduces this statistical fluctuation by decreasing
+f. However, its overall efficiency in reducing statistical
+error is not necessarily superior to the conventional
+Monte Carlo algorithm  29,30 . This is why Ref.  23  suggests
+to average over multiple independent simulations with
+a single f.
+In Sec. II of this paper, following the same approach, we
+derive an optimal strategy for updating the modification factor;
+in Sec. III, we derive the upper and lower bound of the
+convergence with this optimal strategy, and compare it to the
+very impressive 1/ t WL algorithm; Sec. IV presents our conclusion
+and discussions. The method we use in our study is
+entirely different from the well-known argument based on
+detailed balance. In fact, detailed balance applies to simulations
+with a set of constant transition probabilities. Most
+sampling algorithms fall into this class, including all importance
+sampling algorithms. The basic Metropolis algorithm
+ 31  is indeed the “driver” of them. However, the transition
+probability in the WL algorithm is continually updated,
+therefore detailed balance does not directly apply to it. In this
+paper we focus on the WL “driver.” Similar to detailed balance,
+its mathematical validity warrants many applications,
+although not all physical models with specific pitfalls are
+guaranteed to be solved. Therefore we only demonstrate our
+strategy on the most popular testing case, i.e., twodimensional
+Ising model. We believe the strategy we found
+is simple to implement in any existing simulations with the
+WL algorithm, and that its performance is comparable to the
+1/ t WL algorithm.
+II. OPTIMAL MODIFICATION FACTOR
+The WL algorithm is not a Markov process, because the
+transition probability depends on the history of the simulation.
+It might be necessary to reiterate the main idea of Ref.
+ 23 . Suppose there are N bins  energies  in a generic simulation,
+the key random process to focus on is the probability
+distribution pi t  of the next move, with i=1, . . . ,N. If bin l
+is picked, this probability distribution evolves as
+pi
+ l  t + 1  =
+pi t f− il
+1 − pl t  + pl t f−1 .  1 
+The transition probability from p t  to p l  t+1  is just pl t .
+The process p t  is indeed a Markov process. p t  lives as a
+vector inside an N-dimensional simplex, whose center is the
+uniform distribution p¯l=1/N for 1 l N. Convergence
+means that the estimated density of states forces p t  to approach
+p¯.
+In Ref.  23 , the level of convergence is measured by the
+function
+  t  = N ln N + 
+i=1
+N
+ln pi t .  2 
+If the simulation has reached the exact density of states,
+therefore, a “flat” histogram, then p t =p¯ and   t =0. In a
+simulation,   t  always starts from a negative value and approaches
+0 from below. The expected increment in   t  is
+given by
+E   t + 1  −  t  Ft 
+= − ln f + N 
+k=1
+N
+pk t ln
+1
+1 − pk t  1 − f−1 
+.  3 
+Here the “filtration” Ft is a Borel algebra which represents
+the information available at time t. p t  and   t  are supposed
+to be available at time t, the expectation is over N
+different   t+1 . It was proved in Ref.  23  that if the
+distance between p t  and p¯ is sufficiently large,   t+1 
+increases on average. Thus p¯ serves as an attraction center
+that pulls p t  towards it. However, this attraction has a
+short-range cutoff at a characteristic distance   f 
+=   1− f−1 −1 ln f −1  /N. At the same time   f  determines
+how much the estimated density of states fluctuates around
+the exact density of states. Obviously the amount of fluctuation
+is reduced by decreasing f in the simulation.
+In practice, a systematic error in the simulation exists,
+which is a function of f and the autocorrelation between
+successive additions to the histogram. As observed in Ref.
+ 23 , this systematic error becomes smaller when either f or
+the correlation decreases. The amount of correlation is reflected
+by the tunneling time  19,32 , and Ref.  33  offers a
+systematic way to decrease the tunneling time for onedimensional
+density of states. But in general, decreasing the
+correlation  tunneling time  in the WL algorithm, especially
+for those calculating two-dimensional joint density of states,
+is not an easy task. This is why it is necessary to reduce f to
+achieve accurate results. Otherwise, averaging over independent
+simulations as suggested in Ref.  23  would be the best
+solution. In a multistage simulation, one has the freedom to
+choose fn+1. We realize that there is an optimal f in the sense
+that it maximizes Eq.  3 . Selecting this optimal value for
+CHENGGANG ZHOU AND JIA SU PHYSICAL REVIEW E 78, 046705  2008 
+046705-2
+fn+1 will bring   t  to zero at the fastest speed. An intuitive
+analogy is the random deposition model, where we would
+relate f to the size of the next particle to be deposited. If f is
+too small, it takes many such particles to fill up the existing
+depressions in the landscape. If f is too large, instead of
+filling up the dips, the new depositions actually create a more
+hilly landscape.
+To find this optimal f, we define y=1− f−1 and rewrite the
+expected change Eq.  3  as
+G p t ,y  = ln 1 − y  + N 
+k =1
+N
+pk t ln
+1
+1 − pk t y
+.  4 
+The Taylor expansion of this function
+G p,y  = N 
+n=1
++  1
+n  k=1
+N
+pk
+n+1 −
+1
+N yn,  5 
+is easier to analyze. The coefficient of the first linear term is
+equal to N
+pk−p¯
+2. It is positive except when the simulation
+has perfectly converged. The higher order terms are negative
+if pk t  is in the vicinity of p¯, which is the region that we care
+about most. In fact, when p t  1/N in this region, the coefficient
+of nth term is roughly  N−n+1−1  /n, which is negative
+for n 1.  Assuming N is a large integer.  The function
+G p, y  thus has a unique maximum value for y  0,1 . Suppose
+this maximum value is achieved at yc, then the corresponding
+fc=1/  1−yc  is the optimal modification factor that
+brings   t  towards zero at the maximum speed.
+In the refining stage of an actual simulation, y is close to
+zero, since f is close to 1. In the following we will also refer
+to y as the modification factor for convenience, as it is unlikely
+to confuse it with f. It should be sufficient to retain
+two terms of the function G p, y ;
+G p,y    N
+p − p¯
+2y −
+1
+2 1 − N 
+k=1
+N
+pk
+3 y2.  6 
+With this approximation, the optimal value for y is obtained
+as
+yc =
+N
+p t  − p¯
+2
+1 − N k=1
+N pk
+3 t 
+.  7 
+On the denominator, since pk t  is of order 1/N in the cases
+that we are interested in, the second term is of order 1/N. For
+large systems, this correction can be safely omitted as well.
+The nominator in Eq.  7  is simply a measure of the fluctuation
+of the estimated density of states, which is in agreement
+with our earlier analogy to the random deposition
+model. “The optimal size of the deposition,” i.e., fc 1/  1
+−N
+p t −p¯
+2 , is determined by the current roughness of the
+landscape.
+We illustrate this optimal strategy with the traditional testing
+case, the two-dimensional Ising model. As suggested in
+Ref.  23 , we update the estimated density of states once
+every K flips, so that the random walker has a chance to
+travel around between two updates in the estimated density
+of states. We arbitrarily set K=N/2 and the initial modification
+factor ln f0=0.1, but we have tested that the simulation
+is stable with other reasonable choices. Once all the energies
+have been visited, we start updating the modification factor.
+Since the exact density of states is known, p t  can be directly
+calculated as pl t =Z−1g El  /g¯ El , where Z is a normalization
+constant. The modification factor is updated with
+ln f =  N 
+l
+ pl t  − 1/N 2,  8 
+where 0   1, and we have used   =0.1.  Note that only
+the first-order term in the Taylor expansion of Eq.  8  matters.
+This choice is also convenient since in actual simulations
+only ln g¯ E  is used.  The simulation continues with the
+updated f until all energies have been visited again. We again
+update f with Eq.  8  and run until all energies are visited.
+This cycle repeats until the desired accuracy in density of
+states is reached, which is also reflected in vanishing ln f.
+The choice of   requires some justification. The simulation
+of Ising model, autocorrelation between updates in g¯ El 
+indeed exists, leading to the systematic error as discussed in
+Ref.  23 . If we look at the error ln g¯ E  /g E  , we see the
+same slow-varying component in different simulations even
+the random number seeds are different. The high-frequency
+fluctuations are indeed random. However, in our simplified
+case for analytical analysis, all the bins are equivalent and
+independent, which leads us to Eq.  7 . If we simply apply
+Eq.  7 , 
+p t −p¯
+2 contains contributions from both this systematic
+error and the uncorrelated statistical fluctuation. As a
+result, convergence is not guaranteed. Ideally one should extract
+the uncorrelated statistical fluctuation, which can be estimated
+from the high-frequency fluctuations of g¯ E , assuming
+g E  is a sufficiently smooth function. However, the
+easiest fix that we have discovered is to insert a small positive
+number   in Eq.  8 .
+On a second thought, one notices that the systematic error
+is brought into 
+p t −p¯
+2 only because the exact density of
+states is known and used in our test. If it is not known in
+advance, only the uncorrelated statistical fluctuation can be
+properly estimated from g¯ E . One can only hope for the
+systematic error to vanish as f decreases, or identify it with
+independent means. To guard against possible overestimation
+of the fluctuation, we suggest to use   as a tunable parameter
+in all simulations. Thus, there are only three configuration
+parameters, f0, K, and  . f0 is a trivial one; both K and  
+reduce the systematic error from autocorrelation in the sampling.
+After setting these parameters, the simulations is
+worry free. If the autocorrelation turns out to be a problem,
+one can either increase K or reduce   to fix it.
+Figure 1 a  plots the vanishing fluctuation observed in
+several simulations and the typical pattern of error. These
+simulations were performed on square lattices with periodic
+boundary conditions. The linear size L that we used ranges
+from L=8 to L=32. The exact density of states are calculated
+with the algorithm in Ref.  34 . The fluctuation in p t  generally
+vanishes as 1/ t, where t is the number of cycles. Since
+the simulation visits every energy at least once in each cycle,
+t is approximately proportional to the total number of steps
+in the entire simulation. The f in these simulations also decreases
+roughly as 1/ t since it is proportional to the fluctuation.
+Figure 1 b  shows the typical shape of the error at the
+OPTIMAL MODIFICATION FACTOR AND CONVERGENCE… PHYSICAL REVIEW E 78, 046705  2008 
+046705-3
+beginning of the simulation and the final error. The initial
+error is shaped like a “camelback,” but its slow-varying component
+is almost completely removed after 200 cycles.
+A remaining question is how to estimate pk t  and its distance
+to the uniform distribution, when the exact density of
+states is unknown. A simple approach is to keep a short histogram
+Hi without modifying the estimated density of states,
+i.e., setting f =0. Then pk t  is estimated to be
+pk t  =
+Hk
+ i=1
+N Hi
+.  9 
+Due to the discrete nature of the histogram, in order to estimate
+p t  to sufficient accuracy so that the calculated yc is
+not dominated by the sampling error of the histogram, the
+average height of the histogram must grow larger as p t 
+approaches p¯. This does not seem to be efficient in the long
+run. One can also run multiple simulations with different
+random number seeds but the same sequence of modification
+factors, the variation in the estimated density of states is a
+measure of the statistical fluctuation 
+p t −p¯
+2. Anyway, estimating
+the statistical fluctuation can be a time-consuming
+task in reality.
+A better approach is to adjust f according to a rule that is
+consistent with the natural dynamics of   t  governed by the
+optimal modification factor, so that extra simulation steps to
+estimate 
+p t −p¯
+2 can be avoided. The fluctuation of p t 
+has N−1 degrees of freedom, where N is usually a large
+integer, its distribution should resemble a narrow Gaussian
+peak centered on its mean value. Therefore, a natural choice
+is to replace 
+p t −p¯
+2 in Eq.  7  with its expectation
+E 
+p t −p¯
+2 , which we expect to depend only on the current
+f and t. In fact the test with Ising model suggests that the
+fluctuation converges roughly as 1/ t and one may simply set
+ln ft=t−1 ln f0, which is in agreement with the 1/ t WL algorithm
+ 29,30 . Why this power-law behavior appears and
+what are the possible values of its exponent will be investigated
+in the next section.
+III. ASYMPTOTIC BEHAVIOR WITH THE OPTIMAL f
+The instantaneous fluctuation 
+p t −p¯
+2 is a random process.
+With the optimal modification factor, it is expected to
+converge in probability,
+lim
+t→+ 
+P 
+p t  − p¯
+2  
+  = 0, ∀ 
+   0.  10 
+Due to the Markov inequality, it is a corollary of
+lim
+t→+ 
+E 
+p t  − p¯
+2  = 0.
+An upper bound for E 
+p t −p¯
+2  is sufficient to prove this
+convergence, however, we need both tight upper and lower
+bounds to infer a useful rule of adjusting the modification
+factor.
+A. Upper bound
+For simplicity, we approximate G p, y  as
+G p,y  = N
+p − p¯
+2y − 1
+2 y2.  11 
+The omitted terms are of order O y2 /N . Once we adopt the
+optimal strategy, Eq.  3  becomes
+E   t + 1  Ft  =  t  + 1
+2N2
+p t  − p¯
+4.  12 
+It seems with the optimal modification factor,   t  still increases
+just by a small amount on average. We notice that in
+the vicinity of p¯, i.e., Npk t −1 1,
+  t    − 1
+2N2
+p t  − p¯
+2.  13 
+Thus, let S t =
+p t+1 −p¯
+2, we can approximately write in
+this region
+E S t + 1  Ft  = S t  − S t 2.  14 
+Both sides of this equation are Ft-measurable random variables.
+One is tempted to replace the left-hand side simply
+with S t+1 , and hand-wavingly deduce that S t  1/ t for
+1 10 100
+t
+10-7
+10-6
+10-5
+10-4
+||p(t)-p||2
+L = 32
+L = 32
+L = 8
+10-4t-1
+(a)
+-1024 -768 -512 -256 0 256 512 768 1024
+E
+-0.04
+-0.02
+0
+0.02
+0.04
+ln g(E)/g(E)
+t = 200
+0
+1
+2
+3
+ln g(E)/g(E)
+t = 2
+(b)
+FIG. 1.  Color online  Test with two-dimensional Ising model.
+ a  The reduction of fluctuation, two runs of L=32 with different
+random number seeds are presented. The fluctuation decreases as
+1/ t in the long run.  b  Comparison of error in estimated density of
+states at different times. The systematic error is clearly visible in the
+upper panel at t=2, while in the lower panel at t=200, the error is
+dominated by uncorrelated statistical fluctuation.
+CHENGGANG ZHOU AND JIA SU PHYSICAL REVIEW E 78, 046705  2008 
+046705-4
+large t. We approach more carefully here, since S t  is indeed
+a random process. Suppose we start with S 0   0,1/2 , the
+quantity that we are interested in is E S t   F0 , which cannot
+be directly calculated with Eq.  14 . To estimate its behavior
+for large t, we define an auxiliary sequence
+Z0 = S 0 ,  15 
+Zt+1 = F Zt  = Zt − Zt
+2,  16 
+and prove that E S t   F0  Zt. Obviously, Zt 0 and Zt+1
+ Zt, for all t=0,1,..., therefore, limn→  Zt=0. It is also easy
+to see that Zt 1/ t as t→+ , just by observing that Zt+1
+−1
+−Zt
+−1=1/  1−Zt , which monotonically converges to 1. Next
+we use induction to prove E S t   F0  Zt. This proposition
+is true for t=0. Suppose it is true up to t=n, for t=n+1, we
+have
+E S n + 1 
+F0  = E E S n + 1  Fn  F0 
+  E S n  F0  − E S n  F0 2
+  Zn − Zn 2 = Zn+1,
+where we have used the Jensen inequality and the fact that
+F x  is increasing and concave in  0,1/2 . Thus, we have
+proved that the long term behavior of E S t   F0  is bounded
+by 1/ t. If we assume that the error of a stochastic algorithm
+cannot vanish faster than t−1/2, we can already conclude that
+E S t   F0  1/ t, since the error in estimated density of
+states is proportional to  S t . Furthermore, the modification
+factor should decrease as ft 1/ t.
+B. Lower bound
+Although now we have an upper bound for the asymptotic
+behavior of E S t   F0 , we cannot rule out the possibility of
+an exponential decay. Consider a random process defined by
+St+1= t St−St
+2 , where  t=0 or 2 with probability 1/2, and
+S0  0,1/2 . Then P Sn 0 =1/2n, and since the function
+g x =2 x−x2  has a fix point at 1/ 2, E St  F0  decreases as
+1/2t+1. Therefore, the distribution P S t+1   Ft  must meet
+certain requirements for the sequence E S t   F0  to decay as
+a power law.
+To rigorously prove that E S t   F0  does not decrease exponentially,
+our approach is to study the evolution of a superoptimized
+version of the WL algorithm. At time t, if the
+lth bin is selected, the change in the measure   t  is
+   l  t  = ln 1 − y  + N ln
+1
+1 − pl t y
+.  17 
+Here we first apply the optimal modification factor y
+=N
+p t −p¯
+2=NS t . In order to make the fastest convergence,
+we can in principle let the computer choose the bin
+that gives the maximum increment in   t . One way to do
+this is to estimate p t  and choose the bin with largest pl t  in
+every step, which is of course very difficult in reality. Actually,
+for models such as an Ising model, one cannot simply
+jump to the energy bin with the largest pl t , but must update
+the energy with a random walk. However, it is all right to
+perform this “gedanken” simulation just for the sake of our
+analysis. In fact, when this choice is made, the simulation
+evolves deterministically,
+  t + 1  −  t  = max
+l  ln 1 − NS t   + N ln
+1
+1 − pl t NS t  
+  ln 1 − NS t   − N ln
+1 −  1/N
++   N − 1 S t /N NS t  .  18 
+The above inequality uses the fact that the maximum possible
+value for pl t  subject to the constraint that 
+p t −p¯
+2
+=S t  and  lpl t =1 is 1/N+  N−1 S t  /N. Similar to the
+earlier derivation, we replace   t  with −N2S t  /2, and arrive
+at
+S t + 1  
+ S t  − 2 N − 1
+N
+S3/2 t  − O S t 2N−1 .  19 
+Now assume the auxiliary sequence Zt is defined by Zt+1
+=Zt−2Zt
+3/2, and Z0=S 0 . When S 0  is sufficiently small so
+that the higher order terms in Eq.  19  can be safely ignored,
+we can easily see that S t 
+Zt. On the other hand,
+limt→  Ztt2 is finite, i.e., Zt t−2. Clearly, even in the hypothetical
+superoptimized case, S t  is bounded from below by
+1/ t2, therefore, E S t   F0  can only vanish algebraically with
+an exponent in  1,2 . A hand-waving argument for the lack of
+exponential convergence is that in each step, the reduction of
+S t  never has a linear term in S t , but is always dominated
+by a power S  t , with  
+3/ 2.
+Although this “gedanken” simulation is not feasible for a
+meaningful physical model, it is trivial to numerically test
+the superoptimized algorithm with a small program. We have
+simulated the evolution of a vector p t  according to this
+deterministic evolution and the result is plotted in Fig. 2. The
+initial value is set at pl 0 =1/N+ 
+
+l, where 
+
+l are small error
+terms whose sum is zero. The total error S t =
+
+ t 
+2 does
+vanish as 1/ t2 asymptotically.
+102 104 106
+10−8
+10−7
+10−6
+10−5
+10−4
+10−3
+t
+S(t), Zt
+S (t)
+Zt
+104/t2
+FIG. 2.  Color online  Simulated sequence of S t  generated by
+the superoptimized algorithm and the auxiliary sequence Zt. The
+dashed straight line is a guide for the eye, representing the t−2
+behavior.
+OPTIMAL MODIFICATION FACTOR AND CONVERGENCE… PHYSICAL REVIEW E 78, 046705  2008 
+046705-5
+Note that the optimal f applied above is based on the
+assumption that the next bin will be drawn randomly with
+probability p t . However, we eliminate the randomness after
+choosing f. With a second thought, if p t  is known, we can
+maximize Eq.  17  for both y and l and obtain
+   t    1
+2N N − 1 S t .  20 
+The desired linear term S t  appears, which leads to an asymptotically
+exponential convergence. However, this “ultraoptimized”
+algorithm is not feasible in actual simulation
+for the same reason given above. In fact, if we precisely
+know p t , there is no need to calculate it with a simulation.
+The uncertainty in the estimated p t  always results in an
+average over a certain probability distribution.
+Now we have sufficient reason to believe that in the actual
+simulation S t  decreases as 1/ t  with 1   2. Correspondingly,
+the optimal modification factor is roughly given
+by 1+NS t , or ln f NS t  1/ t . Since the actual simulation
+is stochastic, and there are other inefficiencies that we
+have ignored in the above analysis, it is likely to be safe to
+choose   =1. This choice is consistent with the recently discovered
+1/ t WL algorithm, which achieves an impressive
+1/ t1/2 convergence in error.
+C. Numerical simulation
+As we stated earlier, S t  is expected to be distributed in a
+narrow peak around its mean. We can write S t+1  as S t
++1 = t S t −S2 t  , where  t is a random variable satisfying
+ t
+0 and E  t =1. We have given an example earlier that  t
+can be chosen so that E S t   F  decreases exponentially. It is
+interesting to ask the condition that  t must satisfy so that
+E S t   F  still decreases as 1/ t. We have performed numerical
+experiments to investigate the nonlinear stochastic evolution
+of S t , assuming  t are independent lognormal random
+numbers, i.e.,  t=e−u/2+ uz, and z is N 0,1 , or uniform
+random numbers with a box distribution, i.e., P   =a−11 1
+−a/2  t 1+a/2 . Several averaged trajectories for S t 
+with different u and S 0 =S0 are plotted in Fig. 3. They
+indicate that if the variance of  t is small and t is sufficiently
+small, then E S t   F  decreases as 1/  t+1/S 0  , but once
+eut 1, S t  starts to decrease exponentially with large fluctuations.
+The simulations with box distribution for  t exhibit
+the same behavior. These simulations are also numerical evidence
+of the 1/ t upper bound that is proved in Sec. III A.
+For small u and S0, we can approximate the stochastic
+difference equation of the process S t  with a continuous
+time stochastic differential equation,
+dS t  = − S2 t  +  uS t dBt ,  21 
+where Bt is the standard Brownian motion. This equation has
+an analytic strong solution,
+S t  =
+U t 
+1/S0 +  0
+t
+U s ds
+,  22 
+where S 0 =S0 and U t =exp −ut /2+ uBt  is the standard
+exponential martingale of the Brownian motion. The expectation
+value of S t  is not straightforward to calculate, but
+E 1/S t   can be quickly calculated using the properties of
+exponential martingale U t ,
+E  1
+S t  =
+eut
+S 0 
++
+eut − 1
+u
+.  23 
+For small t and u, by applying Taylor expansion to Eq.  22 
+and taking expectation term by term, we have obtained
+E S t   = S0 1 +  
+n=1
+ 
+ −  nS0 n E U t  0
+t
+¯ 0
+t
+ U s1 ¯U sn ds1¯dsn  
+= S0 − S0 2  0
+t eus
+ 1 + S0s 2ds,  24 
+where we have also carelessly exchanged summation
+and expectation, and used the fact that
+E U s1 U s2 ¯U sn U t  =eusn when s1 s2 ¯sn t.
+Obviously, this expression breaks down when the integral is
+larger than 1/S0. However, both Eqs.  23  and  24  are consistent
+with the fact that the deterministic evolution S t 
+=S0 /  1+S0t  is stable in the sense that for arbitrary t, one
+can find a u small enough so that the error at time t is smaller
+than any given amount. The noise controlled by u makes S t 
+fluctuate around this deterministic evolution when u and t are
+relatively small, but when eut 1, the S t  becomes very
+noisy and E S t   decreases exponentially.
+Since in the actual simulations, the error has been observed
+to decrease as 1/ t seemingly forever, the above
+model with constant u is probably not good enough for t
+ 1/u. The effective u in real simulation should decrease as
+S t  decreases.
+101 102 103 104 10−6
+10−5
+10−4
+10−3
+10−2
+10−1
+t
+E[S(t)]
+√u = 0.02, S0 = 0.5
+√u = 0.04, S0 = 0.5
+√u = 0.08, S0 = 0.5
+√u = 0.01, S0 = 0.01
+√u = 0.08, S0 = 0.01
+FIG. 3.  Color online  Average trajectories of S t  with different
+initial condition S 0  and the diffusion constant u. Every curve is
+the average of 1000 samples. These curves follows 1/  t+S0
+−1  for
+small t, but crosses over to exponential decay at large t.
+CHENGGANG ZHOU AND JIA SU PHYSICAL REVIEW E 78, 046705  2008 
+046705-6
+IV. CONCLUSIONS AND DISCUSSIONS
+We suggest that the modification factor f of the WL algorithm
+should be chosen to maximize the expected increment
+of the convergence measure   t , and that the resultant optimal
+modification factor is proportional to the fluctuation in
+the estimated density of states. With this optimal strategy, we
+have proved that the best behavior of the statistical error is
+bounded by 1/ t1/2 and 1/ t, where the latter is deduced with
+the help of a “gedanken” superoptimized WL algorithm. It is
+clear that the WL algorithm never converges exponentially,
+roughly speaking because the reduction in the fluctuation
+S t  is proportional to S  t  with 3/2   2. Since the optimal
+modification factor is proportional to S t , one should
+never decrease the modification factor exponentially.
+Our estimation of the convergence is consistent with the
+recent numerical investigation of the 1/ t WL algorithm. We
+have proved that if the optimal modification factor is
+adopted, ln f  1/ t  with 1   2. Actually, all existing numerical
+evidence suggest that in fact   =1 is the best case for
+all pure Monte Carlo algorithms. A test with the proposed
+strategy applied to Ising model also exhibits the 1/ t convergence.
+Numerical simulation of the process S t+1 = t S t 
+−S2 t   indicates that   =1 is stable when  t has a small
+variance. Our proof of the lower bound suggests that only if
+deterministic moves are mixed with the pure Monte Carlo
+algorithm, can a simulation achieve   1. Deterministic
+steps are not free, they need additional information about the
+density of states. Using a suitable initial estimation is one
+form of injecting information into the simulation. If new
+pieces of information are available during the simulation, it
+is possible to use them to modify the estimated density of
+states on the fly. The fact that the superoptimized and ultraoptimized
+deterministic algorithms have a faster convergence
+than the pure Monte Carlo algorithm is reminiscent of
+a wide variety of numerical integration algorithms, which
+converges at different speeds depending on the level of stochasticity
+in the algorithm.
+Our results could have been a motivation for the 1/ t WL
+algorithm. However, we have not proved the converse proposition
+that with the 1/ t algorithm, the convergence in error is
+1/ t. Since our optimal f is a random process that actually
+fluctuates around 1/ t, we expect the fluctuations to cancel
+out in the long run. Some approximations have been adopted
+in order to add to the readability of this paper. All the derivations
+presented here can be put into more rigorous formats.
+Finally, we stress that the focus in our study in this paper is
+the dynamic evolution of a random process extracted from
+the Monte Carlo simulation. This approach should be
+complementary to the traditional view that emphasizes on
+the stationary distribution and detailed balance of a Markov
+process. We hope this strategy and other techniques introduced
+here are of some general interest to research in Monte
+Carlo algorithms, especially those non-Markovian algorithms
+ 35 .
+ 1  F. Wang and D. P. Landau, Phys. Rev. Lett. 86, 2050  2001 ;
+Phys. Rev. E 64, 056101  2001 .
+ 2  D. P. Landau, S. Tsai, and M. Exler, Am. J. Phys. 72, 1294
+ 2004 .
+ 3  C. Yamaguchi and Y. Okabe, J. Phys. A 34, 8781  2001 .
+ 4  Y. Okabe, Y. Tomita, and C. Yamaguchi, Comput. Phys. Commun.
+146, 63  2002 .
+ 5  G. Brown and T. C. Schulthess, J. Appl. Phys. 97, 10E303
+ 2005 .
+ 6  M. S. Shell, P. G. Debenedetti, and A. Z. Panagiotopoulos,
+Phys. Rev. E 66, 056703  2002 .
+ 7  Q. Yan, R. Faller, and J. J. de Pablo, J. Chem. Phys. 116, 8745
+ 2002 ; N. Rathore and J. J. de Pablo, ibid. 116, 7225  2002 .
+ 8  N. Rathore, T. A. Knotts IV, and J. J. de Pablo, J. Chem. Phys.
+118, 4285  2003 .
+ 9  N. Rathore, Q. Yan, and J. J. de Pablo, J. Chem. Phys. 120,
+5781  2004 .
+ 10  E. A. Mastny and J. J. de Pablo, J. Chem. Phys. 122, 124109
+ 2005 .
+ 11  C. Zhou, T. C. Schulthess, S. Torbrügge, and D. P. Landau,
+Phys. Rev. Lett. 96, 120201  2006 .
+ 12  S. Torbrügge and Jürgen Schnack, Phys. Rev. B 75, 054403
+ 2007 .
+ 13  Shan-Ho Tsai, Fugao Wang, and D. P. Landau, Phys. Rev. E
+75, 061108  2007 .
+ 14  J. Luettmer-Strathmann, F. Rampf, W. Paul, and K. Binder, J.
+Chem. Phys. 128, 064903  2008 .
+ 15  C. Zhang and J. Ma, Phys. Rev. E 76, 036708  2007 .
+ 16  A. Tröster and C. Dellago, Phys. Rev. E 71, 066705  2005 .
+ 17  Y. W. Li, T. Wüst, D. P. Landau, and H. Q. Lin, Comput. Phys.
+Commun. 177, 524  2007 .
+ 18  G. M. Torrie and J. P. Valleau, J. Comput. Phys. 23, 187
+ 1977 .
+ 19  B. A. Berg and T. Neuhaus, Phys. Lett. B 267, 249  1991 ;
+Phys. Rev. Lett. 68, 9  1992 .
+ 20  C. Yamaguchi and N. Kawashima, Phys. Rev. E 65, 056710
+ 2002 .
+ 21  B. J. Schulz, K. Binder, and M. Müller, Int. J. Mod. Phys. C
+13, 477  2002 .
+ 22  B. J. Schulz, K. Binder, M. Müller, and D. P. Landau, Phys.
+Rev. E 67, 067102  2003 .
+ 23  C. Zhou and R. N. Bhatt, Phys. Rev. E 72, 025701 R   2005 .
+ 24  H. K. Lee, Y. Okabe, and D. P. Landau, Comput. Phys. Commun.
+175, 36  2006 .
+ 25  A. N. Morozov and S. H. Lin, Phys. Rev. E 76, 026701
+ 2007 .
+ 26  Q. Yan and J. J. de Pablo, Phys. Rev. Lett. 90, 035701  2003 .
+ 27  D. Jayasri, V. S. S. Sastry, and K. P. N. Murthy, Phys. Rev. E
+72, 036702  2005 .
+ 28  P. Poulain, F. Calvo, R. Antoine, M. Broyer, and Ph. Dugourd,
+Phys. Rev. E 73, 056704  2006 .
+ 29  R. E. Belardinelli and V. D. Pereyra, Phys. Rev. E 75, 046701
+ 2007 ; J. Chem. Phys. 127, 184105  2007 .
+ 30  R. E. Belardinelli, S. Manzi, and V. D. Pereyra, e-print
+arXiv:cond-mat/0806.0268.
+OPTIMAL MODIFICATION FACTOR AND CONVERGENCE… PHYSICAL REVIEW E 78, 046705  2008 
+046705-7
+ 31  N. Metropolis, A. W. Rosenbluth, M. N. Rosenbluth, A. M.
+Teller, and E. Teller, J. Chem. Phys. 21, 1087  1953 .
+ 32  P. Dayal, S. Trebst, S. Wessel, D. Wurtz, M. Troyer, S. Sabhapandit,
+and S. N. Coppersmith, Phys. Rev. Lett. 92, 097201
+ 2004 .
+ 33  S. Trebst, D. A. Huse, and M. Troyer, Phys. Rev. E 70, 046701
+ 2004 .
+ 34  P. D. Beale, Phys. Rev. Lett. 76, 78  1996 .
+ 35  G. Bussi, A. Laio, and M. Parrinello, Phys. Rev. Lett. 96,
+090601  2006 .

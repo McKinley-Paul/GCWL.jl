@@ -1,0 +1,1202 @@
+The Uhlenbeck-Ford model: Exact virial coefficients and application
+as a reference system in fluid-phase free-energy calculations
+Rodolfo Paula Leite,1 Rodrigo Freitas,2 Rodolfo Azevedo,3 and Maurice de Koning1,a)
+1Instituto de F´ısica Gleb Wataghin, Universidade Estadual de Campinas, UNICAMP, 13083-859 Campinas,
+S˜ao Paulo, Brazil
+2Department of Materials Science and Engineering, University of California, Berkeley, California 94720, USA
+3Instituto de Computac¸ ˜ao, Universidade Estadual de Campinas, UNICAMP, 13083-852 Campinas,
+S˜ao Paulo Brazil
+(Received 2 September 2016; accepted 31 October 2016; published online 16 November 2016)
+The Uhlenbeck-Ford (UF) model was originally proposed for the theoretical study of imperfect
+gases, given that all its virial coefficients can be evaluated exactly, in principle. Here, in addition
+to computing the previously unknown coefficients B11 through B13, we assess its applicability as a
+reference system in fluid-phase free-energy calculations using molecular simulation techniques. Our
+results demonstrate that, although the UF model itself is too soft, appropriately scaled Uhlenbeck-
+Ford (sUF) models provide robust reference systems that allow accurate fluid-phase free-energy
+calculations without the need for an intermediate reference model. Indeed, in addition to the accuracy
+with which their free energies are known and their convenient scaling properties, the fluid is the only
+thermodynamically stable phase for a wide range of sUF models. This set of favorable properties may
+potentially put the sUF fluid-phase reference systems on par with the standard role that harmonic and
+Einstein solids play as reference systems for solid-phase free-energy calculations. Published by AIP
+Publishing. [http://dx.doi.org/10.1063/1.4967775]
+I. INTRODUCTION
+The virial equation of state represents a systematic path
+to link macroscopic thermodynamic properties of fluid-phase
+systems to the details of interparticle interactions at the atomic
+scale.1–4 It is often expressed as an infinite series for the
+pressure P in terms of powers of the number density  ,
+ P =   +
+X1
+n=2
+Bn(T) n, (1)
+where     (kBT)􀀀1, with kB the Boltzmann’s constant and T
+the absolute temperature, and Bn(T) are the virial coefficients.
+In general, these coefficients are functions of T and depend
+on the details of the interparticle interactions of the substance
+under consideration. For low densities, the virial expansion
+provides a convenient way to quantify deviations with respect
+to the ideal gas limit of an imperfect fluid. On the other hand, its
+behavior for higher densities has attracted even more attention
+in view of the potential link between series convergence properties
+and fluid-phase thermodynamic stability.5–11 Indeed,
+the possible existence of such a connection has driven the
+quest to compute higher-order virial coefficients for a number
+of model systems including the hard-sphere systems,8,12–15
+inverse-power-law (IPL) soft-sphere models,14,16,17 and the
+Lennard-Jones fluid.18–22
+In addition to its relevance in fundamental questions such
+as those referred to above, the availability of accurate virial
+a)Electronic mail: dekoning@ifi.unicamp.br
+equations of states for model systems is also useful in the context
+of fluid-phase free-energy calculations. Given that free
+energies are thermal quantities that cannot be expressed in
+terms of ensemble averages, they are often computed by evaluating
+the work done along some reversible path between
+the system of interest and a reference system for which the
+free energy is known.23–26 The choice of a suitable reference
+depends on the nature of the system of interest. For
+example, for solid phases the Einstein solid—a collection
+of independent harmonic oscillators centered at predefined
+positions—provides a natural reference system: its free energy
+is known analytically, and it is always possible to construct
+a reversible path to it by choosing the equilibrium positions
+of the oscillators to coincide with those of the solid of
+interest.24
+For fluid-phase systems, on the other hand, the most natural
+reference system is the ideal gas. However, a concern
+in defining a thermodynamic path to the ideal gas limit is
+the possible occurrence of a liquid-vapor phase transition
+along the way, which is usually accompanied by appreciable
+hysteresis. Although it has been shown that it is in fact
+possible to obtain accurate liquid-phase free-energy values
+while traversing an isotherm passing through the two-phase
+liquid-vapor region,27 avoiding a coexistence-line crossing is
+convenient because of the smooth variation of thermodynamic
+quantities along the way. An often-used approach to achieve
+this is to carry out the process in two stages.28,29 First, the
+interatomic potential of the system of interest is transformed
+into that of a purely repulsive intermediate reference. Subsequently,
+given that such systems do not undergo a liquid-vapor
+transition,30 the excess free-energy with respect to the ideal
+0021-9606/2016/145(19)/194101/10/$30.00 145, 194101-1 Published by AIP Publishing.
+03 December 2024 04:45:00
+194101-2 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+gas limit can be obtained by means of a reversible second
+process. However, if an accurate equation of state is available
+for the intermediate reference system this second step becomes
+unnecessary, and the absolute free energy of the fluid phase
+can be determined directly from the work done along the first
+stage.
+In practice, two often-used intermediate repulsive references
+in the calculation of fluid-phase free energies are the
+Gaussian-core31–34 and the IPL32,35–40 soft-sphere models. For
+the former, no adimensional form for the virial expansion
+exists, meaning that for each value of T and choice of potential
+parameters (Gaussian height and width), the reversible expansion
+to the ideal-gas limit must be carried out explicitly.34 For
+IPL soft-sphere models, on the other hand, their specific scaling
+properties permit a formulation of the virial expansion in
+which a function of a single adimensional variable fully characterizes
+the equation of state.17,35,36 In particular, numerical
+virial equations of states with up to 8 coefficients based on
+Monte Carlo (MC) simulations are available for exponents
+n = 6, 9, and 12.17
+In the present paper we discuss the model proposed by
+Uhlenbeck and Ford7,41 (UF) and the scaled UF (sUF) variants
+as alternative reference systems for fluid-phase free-energy
+computations. These models are characterized by an explicitly
+temperature-dependent two-body interaction that, in contrast
+to other continuous interacting model systems, permits the
+exact calculation of its virial coefficients. In addition, their
+excess free energies with respect to the ideal gas can be represented
+in terms of a function of a single adimensional variable
+for any temperature and density, and the fluid is the only
+thermodynamically stable phase for a wide range of these
+systems.
+The remainder of the paper is organized as follows. In
+Sec. II we give a brief review of the Mayer formulation for the
+virial equation of state and show how the specific functional
+form of the interactions in the UF and sUF models allows the
+exact calculation of the virial coefficients and leads to a particularly
+useful adimensional form of the equations of state.
+We also briefly describe the method by which the UF and sUF
+models can be used as reference systems in fluid-phase freeenergy
+calculations. In Sec. III we discuss the equations of
+state of the UF model, adding three more virial coefficients
+to the set of known values for this system7 and provide accurate
+numerical representations for the equations of state and
+excess free energies (python code provided in the supplementary
+material) that can be used in fluid-phase free-energy
+computations. In Sec. IV we illustrate the application of the
+UF models as reference systems in such calculations, considering
+the cases of the Lennard-Jones system and liquid silicon
+as described by the Stillinger-Weber model.42 We conclude
+with a summary in Sec. V.
+II. THEORY
+A. Mayer formulation for the virial equation of state
+The Mayer formulation for the virial equation of state provides
+a systematic approach to the computation of the virial
+coefficients in Eq. (1). For instance, for a classical monoatomic
+system governed by pairwise interactions, the Mayer formulation
+for the virial coefficients entails cluster expansions of the
+form3,4
+(2)
+in which each undirected graph represents a multidimensional
+integral over a specified number of particle coordinates. In particular,
+the virial coefficients Bn involve integrals represented
+by all biconnected (or star) graphs3 with n vertices. In each
+graph, every vertex represents the coordinates of a particle
+and an edge connecting a pair of vertices stands for an interaction
+between them. For example, the graph determining B3
+corresponds to the integral
+(3)
+where ri denotes the coordinates of particle i, V is the system
+volume, and f ij is the so-called Mayer-f function1,3 that
+represents the interaction between particle pair (i, j). If the
+interactions depend only on the interparticle distance rij , then
+fij = f (rij)   exp[􀀀  U(rij)] 􀀀 1, (4)
+with U(r) the pair potential describing the interactions.
+In general, a biconnected graph G(n,m) with n vertices
+and m links then stands for the integral
+I(G) =
+1
+V
+ 
+V
+dr1       drn
+Y
+hi, ji2G
+fij , (5)
+where the product runs over the m connected pairs in G.
+Although the value of the integral is independent of the particular
+labeling of the vertices in a graph G, each graph appearing
+in the cluster expansion of Eq. (2) is characterized by a weight
+w(G) = n!=jGj,8 with jGj the number of elements in the automorphism
+group of G, i.e., jGj counts the number of distinct
+labelings for the topology described by G. For instance, the
+three distinct biconnected graphs that contribute toB4 in Eq. (2)
+are characterized by weights 3, 6, and 1, respectively. Finally,
+the virial coefficients Bn are given by8
+Bn(T) =
+1 􀀀 n
+n!
+X
+G
+w(G)I(G), (6)
+where the sum runs over all unlabeled biconnected graphs with
+n vertices.
+B. The Uhlenbeck-Ford model
+The difficulty in the calculation of the virial coefficients
+for a given model using Eq. (6) is two-fold. First,
+the calculations involve a potential-independent combinatorial
+element that amounts to counting distinct biconnected
+03 December 2024 04:45:00
+194101-3 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+graphs that represent the possible pair-interaction topologies
+for a given number of interacting particles.3,43 Second, each
+graph is linked to a specific many-body integral that involves
+products of the Mayer-f function. While the diagrammatic
+enumerations can, in principle, be executed exactly, the associated
+many-body integrals in general cannot. As a result,
+current virial expansions for model systems such as the hardsphere
+system,8,12–15 the IPL soft-sphere model,14,16,17 and the
+Lennard-Jones pair potential18–22 are often obtained numerically,
+usingMCcalculations to estimate the multi-dimensional
+integrals.
+In 1962, Uhlenbeck and Ford proposed a model system
+featuring continuous interactions for which all the many-body
+integrals of the type in Eq. (5) can be evaluated analytically.41
+It was named the Gaussian gas3,41 because of the Gaussian
+form of its Mayer-f function,
+fUF(r)   􀀀 exp[􀀀(r= )2], (7)
+where   is a length-scale parameter. From the definition in
+Eq. (4), it follows that the associated interatomic pair potential
+is of the form
+UUF(r) = 􀀀
+1
+ 
+ln
+ 
+1 􀀀 e􀀀(r= )2
+ 
+, (8)
+with the energy scale determined by the absolute temperature
+T. We will from now on refer to this system as the
+Uhlenbeck-Ford (UF) model to avoid confusion with the
+Gaussian-core model which is actually characterized by a
+Gaussian interaction potential.
+As can be seen in Fig. 1, the UF model is characterized by
+a smooth and purely repulsive soft-sphere potential that decays
+rapidly for increasing distances r and diverges logarithmically
+as r ! 0.
+Adistinctive consequence of the particular Gaussian form
+of the Mayer-f function in Eq. (7) is that all integrals of Eq. (5)
+become multivariate Gaussian integrals that can be evaluated
+analytically. The results can be expressed as41
+I(G) = (􀀀1)m (2b)n􀀀1
+jM(G)j3=2 , (9)
+with3,41
+b   1
+2 (  2)3=2 (10)
+FIG. 1. Interatomic potential for the UF model.
+and where the (n 􀀀 1)   (n 􀀀 1) matrix M(G) is any minor of
+the n   n Laplacian matrix L(G) defined as44
+L = D 􀀀 A, (11)
+where A(G) is the symmetric adjacency matrix44 of the graph,
+Aij =
+(
+1, if vertices i and j are connected.
+0, otherwise.
+(12)
+and D is its diagonal degree matrix44
+Dij =  ij
+Xn
+k=1
+Aik , (13)
+with  ij the Kronecker delta. The absolute-value sign in
+the denominator of Eq. (9) indicates the evaluation of the
+determinant of M.
+Combining Eqs. (9) and (6) then gives the virial coefficients
+Bn =
+(1 􀀀 n) 2n􀀀1
+n!
+*.
+,
+X
+G
+w(G) (􀀀1)m jM(G)j􀀀3=2+/
+-
+bn􀀀1
+  ˜Bn bn􀀀1. (14)
+This result implies that the virial coefficients for the UF model
+are given by products of two factors, one of which (˜Bn) is
+determined exclusively by the set of biconnected graphs on
+n vertices, whereas the other (bn 1) encodes the length scale
+of the UF interaction. Also note that the Bn’s are independent
+of T, which is due to the temperature-dependent energy scale
+of the UF pair potential.
+Substitution into Eq. (1) then gives the virial expansion
+ P =   +
+X1
+n=2
+˜B
+nbn􀀀1  n, (15)
+which can be written in adimensional form by multiplying both
+sides by b and introducing the adimensional variable x   b ,
+giving
+ bP = x +
+X1
+n=2
+˜B
+nxn. (16)
+This expression reveals that the equation of state for the
+UF fluid can be specified in terms of a function of a single
+adimensional variable x, regardless of the length scale
+  and temperature T. In addition, all coefficients ˜Bn can,
+in principle, be computed exactly. The corresponding excess
+Helmholtz free energy with respect to the ideal gas can be
+obtained by integration of Eq. (16) to the ideal-gas limit x = 0,
+giving
+ Fexc
+UF (x)
+N
+=
+X1
+n=1
+˜B
+n+1
+n
+xn. (17)
+C. The scaled Uhlenbeck-Ford model
+Due to the logarithmic divergence of the pair potential
+Eq. (8) for vanishing interparticle distances, the UF repulsion
+is extremely soft. A convenient extension of the model that
+enhances the repulsion while preserving the analyticity of the
+multi-center integrals in the virial expansion is obtained by
+03 December 2024 04:45:00
+194101-4 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+scaling the energy unit kBT by an integer p > 1. This defines
+the scaled Uhlenbeck-Ford (sUF) potential-energy function
+U(p)
+UF (r) = 􀀀
+p
+ 
+ln
+ 
+1 􀀀 e􀀀(r= )2
+ 
+, (18)
+and the corresponding Mayer-f function
+f (p)
+UF (r) = exp
+ 
+p ln
+ 
+1 􀀀 e􀀀(r= )2
+  
+􀀀 1
+=
+ 
+1 􀀀 e􀀀(r= )2
+ p
+􀀀 1
+=
+Xp
+k=1
+(􀀀1)k
+ 
+p
+k
+!
+e􀀀k(r= )2 . (19)
+The integral I(p)(G) associated with each biconnected
+graph G with n vertices and m edges then becomes
+I(p)(G) =
+1
+V
+ 
+V
+dr1       drn
+Y
+hi, ji2G
+f (p)
+ij
+=
+1
+V
+ 
+V
+dr1       drn
+Xp
+k1=1
+     
+Xp
+km=1
+(􀀀1)k1+       +km
+ 
+ 
+p
+k1
+!
+     
+ 
+p
+km
+!
+exp
+266664
+􀀀
+Xm
+l=1
+klr2
+l = 2
+377775
+, (20)
+where the index l 2 [1,m] identifies the m edges of the graph
+and rl denotes the distance between the interacting particle
+pair (i, j) associated with a given edge l.
+The integral in Eq. (20) is thus a sum of pm multivariate
+Gaussian integrals, each of which is given by an expression
+similar to that in Eq. (9). Specifically, we have
+I(p)(G) =
+Xp
+k1=1
+     
+Xp
+km=1
+(􀀀1)k1+       +km
+ 
+p
+k1
+!
+     
+ 
+p
+km
+!
+ 
+(2b)n􀀀1
+jM(G, fk1, : : :, kmg)j3=2 , (21)
+where the matrixM(G, fk1, : : :, kmg) is any minor of the Laplacian
+matrix L(G, fk1, : : :, kmg) associated with the weighted
+graph obtained by attributing weights kl to the m edges of G.
+L(G, fk1, : : :, kmg) continues to be defined according to Eq. (11)
+but now with A(G, fk1, : : :, kmg) being the weighted adjacency
+matrix,
+Aij =
+(
+kl , if vertices i and j are connected by edge l.
+0, otherwise.
+(22)
+The degree matrix D continues to be defined as in Eq. (13).
+Evidently, for p = 1 all weights become equal to unity and the
+above result reduces to Eq. (9).
+Combination of Eqs. (6) and (20) then gives the virial
+coefficients B(p)
+n for the scaled UF model,
+B(p)
+n =
+(1 􀀀 n)2n􀀀1
+n!
+X
+G
+w(G)*.
+,
+Xp
+k1=1
+     
+Xp
+km=1
+(􀀀1)k1+       +km
+ 
+ 
+p
+k1
+!
+     
+ 
+p
+km
+!
+1
+jM(G, fk1, : : :, kmg)j3=2
++
+-
+bn􀀀1
+  ˜B(p)
+n bn􀀀1. (23)
+The general structure of the B(p)
+n ’s remains the same as that
+for the UF model, with the virial coefficients being products
+of a factor that depends only on the properties of the set of
+biconnected graphs and another that depends only on the length
+scale   of the interaction. As a result, the virial equation of
+state and excess Helmholtz free-energy expressions for the
+sUF model preserve all properties of the UF model and are
+analogous to those in Eqs. (15) and (17),
+ bP = x +
+X1
+n=2
+˜B
+(p)
+n xn (24)
+and
+ Fexc (p)
+UF (x)
+N
+=
+X1
+n=1
+˜B
+(p)
+n+1
+n
+xn. (25)
+D. UF and sUF models as reference systems
+in free-energy calculations
+Because the excess Helmholtz free energies of the UF and
+sUF fluids can be determined exactly, in principle, these models
+are promising candidates to serve as reference systems in
+fluid-phase free-energy computations. Such calculations generally
+determine the free-energy difference between a system
+of interest and a reference by estimating the work Wrev associated
+with a reversible process between the two. This is often
+accomplished by defining a parametrized Hamiltonian
+H( ) = (1 􀀀  ) Href +  Hint, (26)
+with Hint and Href the Hamiltonians of the systems of interest
+and reference, respectively. The free-energy difference
+between them is then obtained by the integral
+ F   Fint 􀀀 Fref = Wrev =
+  1
+0
+*
+@H
+@ 
++
+ 
+d , (27)
+which represents the reversible work done by the generalized
+driving force @H=@  associated with the parameter  , and
+where the brackets indicate an equilibrium ensemble average.
+Provided the free energy of the reference system is known, the
+absolute free energy of the system of interest is then given by
+Fint = Fref + Wrev. (28)
+In this context, the UF and sUF models appear ideally suited
+to serve as such reference systems for fluid-phase systems and
+this will be further investigated in the remainder of the paper.
+III. EQUATIONS OF STATE AND EXCESS HELMHOLTZ
+FREE ENERGIES
+A. UF model
+To obtain an excess Helmholtz free energy expression that
+is as accurate as possible, we determine the virial coefficients
+˜B
+n with n as large as achievable. To this end, we evaluate
+Eq. (14) by explicitly generating and determining the weights
+for all unlabeled biconnected graphs G for a given n using the
+nauty package.45 The integer-element matrix determinants
+are computed using the Bareiss algorithm,46 the execution time
+of which scales as O(n3). This procedure allows us to compute
+03 December 2024 04:45:00
+194101-5 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+the exact virial coefficients up to ˜B13, as summarized in Table I.
+The values of ˜B10 and ˜B13, to the best of our knowledge, are
+reported here for the first time and they continue the previously
+observed pattern displaying two positive coefficients followed
+by a negative one.7
+To provide a sense of the computational effort involved
+in these calculations, the evaluation of ˜B13, which requires
+the generation and processing of  1013 graphs, required more
+than 11 days of walltime using 780 CPU cores. Computation
+of the next coefficient, ˜B14, would take  600 times longer and
+is currently out of reach.
+To assess the accuracy of expansion Eq. (16) based on the
+first 13 virial coefficients, we compare it to values obtained
+from constant NVT MD simulations using the LAMMPS
+code.47 We choose the UF parameters to be   =
+q
+(2)2=3= 
+and   = 1, and employ a cut-off radius of rc = 5 , without
+shifting. Using a cubic periodic simulation cell containing
+864 particles and integrating the equations of motion for the
+Langevin thermostat for 2  107 time steps with  t = 0.003 in
+reduced units and a damping time scale of 100 t, we compute
+the mean scaled pressure as a function of the adimensional
+variable x by carrying out a series of simulations at different
+number densities  . The results, displayed in Fig. 2, are in
+good agreement with the truncated virial expansion for values
+of x . 1, with relative errors smaller than 1   10􀀀3. For larger
+values, on the other hand, it quickly diverges from the MD
+data. Two factors that hamper the rate of convergence of the
+virial expansion are the slow decay of the absolute values of
+the ˜Bn, with ˜B13 still being of the same order of magnitude as
+˜B
+8, and the alternating character of their signs.
+One possibility to extend the representation of the MD
+pressure data in terms of the virial equation of state for x > 1
+is to estimate a larger number of virial coefficients, fixing the
+first 13 coefficients to their exact values and fitting higherorder
+˜B
+n’s in a least-squares procedure. Results of such a
+procedure are shown in Fig. 3, which compares MD data for
+x   4 to a fitted virial expansion up to order 22. Overall,
+the agreement between MD data and the fitted virial expansion
+is very good, in particular for the larger values of x,
+where the relative residuals fluctuate around zero and are of
+the order of 10 7. Still, for x   1.5 the deviations between
+the fitted truncated virial expansion and the MD results are
+TABLE I. Numerical representation of the exact virial coefficients for the UF
+model up to ˜B13.
+n Graphs ˜Bn
+2 1 1
+3 1 0.256 600 119 639 833 673 11
+4 3  -0.125 459 957 055 044 678 34
+5 10 0.013 325 655 173 205 441 00
+6 56 0.038 460 935 830 869 671 55
+7 468  -0.033 083 442 903 149 717 39
+8 7 123 0.004 182 418 769 682 387 35
+9 194 066 0.015 197 607 195 500 874 66
+10 9 743 542  -0.013 849 654 134 575 142 93
+11 900 969 091 0.001 334 757 917 110 966 11
+12 153 620 333 545 0.007 604 327 248 812 125 87
+13 48 432 939 150 704  -0.006 726 441 408 781 588 25
+FIG. 2. Comparison of the scaled pressure as a function of the adimensional
+variable x for the UF model as obtained from the exact virial expansion up to
+˜B
+13 using the values in Table I (full line) and MD simulations (red diamonds),
+respectively. Relative residuals are depicted by blue circles. The statistical
+uncertainty in the MD averages is smaller than the symbol size for all values
+of x.
+significantly larger and systematically negative. In addition to
+the above-mentioned convergence issues of the truncated virial
+expansion, these discrepanciesmayalso be related to the global
+nature of the regression procedure in which the total sum of
+the squared deviations across the entire interval of x-values is
+minimized. In any event, these results suggest that the truncated
+virial expansion may not be the best representation for
+the equation of state of the UF model, in particular when keeping
+in mind the objective of using this model as a reference
+system in fluid-phase free-energy calculations, as detailed in
+Sec. II D.
+We improve the numerical representation of the MD data
+by adopting a piece-wise fitting procedure of the equation
+of state using cubic splines.48 In this fashion, the fit passes
+through all MD data points and provides a smooth interpolation
+scheme for the intermediate values of x. Moreover, as
+discussed further below, this representation also leads to an
+excellent description for the excess Helmholtz free energy
+function Fexc
+UF (x) which will be used in fluid free-energy
+calculations as discussed in Sec. II D. All spline representations
+of equations of state and excess Helmholtz free energies
+FIG. 3. Comparison of the scaled pressure as a function of the adimensional
+variable x for the UF model as obtained from the fitted virial expansion up to
+˜B
+22, using the values in Table I for coefficients ˜B1 to ˜B13 (black line), andMD
+simulations (red diamonds). Blue circles depict relative residuals betweenMD
+data and fitted virial expansion. Error bars represent relative standard error in
+the MD averages.
+03 December 2024 04:45:00
+194101-6 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+described in the paper are available by means of the python
+script uf Generator.py supplied in the supplementary
+material.
+As a further consistency check, we also verify numerically
+the scaling property encoded in Eq. (24). For this purpose, we
+plot the adimensional quantity  bP as a function of x for the
+values b = 1 and 2, respectively. The resulting comparison,
+obtained using MD simulations, is displayed in Fig. 4 and it
+confirms the scaling relationship.
+The excess Helmholtz free energy of the UF fluid with
+respect to the ideal gas as a function of x can be obtained
+by standard thermodynamic integration of the pressure with
+respect to the volume.24 We have performed this integration
+using the cubic-spline representation of the equation of state
+obtained in Sec. II B, and the result is shown in Fig. 5 as the full
+line. To assess the accuracy of this approach, we also compute
+Fexc
+UF explicitly using the method described in Sec. II D. To this
+end, we take the thermodynamic path of Eq. (26) to be a linear
+interpolation between the UF model and the ideal gas,
+H( ) =  HUF + (1 􀀀  )Hi.g. = K +  UUF, (29)
+with K the kinetic energy and   varying between 0 and 1.
+Notice that, in contrast to many other pair interactions, the
+driving force @H=@  = UUF on this path is finite everywhere.
+In particular, in the ideal gas limit described by H(0), its mean
+value is given by4
+hUUFi = 2 N  
+  1
+0
+r2g(r)UUF(r) dr
+= 􀀀
+2 N  
+ 
+  1
+0
+r2 ln
+ 
+1 􀀀 e􀀀(r= ) 2
+ 
+dr
+=
+N x
+ 
+ 
+ 
+5
+2
+!
+, (30)
+where N is the number of particles, g(r) = 1 is the radial distribution
+function for the ideal gas, x is the same adimensional
+variable used in Eq. (16), and  (s) is the Riemann zeta function.
+To compute the reversible workWrev we employ the adiabatic
+switching (AS) approach,49–51 in which the integral over
+equilibrium ensemble averages, Eq. (27), is replaced by a time
+integral over a dynamic, intrinsically non-equilibrium process
+FIG. 4. Comparison of the scaled pressures as a function of the adimensional
+variable x for the UF model using two different values of the length-scale
+parameter  , with the corresponding b value of one (circles) being twice as
+large as that of the other (diamonds). Error bars are smaller than symbol size.
+The dashed line serves as a guide to the eye.
+FIG. 5. Fexc
+UF (x) as obtained by integrating the cubic spline representation
+of the equation of state (full line). Red diamond points depict results for
+Fexc
+UF (x) obtained from switching free-energy calculations (see text). Blue circles
+denote relative deviation of integrated cubic-spline excess free-energy
+compared to results of switching free-energy calculations. The dashed line
+depicts the level of the zero residual.
+in which the interpolation parameter   =  (t) is time dependent
+and the integration is performed over instantaneous values
+of the driving force. The associated dynamicalwork is given by
+Wdyn =
+  ts
+0
+d 
+dt
+@H
+@ 
+       (t)
+dt, (31)
+in which the integration involves instantaneous values of
+@H=@  rather than the ensemble averages in Eq. (27) and ts is
+the switching time.
+In this manner, AS provides an estimate of the reversiblework
+integral from a single non-equilibrium, instead of a
+series of independent equilibrium simulations. The price to
+pay for this reduction of computational effort is that Wdyn is
+a stochastic variable whose mean value, by the second law of
+thermodynamics, is shifted with respect to Wrev according to
+Wdyn   Wrev, (32)
+where the overbar denotes an average over different realizations
+of the nonequilibrium process and the equality is valid
+only in the reversible limit where the dynamic process is
+executed infinitely slowly. Nevertheless, when the process is
+sufficiently slow for linear-response theory to be accurate, it
+can be shown50 that the systematic error implicit in Eq. (32)
+can be eliminated by combining the results of the processes
+realized in both directions: Href ! Hsys and Hsys ! Href,51,52
+giving the unbiased estimator
+ F = 1
+2
+"
+Wdyn(ref ! sys) 􀀀 Wdyn(sys ! ref)
+#
+. (33)
+Applying this scheme, we use 10 independent process
+realizations for each direction to estimate the averages and
+uncertainties in Eq. (33). The specifications of the corresponding
+MD simulations are identical to those used to obtain
+the results in Figs. 2 and 3. The non-equilibrium processes
+are characterized by a linear switching function  (t) and the
+initial state of each switching process is first equilibrated
+for teq = 105 t. The switching time was chosen to be ts = 5
+ 106  t, which is sufficiently long to produce non-equilibrium
+processes in the linear-response regime.
+The free-energy results are depicted in Fig. 5, in which the
+full line represents the excess Helmholtz free energy obtained
+03 December 2024 04:45:00
+194101-7 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+from the integration of the cubic-spline equation of state and
+the data points denote values obtained from the explicit freeenergy
+calculations. The agreement is excellent throughout,
+with the cubic-spline-based results identical to the explicit
+free-energy data within the error bars.
+As a final comment, we turn to the issue of phase stability
+of the UF model. Indeed, previous mathematical analysis6,7 of
+the convergence properties of the virial equation of state for
+the UF model has shown that, due to the extreme softness of
+the interactions, the fluid is most likely the only stable phase of
+the system, regardless of interaction length scale and density.
+In other words, the UF system does not undergo a fluid-solid
+transition for any choice of parameters and this is evidently
+a favorable characteristic for a fluid-phase reference system.
+Indeed, it provides greater flexibility as a fluid-phase reference
+system compared to, for example, the IPL model. Although
+the equation of state of the latter can also be expressed in an
+adimensional form, its phase diagram features a prominent
+presence of crystalline phases.32
+On the other hand, even though the fluid is the only stable
+phase of the UF model, when attempting to compute the
+free energy of a liquid phase close to a solid-liquid-vapor
+triple point, for instance, one cannot a priori guarantee that
+all intermediate Hamiltonians in Eq. (26) remain outside their
+respective liquid-vapor coexistence regions. If not, the switching
+process may possibly be hampered by liquid-vapor coexistence
+along the way. Nonetheless, this is a general issue for
+switching processes described by Hamiltonians of the type in
+Eq. (26) and is not specific to the case in which the UF model
+is used as a reference system.
+B. Scaled UF model
+Due to its extreme softness, the applicability of the UF
+model as a reference system for fluid-phase free-energy calculations
+is limited, as will become clear momentarily. However,
+as discussed in Sec. II C, it is possible to increase the repulsion
+of the UF model while preserving the analyticity of its virial
+coefficients and the adimensional form of the corresponding
+equation of state by multiplying the potential-energy expression
+by a positive integer p > 1. The virial coefficients are then
+given by Eq. (23) and they can be computed using a procedure
+similar to that followed to compute the virial coefficients in
+Table I. However, the computational overhead associated with
+this procedure quickly becomes prohibitively large compared
+to the case p = 1. This is due to the fact that, for p > 1, each
+of the biconnected graphs G with m edges contributes with
+pm terms in Eq. (23). For example, the complete graph on n
+vertices has m = n(n  1)/2 edges, giving pm = p(n2 n)/2 terms.
+For n = 5 and p = 3, for instance, this entails the calculation of
+310 = 9 765 625 contributions, just for this single graph. Given
+the exponential growth of the number of distinct biconnected
+graphs with increasing n, as shown in Table I, it is clear that the
+exact calculation of the ˜B(p)
+n ’s rapidly becomes impracticable.
+This is reflected in Table II, which shows numerical representations
+of the exact values of ˜B(p)
+n for the particular cases of
+p = 2 and p = 10. For p = 10, the evaluation of ˜B(10)
+6 is already
+beyond reach, requiring several months of processing time on
+hundreds of CPUs.
+TABLE II. Exact virial coefficients for the scaled UF model for p = 2 and
+p = 10.
+n ˜B(2)
+n ˜B(10)
+n
+2 1.646 446 609 40 4.014 383 975 40
+3 0.943 195 827 15 8.031 625 170 36
+4  0.334 985 180 88 5.791 113 868 79
+5  0.303 688 574 00  7.658 371 037 27
+6 0.395 857 781 68
+7 0.053 655 130 98
+8  0.408 481 406 00
+Even though the exact calculation of virial coefficients for
+the scaled UF model rapidly becomes unfeasible, the fact that
+its equation of state Eq. (24) preserves the adimensional form
+of the original UF model enables one to obtain numerically
+accurate equations of state by fitting MD data of the reduced
+pressure  bP as a function of the single variable x using the
+same cubic-spline approach adopted above.
+In addition, using these equation-of-state cubic-spline representations,
+we compute the excess Helmholtz free energy for
+these scaled UF models through direct integration of the thermodynamic
+relations. Figure 6 displays the resultingFexc (p)
+UF (x)
+for p = 100 and compares it to the results of switching freeenergy
+calculations using the thermodynamic path given by
+Eq. (29). The results are again very good, with the integrated
+equation-of-state values in excellent agreement with the
+switching results throughout the entire interval of x-values. All
+cubic-spline based results for the equations of state as well as
+the excess Helmholtz free energy expressions for p = 25, 50,
+75, and 100 have been implemented in the python script uf
+Generator.py supplied in the supplementary material.
+A remaining concern involves the issue of fluid-phase stability
+for the sUF models. As mentioned in Subsection III A,
+the UF model most likely exists only in the fluid phase, irrespective
+of thermodynamic conditions and model parameters.
+For the sUF models, on the other hand, it is to be expected
+that beyond some minimum value of the scaling factor p crystalline
+phases become stable under particular thermodynamic
+conditions due to the reduced softness of the repulsion. The
+FIG. 6. Fexc (100)
+UF (x) as obtained by integrating the cubic spline representation
+of the equation of state (full line). Red diamond points depict results
+for Fexc (100)
+UF (x) obtained from the switching free-energy calculations. Blue
+circles denote relative deviation of integrated cubic-spline excess free-energy
+compared to switching free-energy calculations. The dashed line depicts the
+level of the zero residual.
+03 December 2024 04:45:00
+194101-8 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+FIG. 7. Radial distribution functions for the sUF models with p = 1 (longdashed
+line), p = 10 (short-dashed line), and p = 50 (full line), respectively.
+information regarding such conditions is contained in the phase
+diagram of the sUF model in terms of the scaling factor p and
+the variable x. Calculations to determine this phase diagram
+are currently in progress and the results will be reported elsewhere.
+However, preliminary data indicate that for p . 100
+the fluid remains the only stable phase of the sUF model for
+any x.
+Finally, it is interesting to assess the effect of the scaling
+factor p on the structure of the UF and sUF fluids. To this
+end we compute the radial distribution functions for the sUF
+models characterized by p = 1, p = 10, and p = 50, respectively,
+for x = 1 and the results are displayed in Fig. 7. It
+is clear that the UF fluid essentially has no structure at all,
+with its radial distribution function monotonically rising to
+the ideal-gas plateau without displaying any peaks. The effect
+of increasing the repulsion by introducing the scaling factors
+is a progressive enhancement of liquid structure, with the fluid
+for p = 10 showing a clear first solvation shell while for the
+case of p = 50 the fluid displays 4 coordination shells.
+IV. APPLICATIONS
+To assess their applicability in fluid-phase free-energy calculations,
+we compute the free energies of two different fluids
+using UF models as reference systems and compare the results
+to those obtained using independent calculations. Specifically,
+we compute the excess Helmholtz free energies of a Lennard-
+Jones fluid, which is characterized by adirectional two-body
+interactions, and a liquid state of the Stillinger-Weber model
+for Si,42 which involves directional three-body contributions.
+All the free-energy calculations are carried out using MD
+simulations as implemented in the LAMMPS package.47
+A. Lennard-Jones fluid
+For the case of the LJ pair potential ULJ, with length
+and energy scales   and  , respectively, we compute the
+excess Helmholtz free energy for the fluid state characterized
+by an inverse temperature of   = 0.5 􀀀1 and a density of
+  = 0.1  􀀀3. The LJ interaction potential was truncated and
+shifted at rc = 4.0 .
+The excess free energy  F was determined using two
+different thermodynamic paths. In the first, we employ the
+UF model as a reference system, using the parametrized
+Hamiltonian
+H1( ) =  HLJ + (1 􀀀  ) HUF
+= K +  ULJ + (1 􀀀  )U(p)
+UF , (34)
+with K the kinetic energy. Accordingly, the excess free energy
+of the LJ system can be computed by
+ F   FLJ 􀀀 Fi.g. = Wrev(UF ! LJ) + Fexc (p)
+UF , (35)
+and Fexc (p)
+UF is the excess Helmholtz free energy of the sUF
+model as given by the integrated cubic-spline representation
+of the UF equations of state described in Sec. III.
+The second thermodynamic path, as discussed in Sec. I, is
+composed of two steps, making use of an intermediate reference
+between the LJ system and the ideal gas. Here we choose
+the Gaussian core (GC) pair potential,31–34 given by
+UGC(r) =  GC exp
+266664
+􀀀
+ 
+r
+ GC
+!2377775
+, (36)
+for this purpose. In this fashion, we define the parametrized
+Hamiltonians
+H2a =  HLJ + (1 􀀀  )HGC (37)
+and
+H2b =  HGC + (1 􀀀  )Hi.g. = K +  UGC. (38)
+Determining the reversible work associated with both paths
+using theASapproach above, the excess Helmholtz free energy
+is computed as
+ F = Wrev(GC ! LJ) + Wrev(i.g. ! GC). (39)
+The explicit calculation of the excess Helmholtz free energy
+of the GC system is necessary because, in contrast to the case
+of the UF model (as shown in Fig. 4), the equations of state for
+different values of the model parameters cannot be rescaled to
+collapse onto a single master curve.
+We use the AS approach to compute the reversible work
+values in Eqs. (35) and (39), and the parameters of the associatedMDsimulations
+are identical to those employed in Sec. III.
+Focusing on the first thermodynamic path described by the
+Hamiltonian in Eq. (34), we initially use the original UF model
+characterized by p = 1, with  UF = 0.58  (which corresponds
+to x = 0.05432 at the considered density),   = 0.5, and a cutoff
+distance of rc =4 UF. Fig. 8(a) shows the evolution of the
+corresponding driving force along a typical switching simulation
+for this case. There is manifest divergent behavior close to
+  =0, which is a consequence of the extreme softness of the UF
+model. As a result, for values near   = 0 when the dynamics is
+predominantly governed by theUFmodel, the interparticle distances
+can become very small, leading to very large positive
+values of the driving force because of the ULJ contribution.
+For this reason, the original UF model is not adequate as a
+reference system in fluid-phase free-energy calculations. This
+divergence problem, however, can be resolved by using the
+sUF model. This is demonstrated in Fig. 8(b), which depicts
+the driving force for the same process, but now using the sUF
+model with p = 50. The results clearly demonstrate the versatility
+of the sUF model. The average driving force is now a
+smooth function of  , with the fluctuations remaining small
+03 December 2024 04:45:00
+194101-9 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+FIG. 8. Driving force ULJ 􀀀 U(p)
+UF as a function of   for p = 1 (a) and
+p = 50 (b), with  UF = 0.58  and   = 0.5 􀀀1. The inset focuses on divergent
+driving force close to   = 0 for the case p = 1.
+throughout the entire range of  -values. Moreover, its magnitude
+is much smaller than that of the UF model and it has the
+same order of magnitude along the entire process. Thus, the
+adjustable energy scale of the sUF model allows one to obtain
+a much better reference system compared to the original UF
+model, but still preserving all analytical properties of the UF
+virial equation of state.
+For the sUF system (with p = 50) as the reference system,
+the excess Helmholtz free energy for the LJ liquid at the
+specified conditions is found to be
+ Fexc
+LJ
+N
+= (􀀀0.108 24   0.000 05),
+where the error bar represents one standard deviation in the
+mean for the unbiased dynamical estimator as obtained from 10
+independent realizations of the AS process in both directions.
+Considering the second thermodynamic path described
+by the switching Hamiltonians Eqs. (37) and (38), the driving
+forces are well-behaved for the parameter choices  GC = 50 
+and  GC = 0.735 . Using the same MD parameters as those
+employed for the first thermodynamic path, the process linking
+the LJ system and the ideal gas through the GC model gives
+an excess Helmholtz free energy of
+ Fexc
+LJ
+N
+= (􀀀0.108 23   0.000 05),
+which, within the error bars, is identical to the result obtained
+using the sUF model as a reference system.
+B. Stillinger-Weber liquid Si
+As a second benchmark application, we compute the
+excess Helmholtz free energy of a liquid-phase state of the
+Stillinger-Weber potential for Si,42 which, in contrast to
+the LJ model, features strong directional bonding. The system
+was composed of 864 atoms in a periodic simulation cell
+at a number density of 5   10􀀀2 Å 3 and a temperature of
+2600 K. The cutoff distance radius was 4.0 °A, the temperature
+is controlled using a Langevin thermostat, and the equations
+of motion were integrated using the velocity Verlet algorithm
+with a timestep of  t = 0.5 fs and a damping time scale of
+50 fs. The equilibration and switching times used were teq
+= 0.25 ns and tsw = 15 ns, and we employ a linear form for the
+FIG. 9. Driving force USW 􀀀 U(p)
+UF as a function of   for p = 100.
+switching function  (t). In all cases, the average dynamical
+work estimators for both directions were determined from 10
+independent realizations.
+We employ two thermodynamic paths analogous to those
+used for the LJ system to compute the excess Helmholtz free
+energy of the SW Si liquid state point. For the first path, analogous
+to that defined in Eq. (34), we use the sUF model with
+p = 100 and a length scale of   = 1.319 760 2 Å, which corresponds
+to a value of x = 0.32. A typical behavior of the driving
+force along the process is shown in Fig. 9. The average driving
+force is a slowly varying function and fluctuations are small
+and essentially independent of  .
+Using the 10 forward and backward dynamical estimators
+to determine the free-energy difference between the SW and
+theUFmodels, and utilizing the cubic-spline-based expression
+for Fexc (100)
+UF (x), we obtain
+Fexc
+SW
+N
+= (􀀀2.949 09   0.000 05) eV.
+Utilizing the analogous two-stage thermodynamic path
+defined by Eqs. (37) and (38) for the LJ system, we determine
+a second, independent estimate for the SW excess Helmholtz
+free energy at the specified conditions. For the intermediate
+GC reference, we employ the parameters "GC = 50 eV and
+ GC = 1.08 465 Å. Based on the 10 forward and backward
+realizations of both parts of the thermodynamic path, wefinally
+obtain
+Fexc
+SW
+N
+= (􀀀2.949 13   0.000 06) eV.
+The two results are identical within the specified error
+bars, again demonstrating the usefulness of the sUF model as
+a reference system for fluid-phase free-energy calculations.
+V. SUMMARY
+The UF potential was originally proposed as a model
+permitting the exact evaluation of its virial coefficients. In
+the present paper, in addition to computing three new virial
+coefficients, we assess its applicability as a reference system
+in fluid-phase free-energy calculations using molecular
+simulation.
+The UF model and its integer-scaled sUF variants possess
+a number of characteristics that render it a promising choice
+as a reference system in fluid-phase free-energy calculations.
+03 December 2024 04:45:00
+194101-10 Paula Leite et al. J. Chem. Phys. 145, 194101 (2016)
+First, the particular temperature dependence of its potentialenergy
+expression gives rise to thermodynamic properties in
+which temperature plays the role of a mere scaling factor.
+In addition, their equations of state and excess Helmholtz
+free-energy expressions can be expressed in a scalable, adimensional
+form. In particular, both are fully characterized by
+a single function of one adimensional variable comprising the
+number density and interaction length scale. As a consequence,
+the models can be used as fluid-phase reference systems for
+any choice of temperature, number density, and interaction
+length scale.
+In principle, these functions can be represented in terms of
+the virial coefficients that describe the equations of state. However,
+even though these coefficients can be determined exactly,
+in principle, their evaluation in practice is limited by the rapidly
+increasing amount of required graph-related computations. As
+a result, the number of known virial coefficients is limited and
+we find that truncated virial expansions are unable to provide a
+satisfactory precision for the description of the system’s excess
+free-energies. To improve the numerical accuracy, we develop
+cubic-spline representations for the equations of state as well
+as the associated expressions for the excess Helmholtz free
+energies for 5 variants of the sUF model. They provide very
+accurate numerical representations of extensive MD data and
+all of them are available in the form of a python code in the
+supplementary material.
+Finally, we apply the UF and sUF models and the associated
+excess free-energy expressions as a reference system in
+the calculation of the excess Helmholtz free energy of a LJ
+fluid and a liquid state for the SW model for Si. Comparison
+of these results to those obtained from independent calculations
+demonstrates that, although the UF model is too soft,
+the sUF models offer a class of robust reference systems that
+permit highly accurate fluid-phase excess free-energy calculations
+without the need for an intermediate reference model.
+Indeed, in addition to the accuracy with which their free energies
+are known and the models’ convenient scaling properties,
+for p . 100 the fluid is the only stable phase of the sUF model
+for any density and interaction length scale. This favorable set
+of properties may potentially put the sUF fluid-phase reference
+systems on par with the standard role that harmonic and
+Einstein solids play as references in solid-phase free-energy
+calculations.
+SUPPLEMENTARY MATERIAL
+See supplementary material for the python script uf
+Generator.py that evaluates the equation of state and
+excess Helmholtz free energy values for the UF and sUF
+models.
+ACKNOWLEDGMENTS
+We gratefully acknowledge support from the Brazilian
+agencies CNPq, Fapesp, Capes and the Center for
+Computational Engineering and Sciences—Fapesp/Cepid No.
+2013/08293-7. The research of RF at UC Berkeley was supported
+by the US National Science Foundation (Grant No.
+DMR-1105409). Part of the calculations was performed at
+CCJDR-IFGW-UNICAMP and CENAPAD-SP.
+1J. E. Mayer and M. G. Mayer, Statistical Mechanics (Wiley, 1940).
+2E. Mason and T. Spurling, The Virial Equation of State (Pergamon Press,
+1969), Vol. 2.
+3D. McQuarrie, Statistical Mechanics (University Science Books, 2000).
+4J. Hansen and I. McDonald, Theory of Simple Liquids, 3rd ed. (Elsevier
+Academic Press, 2006).
+5J. Groeneveld, Phys. Lett. 3, 50 (1962).
+6A. Baram and J. S. Rowlinson, J. Phys. A: Math. Gen. 23, L399 (1990).
+7A. Baram and J. S. Rowlinson, Mol. Phys. 74, 707 (1991).
+8N. Clisby and B. M. McCoy, J. Stat. Phys. 122, 15 (2006).
+9E. Eisenberg and A. Baram, Proc. Natl. Acad. Sci. U. S. A. 104, 5755
+(2007).
+10M. V. Ushcats, Phys. Rev. Lett. 109, 040601 (2012).
+11V. M. Bannur, Phys. A 419, 675 (2015).
+12S. Lab´ık, J. Kolafa, and A. Malijevsk´y, Phys. Rev. E 71, 021105 (2005).
+13A. J. Masters, J. Phys.: Condens. Matter 20, 283102 (2008).
+14R. J. Wheatley, Phys. Rev. Lett. 110, 200601 (2013).
+15A. J. Schultz and D. A. Kofke, Phys. Rev. E 90, 023301 (2014).
+16R. J. Wheatley, J. Phys. Chem. B 109, 7463 (2005).
+17T. B. Tan, A. J. Schultz, and D. A. Kofke, Mol. Phys. 109, 123 (2010).
+18J. K. Singh and D. A. Kofke, Phys. Rev. Lett. 92, 220601 (2004).
+19A. J. Schultz and D. A. Kofke, Mol. Phys. 107, 2309 (2009).
+20A. J. Schultz, N. S. Barlow, V. Chaudhary, and D. A. Kofke, Mol. Phys. 111,
+535 (2012).
+21M. V. Ushcats, J. Chem. Phys. 141, 101103 (2014).
+22C. Feng, A. J. Schultz, V. Chaudhary, and D. A. Kofke, J. Chem. Phys. 143,
+044504 (2015).
+23M. P. Allen and D. J. Tildesley, Computer Simulation of Liquids (Oxford
+University Press, 1987).
+24D. Frenkel and B. Smit, Understanding Molecular Simulation (Academic
+Press, San Diego, 2002).
+25C. Chipot and A. Pohorille, Free Energy Calculations: Theory and Applications
+in Chemistry and Biology (Springer, Berlin Heidelberg, 2007).
+26T. Leli`evre, G. Stoltz, and M. Rousset, Free Energy Computations: A
+Mathematical Perspective (Imperial College Press, 2010).
+27M. C. Abramo, C. Caccamo, D. Costa, P. V. Giaquinta, G. Malescio,
+G. Muna`o, and S. Prestipino, J. Chem. Phys. 142, 214502 (2015).
+28J. Q. Broughton and G. H. Gilmer, J. Chem. Phys. 79, 5095 (1983).
+29J. Q. Broughton and X. P. Li, Phys. Rev. B 35, 9120 (1987).
+30J. van derWaals, Studies in Statistical Mechanics, Ph.D. thesis, Hoogeschool
+te Leiden, 1873, J. S. Rowlinson, Studies in Statistical Mechanics Vol. 14
+(North-Holland, Amsterdam, 1988).
+31F. H. Stillinger, J. Chem. Phys. 65, 3968 (1976).
+32S. Prestipino, F. Saija, and P. V. Giaquinta, J. Chem. Phys. 123, 144110
+(2005).
+33S. Prestipino, F. Saija, and P. V. Giaquinta, Phys. Rev. E 71, 050102 (2005).
+34S. Ryu and W. Cai, Modell. Simul. Mater. Sci. Eng. 16, 085005 (2008).
+35W. G. Hoover, M. Ross, K. W. Johnson, D. Henderson, J. A. Barker, and
+B. C. Brown, J. Chem. Phys. 52, 4931 (1970).
+36D. A. Young and F. J. Rogers, J. Chem. Phys. 81, 2789 (1984).
+37M. de Koning, A. Antonelli, and S. Yip, J. Chem. Phys. 115, 11025 (2001).
+38M. F. Michelon and A. Antonelli, Phys. Rev. B 81, 094204 (2010).
+39C. W. Greeff, J. Chem. Phys. 128, 184104 (2008).
+40J. A. Moriarty and J. B. Haskins, Phys. Rev. B 90, 054113 (2014).
+41G. Uhlenbeck and G. Ford, “The development of linear graphs with applications
+to the theory of the virial development of the properties of gases,”
+in Studies in Statistical Mechanics Vol. 1, edited by J. de Boer and
+G. Uhlenbeck (North-Holland Publishing Company, 1962), p. 182.
+42F. H. Stillinger and T. A. Weber, Phys. Rev. B 31, 5262 (1985).
+43R. Feynman, Statistical Mechanics: A Set of Lectures (Westview Press,
+1998).
+44M. E. J. Newman, Networks: An Introduction (Oxford University Press,
+Oxford, 2010).
+45B. D. McKay and A. Piperno, J. Symbolic Comput. 60, 94 (2014).
+46E. H. Bareiss, Math. Comput. 22, 565 (1968).
+47S. Plimpton, J. Comput. Phys. 117, 1 (1995).
+48W. Press, S. Teukolsky, W. Vetterling, and B. Flannery, Numerical Recipes
+3rd Edition: The Art of Scientific Computing (Cambridge University Press,
+2007).
+49M. Watanabe and W. P. Reinhardt, Phys. Rev. Lett. 65, 3301 (1990).
+50M. de Koning and A. Antonelli, Phys. Rev. B 55, 735 (1997).
+51R. Freitas, M. Asta, and M. de Koning, Comput. Mater. Sci. 112Part A, 333
+(2016).
+52M. de Koning, J. Chem. Phys. 122, 104106 (2005).

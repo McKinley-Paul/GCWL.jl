@@ -13,19 +13,20 @@ include("thermo.jl")
 # gc_wl.jl functions:
 export run_simulation!, translation_move!,N_move!,update_wl!, post_run,  potential_1
 # initialization functions exports:
-export microstate,SimulationParams,init_microstate,check_inputs, print_simulation_params, print_microstate,print_wl, WangLandauVars,init_WangLandauVars, initialization_check, save_wanglandau_jld2, save_microstate_jld2,load_microstate_jld2, load_wanglandau_jld2, load_configuration, SimCache,init_cache,copy_microstate!
+export microstate,SimulationParams,init_microstate,check_inputs, print_simulation_params, print_microstate,print_wl, print_potential, WangLandauVars,init_WangLandauVars, initialization_check, save_wanglandau_jld2, save_microstate_jld2,load_microstate_jld2, load_wanglandau_jld2, load_configuration, SimCache,init_cache,copy_microstate!, save_sim_jld2, load_sim_jld2
 # utils exports:
 export euclidean_distance, min_config_distance, euclidean_distance_squared_pbc, translate_by_random_vector!, metropolis
 # lj exports:
 export argon_deBroglie, E_12_LJ, N_metropolis, PairPotential, LennardJones, pair_energy
 # thermo stuff:
-export correct_logQ, ideal_gas_logQNVT, ideal_gas_logQ_loggamma
+export correct_logQ!,compute_logZ, compute_bn_from_logZ,compute_bns_rescaled, compute_Bn_from_bn, ideal_gas_logQNVT, ideal_gas_logQ_loggamma, compute_packing_frac
 
 
 function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVars,c::SimCache)
     log_path = joinpath(sim.save_directory_path, "wl_progress_log.txt")
     progress_log = open(log_path,"a") # for debugging/monitoring long calculations
     println(progress_log,"Starting run_simulation!(), time is ",  Dates.format(now(), "yyyy-mm-dd HH:MM:SS"))
+    flush(progress_log)
 
     num_active_bins = (sim.N_max - sim.N_min + 1)
     
@@ -47,13 +48,13 @@ function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVar
                 if H_min/H_avg > 0.8 # flatness check, looks like old school Wang Landau 2001 style but actually inspired by Shchur 2017 section IV.C 10.1103/PhysRevE.96.043307
                     wl.flat = true
                     println(progress_log,"Flatness criterion reached in phase 2 after ", wl.iters, " total iterations ", Dates.format(now(), "yyyy-mm-dd HH:MM:SS"))
-                    println(progress_log,"H_λ,N min/mean = ",round(H_min/H_avg*100), " %" )
-                    println(progress_log,"H_λ,N max = ", maximum(wl.H_N[(sim.N_min+1) : (sim.N_max+1) ]))
+                    println(progress_log,"H(N) min/mean = ",round(H_min/H_avg*100), " %" )
+                    println(progress_log,"H(N) max = ", maximum(wl.H_N[(sim.N_min+1) : (sim.N_max+1) ]))
                     flush(progress_log)
                 end
 
                 if wl.iters % 500_000_000 == 0   # Progress log every time 500,000,000 iters, approximately every ten minutes 
-                    println(progress_log,"Phase 2 flatness check: H_λ,N min/mean = ",round(H_min/H_avg*100), " %, total iters: ",wl.iters, " min: ",H_min," ", Dates.format(now(), "yyyy-mm-dd HH:MM:SS")  )
+                    println(progress_log,"Phase 2 flatness check: H(N) min/mean = ",round(H_min/H_avg*100), " %, total iters: ",wl.iters, " min: ",H_min," ", Dates.format(now(), "yyyy-mm-dd HH:MM:SS")  )
                     flush(progress_log)
                 end
             end
@@ -115,7 +116,7 @@ function potential_1(pot::P,r_box::Vector{MVector{3,Float64}},ri_box::MVector{3,
 
     #  computing interaction with other particles
     @inbounds for j in 1:N
-        if j != i # avoid double counting
+        if j != i # avoids self interaction
             rij_squared_box = euclidean_distance_squared_pbc(ri_box,r_box[j])
             if rij_squared_box < r_cut_squared_box # only evaluate potential if pair is inside cutoff distance
                 rij_squared_σ = rij_squared_box  * L_squared_σ   # convert to potential natural units (i.e. lennard jones) to compute the potentials see allen and Tildesly one Note note for explanation why
@@ -158,7 +159,7 @@ function translation_move!(sim::SimulationParams,μ::microstate,wl::WangLandauVa
     end
 
 
-    if wl.logf == 1 # tune δr_max_box during first wang landau epoch
+    if wl.phase2 == false # tune δr_max_box during first phase, originall had this as wl.logf == 1 but that doesnt work for 1/t scheme - get stuck with bad δr_max and it really drags out out simulation due to low translation acceptance rates
         if sim.dynamic_δr_max_box == true  
             if (wl.translation_moves_accepted/wl.translation_moves_proposed > 0.55) && wl.δr_max_box < 1.0 # tune δr_max_box to get ~50% acceptance, pg 159 Allen Tildesly
                 # added the wl.δr_max_box < 1.0 because for dilute systems or ideal gas conditions you accept every move and the δr_max_box grows riducously and unphysically for a periodic system using  box=1 units
@@ -280,10 +281,17 @@ function update_wl!(wl::WangLandauVars,μ::microstate)
 end #update_wl!
 
 function post_run(sim::SimulationParams,μ::microstate,wl::WangLandauVars)
-    println("Wang Landau converged or reached max iterations, logf has reached ", wl.logf, " and convergence is achieved when logf reaches ", log( exp(10^(-8))) )
+    # most important thing this function does is correct_logQ!() to wang landau variables
+    println("Wang Landau converged or reached max iterations, logf has reached ", wl.logf, " and convergence is achieved when the histogram for phase 2 is sufficiently flat" )
+    println("H(N) min/mean = ",round(minimum(wl.H_N[(sim.N_min+1) : (sim.N_max+1) ])/mean(wl.H_N[(sim.N_min+1) : (sim.N_max+1) ])*100), " %" )
+    println("H(N) max = ", maximum(wl.H_N[(sim.N_min+1) : (sim.N_max+1) ]))
     println("Iterations: ", (wl.translation_moves_proposed+wl.N_moves_proposed), " with maxiters: ", sim.maxiter )
     println("Total translation moves proposed: ", wl.translation_moves_proposed, ", translation moves accepted: ", wl.translation_moves_accepted, ", Acceptance ratio: ", wl.translation_moves_accepted/wl.translation_moves_proposed)
     println("Total N moves proposed: ", wl.N_moves_proposed, ", N moves accepted: ", wl.N_moves_accepted, ", Acceptance ratio: ", wl.N_moves_accepted/wl.N_moves_proposed)
+
+    constant = correct_logQ!(wl)
+    println("Value of wang landau logQ multiplicative constant before correction: ", constant )
+
     save_wanglandau_jld2(wl,sim,"final_wl.jld2")
     save_microstate_jld2(μ,sim,"final_microstate.jld2")
     println("Final Microstate and Wang Landau variables saved")

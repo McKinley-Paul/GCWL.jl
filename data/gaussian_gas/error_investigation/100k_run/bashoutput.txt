@@ -1,0 +1,4 @@
+1776320359
+  Activating project at `~/Documents/montecarlo/gc_wl`
+[ Info: Saved results to /Users/mckinleypaul/Documents/montecarlo/gc_wl/data/gaussian_gas/error_investigation/100k_run/correlation_campaign_100000runs.jld2
+Runtime: 14101 seconds

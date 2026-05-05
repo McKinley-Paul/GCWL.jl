@@ -1,3 +1,0 @@
-the purpose of this directory is to see what impact the lambda max (M) parameter has on the simulation.
-Is M = 100 really optimal or would the same results be achieved with M = 10 or M=50 ? Or does the rejection rate get so high
-that simulations actually take longer?
