@@ -1,0 +1,59 @@
+inspired by Roundy 2020 https://arxiv.org/pdf/1906.08822 the LJ 31 system provides an interesting benchmark
+because it has a "two funnel" energy landscape with signifcant barrier beteween two low energy states
+(this is the solid-solid mackay-anti mackay transition).  Poulain et al (DOI: https://doi.org/10.1103/PhysRevE.73.056704) tested a lot of WL variants on 
+this system and found that they failed to converge the heat capacity spike correspoinding to the solid-solid PT . 
+
+
+The two funnel issue is an issue in ergodicity which I think GC-wl will get around because it breaks down and rebuilds the cluster
+every time the sim goes from N=31 down to N=0 and back therefore it should find both solid states and this would be new info. 
+
+
+
+main issue is that these are typically done in spherical volume with no PBC and hard walls I think so I have to adjust the main script
+V. A. Mandelshtam and P. A. Frantsuzov, The Journal
+of chemical physics 124, 204511 (2006)
+
+
+Poulain: n the case of LJ31, the structural transi-
+tion involves two icosahedral phases, corresponding to a
+single layer, 13-atom icosahedron with different overlayers
+75 .
+F
+
+Poulain: For LJ clusters, all simulations have been performed us-
+ing a hard-wall confining sphere to prevent dissociation. The
+radii chosen are 2.5 and 2.8 LJ reduced units for LJ31 and
+LJ38, respectively
+___ 
+At radius of 2.5sigma,the simulation was initially able to finish several phase 1 epochs fairly quickly but is stuck now that the modification factor is low and cannot enter phase 2. I believe because there is not a strong enough bias to push the system into the most dense phase at these high densities especially at these low temperatures. here is what wl progress was from T* = 0.01 with R=3.5 σ, stopped it at 2pm. 
+
+Starting run_simulation!(), time is 2026-05-07 20:52:22
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-07 20:52:22
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-07 20:52:22
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-07 20:52:22
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-07 20:52:22
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-07 20:52:22
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-07 20:52:22
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-07 20:52:23
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-07 20:52:23
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-07 20:52:24
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-07 20:52:25
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-07 20:52:27
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-07 20:52:28
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-07 20:52:32
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-07 20:52:34
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-07 20:52:37
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-07 20:52:56
+New WL phase 1 epoch!, now at 7.62939453125e-6 and the time is 2026-05-07 20:53:41
+New WL phase 1 epoch!, now at 3.814697265625e-6 and the time is 2026-05-07 20:54:55
+New WL phase 1 epoch!, now at 1.9073486328125e-6 and the time is 2026-05-07 20:59:00
+New WL phase 1 epoch!, now at 9.5367431640625e-7 and the time is 2026-05-07 21:03:07
+New WL phase 1 epoch!, now at 4.76837158203125e-7 and the time is 2026-05-07 21:19:05
+New WL phase 1 epoch!, now at 2.384185791015625e-7 and the time is 2026-05-07 21:33:59
+New WL phase 1 epoch!, now at 1.1920928955078125e-7 and the time is 2026-05-07 22:34:18
+New WL phase 1 epoch!, now at 5.960464477539063e-8 and the time is 2026-05-07 23:07:23
+New WL phase 1 epoch!, now at 2.9802322387695312e-8 and the time is 2026-05-08 01:24:31
+New WL phase 1 epoch!, now at 1.4901161193847656e-8 and the time is 2026-05-08 04:54:10
+
+
+thus switching to spherical container radius of 5sigma as this should be easier for gcwl to handle.  

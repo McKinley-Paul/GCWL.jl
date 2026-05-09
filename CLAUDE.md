@@ -33,6 +33,21 @@ wl     = load_wanglandau_jld2(path)
 
 **Generate initial configs:** see `initial_configs/how_to_gen_initial_configs.txt` and `initialize.py` (Allen & Tildesly FCC lattice).
 
+**Run a spherical hard-wall simulation (must start from N=0 vacuum):**
+```julia
+using gc_wl
+sim = SimulationParams(N_max=..., N_min=0, T_σ=..., Λ_σ=..., L_σ=2*Rc,
+                       r_cut_σ=2*Rc,   # sphere diameter covers all pairs
+                       save_directory_path=..., maxiter=...)
+μstate = init_microstate(sim)           # N=0 vacuum overload — no input file needed
+wl     = init_WangLandauVars(sim)
+cache  = init_cache(sim, μstate)
+initialization_check(sim, μstate, wl)
+hws_run_simulation!(sim, μstate, wl, cache)
+correct_logQ!(wl)
+```
+Key differences from PBC: `hws_run_simulation!` calls `hws_translation_move!` (no `pbc_wrap!`, sphere containment check instead) and `hws_N_move!` (inserts via `random_point_in_sphere!`). `hw_N_metropolis` uses sphere volume `(4/3)π(L_σ/2)³` rather than `sim.V_σ` (which remains `L_σ³` in `SimulationParams`).
+
 ---
 
 ## Architecture
@@ -48,6 +63,7 @@ The package computes canonical partition functions Q(N,V,T) for Lennard-Jones fl
 | `lj.jl` | LJ energy functions (`E_12_LJ`, `potential_1`) |
 | `utils.jl` | PBC distance, random translation, standard Metropolis criterion |
 | `thermo.jl` | `correct_logQ` (normalization via Q(N=0)=1), ideal gas partition function (Stirling and exact via loggamma) |
+| `hard_wall_bcs.jl` | Spherical hard-wall variants: `hws_run_simulation!`, `hws_translation_move!`, `hws_N_move!`, `hws_potential_1`, `hw_N_metropolis`, `random_point_in_sphere!`, `is_inside_sphere` |
 
 ### Key data structures
 
@@ -61,7 +77,7 @@ The package computes canonical partition functions Q(N,V,T) for Lennard-Jones fl
 
 ### Units
 
-- **Box units**: box side = 1; PBC at ±0.5. Convert: `r_LJ = r_box × L_σ`.
+- **Box units**: box side = 1; positions ∈ [−0.5, 0.5]³. Convert: `r_LJ = r_box × L_σ`. For PBC runs, wrap at ±0.5. For spherical hard-wall runs, the sphere of radius 0.5 box units is inscribed in the box; no wrapping applied.
 - **LJ reduced units**: σ=1, ϵ=1; temperature `T_σ = k_B T / ϵ`.
 
 ### Algorithm summary
@@ -111,6 +127,25 @@ x1 y1 z1
 x2 y2 z2
 ...
 ```
+
+---
+
+## Benchmark: LJ31 Cluster (spherical hard wall)
+
+Data in `data/lennard_jones/LJ31_spherical_hard_walls/`. 10 temperatures from T*=0.010 to 0.050, each with 4 independent runs via `hws_run_simulation!`. Results saved as `results_4runs.jld2` (logQ_store, logQ_mean, logQ_std, logQ_sem).
+
+| Parameter | Value |
+|-----------|-------|
+| N_max     | 31 |
+| N_min     | 0 |
+| Rc        | 2.5σ → L_σ = 5.0 |
+| r_cut_σ   | 5.0 (= sphere diameter, no truncation within sphere) |
+| Λ_σ       | 1.0 |
+| Temperatures (T*) | 0.010, 0.015, 0.020, 0.025, **0.027**, 0.030, 0.035, 0.040, 0.045, 0.050 |
+
+Heat capacity peak expected near T*≈0.027 (Mackay–anti-Mackay solid-solid transition). GC-WL sidesteps the ergodicity problem of canonical cluster simulations because the walk passes through N=0 between visits to N=31, rebuilding the cluster from scratch and sampling both funnels.
+
+**Key references**: Poulain et al., *Phys. Rev. E* **73**, 056704 (2006); Mandelshtam & Frantsuzov, *J. Chem. Phys.* **124**, 204511 (2006); Roundy et al., arXiv:1906.08822 (2020).
 
 ---
 

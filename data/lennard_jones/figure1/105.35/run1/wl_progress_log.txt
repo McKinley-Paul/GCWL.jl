@@ -1,27 +1,28 @@
-Starting run_simulation!(), time is 2026-05-03 21:36:59
-New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-03 21:37:03
-New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-03 21:37:06
-New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-03 21:37:12
-New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-03 21:37:16
-New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-03 21:37:21
-New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-03 21:37:30
-New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-03 21:37:36
-New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-03 21:37:37
-New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-03 21:38:00
-New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-03 21:38:03
-New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-03 21:38:23
-New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-03 21:38:32
-New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-03 21:38:55
-New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-03 21:39:12
-New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-03 21:39:49
-New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-03 21:41:05
-New WL phase 1 epoch!, now at 7.62939453125e-6 and the time is 2026-05-03 21:42:33
-New WL phase 1 epoch!, now at 3.814697265625e-6 and the time is 2026-05-03 21:44:32
-New WL phase 1 epoch!, now at 1.9073486328125e-6 and the time is 2026-05-03 21:45:08
-New WL phase 1 epoch!, now at 9.5367431640625e-7 and the time is 2026-05-03 21:45:38
-Now entering phase 2! It took 227367000 monte carlo moves (wl.iters) to get to phase 2! 2026-05-03 21:45:38
-That is a monte carlo time of: 567000
-Phase 2 flatness check: H(N) min/mean = 73.0 %, total iters: 500000000 min: 496430 2026-05-03 21:54:42
-Flatness criterion reached in phase 2 after 622000000 total iterations 2026-05-03 21:58:36
+Starting run_simulation!(), time is 2026-05-07 09:57:08
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-07 09:57:13
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-07 09:57:16
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-07 09:57:19
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-07 09:57:25
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-07 09:57:26
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-07 09:57:41
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-07 09:57:46
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-07 09:57:58
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-07 09:58:08
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-07 09:58:11
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-07 09:58:33
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-07 09:58:47
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-07 09:59:37
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-07 10:00:59
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-07 10:02:06
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-07 10:03:15
+New WL phase 1 epoch!, now at 7.62939453125e-6 and the time is 2026-05-07 10:03:42
+New WL phase 1 epoch!, now at 3.814697265625e-6 and the time is 2026-05-07 10:06:50
+New WL phase 1 epoch!, now at 1.9073486328125e-6 and the time is 2026-05-07 10:08:27
+New WL phase 1 epoch!, now at 9.5367431640625e-7 and the time is 2026-05-07 10:09:09
+Now entering phase 2! It took 338845000 monte carlo moves (wl.iters) to get to phase 2! 2026-05-07 10:09:09
+That is a monte carlo time of: 845000
+Phase 2 flatness check: H(N) min/mean = 59.0 %, total iters: 500000000 min: 236513 2026-05-07 10:14:59
+Phase 2 flatness check: H(N) min/mean = 77.0 %, total iters: 1000000000 min: 1277146 2026-05-07 10:31:58
+Flatness criterion reached in phase 2 after 1058000000 total iterations 2026-05-07 10:33:44
 H(N) min/mean = 80.0 %
-H(N) max = 1643722
+H(N) max = 2552382

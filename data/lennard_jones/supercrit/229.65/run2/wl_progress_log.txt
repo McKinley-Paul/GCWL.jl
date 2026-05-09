@@ -1,0 +1,22 @@
+Starting run_simulation!(), time is 2026-05-08 23:59:14
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-08 23:59:14
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-08 23:59:15
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-08 23:59:16
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-08 23:59:17
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-08 23:59:18
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-08 23:59:20
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-08 23:59:21
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-08 23:59:22
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-08 23:59:24
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-08 23:59:25
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-08 23:59:28
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-08 23:59:33
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-08 23:59:34
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-08 23:59:35
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-08 23:59:39
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-08 23:59:44
+Now entering phase 2! It took 17157000 monte carlo moves (wl.iters) to get to phase 2! 2026-05-08 23:59:44
+That is a monte carlo time of: 57000
+Flatness criterion reached in phase 2 after 77000000 total iterations 2026-05-09 00:01:15
+H(N) min/mean = 81.0 %
+H(N) max = 240027

@@ -1,2 +1,0 @@
-Starting run_simulation!(), time is 2026-04-29 15:54:05
-ran for several days, unable to find the FCC solid state even once

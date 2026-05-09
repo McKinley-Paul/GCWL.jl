@@ -7,19 +7,24 @@ include("initialization.jl")
 include("utils.jl")
 include("lj.jl")
 include("thermo.jl")
+include("hard_wall_bcs.jl")
 # ✅  = unit tests for function exist in /tests/
 # this module contains the meat of the package including run_simulation and the various High Level Wang Landau Monte Carlo functions. 
 
 # gc_wl.jl functions:
 export run_simulation!, translation_move!,N_move!,update_wl!, post_run,  potential_1
+# hard_wall_bcs.jl functions (spherical hard wall):
+export hws_run_simulation!
 # initialization functions exports:
 export microstate,SimulationParams,init_microstate,check_inputs, print_simulation_params, print_microstate,print_wl, print_potential, WangLandauVars,init_WangLandauVars, initialization_check, save_wanglandau_jld2, save_microstate_jld2,load_microstate_jld2, load_wanglandau_jld2, load_configuration, SimCache,init_cache,copy_microstate!, save_sim_jld2, load_sim_jld2
 # utils exports:
-export euclidean_distance, min_config_distance, euclidean_distance_squared_pbc, translate_by_random_vector!, metropolis
+export euclidean_distance, min_config_distance, euclidean_distance_squared_pbc, translate_by_random_vector!, metropolis, euclidean_distance_squared
 # lj exports:
 export argon_deBroglie, E_12_LJ, N_metropolis, PairPotential, LennardJones, pair_energy
 # thermo stuff:
 export correct_logQ!,compute_logZ, compute_bn_from_logZ,compute_bns_rescaled, compute_Bn_from_bn, ideal_gas_logQNVT, ideal_gas_logQ_loggamma, compute_packing_frac
+# grand-canonical thermodynamic analysis (Desgranges 2012):
+export logsumexp, compute_logΞ, compute_pN, compute_mean_N, compute_pressure_σ, find_Nb_idx, find_μ_coex, compute_lnzsat
 
 
 function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVars,c::SimCache)
@@ -145,27 +150,26 @@ function translation_move!(sim::SimulationParams,μ::microstate,wl::WangLandauVa
     pbc_wrap!(c.ri_proposed_box)   # PBC
     E_proposed = potential_1(sim.potential,μ.r_box,c.ri_proposed_box,c.ζ_idx,μ.N,sim.L_squared_σ,sim.r_cut_squared_box)
 
-    if E_proposed == typemax(Float64) # check overlap
-        nothing # reject the move and recount this state for histogram and partition function
-    else
-        E_old = potential_1(sim.potential,μ.r_box,μ.r_box[c.ζ_idx],c.ζ_idx,μ.N,sim.L_squared_σ,sim.r_cut_squared_box)
-        ΔE = E_proposed - E_old 
-        accept = metropolis(ΔE,sim.T_σ,sim.rng) 
-        if accept
-            μ.r_box[c.ζ_idx] .= c.ri_proposed_box
-            c.μ_prop.r_box[c.ζ_idx] .= c.ri_proposed_box
-            wl.translation_moves_accepted += 1
-        end
+    E_old = potential_1(sim.potential,μ.r_box,μ.r_box[c.ζ_idx],c.ζ_idx,μ.N,sim.L_squared_σ,sim.r_cut_squared_box)
+    ΔE = E_proposed - E_old
+    accept = metropolis(ΔE,sim.T_σ,sim.rng)
+    if accept
+        μ.r_box[c.ζ_idx] .= c.ri_proposed_box
+        c.μ_prop.r_box[c.ζ_idx] .= c.ri_proposed_box
+        wl.translation_moves_accepted += 1
     end
 
-
-    if wl.phase2 == false # tune δr_max_box during first phase, originall had this as wl.logf == 1 but that doesnt work for 1/t scheme - get stuck with bad δr_max and it really drags out out simulation due to low translation acceptance rates
-        if sim.dynamic_δr_max_box == true  
-            if (wl.translation_moves_accepted/wl.translation_moves_proposed > 0.55) && wl.δr_max_box < 1.0 # tune δr_max_box to get ~50% acceptance, pg 159 Allen Tildesly
+    if sim.dynamic_δr_max_box == true  
+        if μ.N ≥ (9 * sim.N_max) ÷ 10 # update δr_max only for the top 10% of density
+            wl.dense_trans_proposed += 1
+            if accept == true 
+                wl.dense_trans_accepted += 1
+            end
+            if (wl.dense_trans_accepted/wl.dense_trans_proposed > 0.55) && wl.δr_max_box < 1.0 # tune δr_max_box to get ~50% acceptance for the densest phase, pg 159 Allen Tildesly
                 # added the wl.δr_max_box < 1.0 because for dilute systems or ideal gas conditions you accept every move and the δr_max_box grows riducously and unphysically for a periodic system using  box=1 units
                 wl.δr_max_box = wl.δr_max_box * 1.05
 
-            elseif wl.translation_moves_accepted/wl.translation_moves_proposed  < 0.45
+            elseif wl.dense_trans_accepted/wl.dense_trans_proposed  < 0.45
                 wl.δr_max_box = wl.δr_max_box*0.95
             end 
         end

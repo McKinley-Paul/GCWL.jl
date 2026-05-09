@@ -1,0 +1,256 @@
+
+[Running] julia "/Users/mckinleypaul/Documents/montecarlo/gc_wl/data/lennard_jones/figure1/analyze_runs.jl"
+  Activating project at `~/Documents/montecarlo/gc_wl`
+Precompiling packages...
+   1623.8 ms  ✓ gc_wl (serial)
+  1 dependency successfully precompiled in 2 seconds
+======================================================================
+FIGURE 1 RUN ANALYSIS — 2026-05-05 16:21
+======================================================================
+
+31 log files found across 10 temperatures.
+
+──────────────────────────────────────────────────────────────────────
+SECTION 1: Run-time summary (phase 1 duration, phase 2 status)
+──────────────────────────────────────────────────────────────────────
+T(K)     run   crit   ph1 iters    ph1 dur (min)  ph2 flat%  ph2 status                    
+-----------------------------------------------------------------------------------------------
+87.79    1     old    37876M       24.0 h         0%         phase 2 converging (38B iters)
+87.79    2     new    831M         43 min         80%        DONE
+87.79    3     new    19550M       11.7 h         0%         STUCK (H_min=0 in phase 2)
+105.35   1     old    227M         9 min          73%        DONE
+105.35   2     old    370M         15 min         78%        DONE
+105.35   3     old    1127M        35 min         36%        DONE
+105.35   4     old    253M         10 min         74%        DONE
+111.20   1     old    1476M        49 min         75%        DONE
+111.20   2     old    1562M        51 min         69%        DONE
+111.20   3     old    1398M        47 min         77%        DONE
+111.20   4     old    1366M        44 min         69%        DONE
+117.05   1     old    326M         11 min         77%        DONE
+117.05   2     old    352M         13 min         67%        DONE
+117.05   3     old    1221M        44 min         71%        DONE
+117.05   4     old    1765M        1.0 h          79%        DONE
+122.90   1     old    514M         18 min         72%        DONE
+122.90   2     old    469M         18 min         78%        DONE
+122.90   3     old    97M          4 min          79%        DONE
+122.90   4     ?      279M         11 min         72%        phase 2 converging (57B iters)
+128.76   1     old    59M          2 min          77%        DONE
+128.76   2     old    67M          2 min          no ph2     DONE
+128.76   3     old    72M          2 min          no ph2     DONE
+128.76   4     old    88M          3 min          56%        DONE
+134.61   1     old    77M          2 min          no ph2     DONE
+134.61   2     old    163M         5 min          75%        DONE
+134.61   3     old    80M          3 min          no ph2     DONE
+134.61   4     old    37M          1 min          73%        DONE
+140.46   1     old    42M          1 min          72%        DONE
+140.46   2     old    121M         4 min          no ph2     DONE
+140.46   3     old    37M          1 min          no ph2     DONE
+140.46   4     old    80M          2 min          no ph2     DONE
+
+
+──────────────────────────────────────────────────────────────────────
+SECTION 2: Phase 1 epoch durations — outlier detection
+──────────────────────────────────────────────────────────────────────
+An 'outlier' epoch is one that took ≥5× the median for that run.
+
+  87.79/run1 (old criterion):
+    epoch 18 (logf=3.81e-06): 53 min  (median=8 min, ratio=6.3x)
+    epoch 22 (logf=2.38e-07): 531 min  (median=8 min, ratio=62.8x)
+    epoch 23 (logf=1.19e-07): 47 min  (median=8 min, ratio=5.5x)
+    epoch 24 (logf=5.96e-08): 48 min  (median=8 min, ratio=5.7x)
+    epoch 25 (logf=2.98e-08): 84 min  (median=8 min, ratio=9.9x)
+    epoch 26 (logf=1.49e-08): 468 min  (median=8 min, ratio=55.3x)
+    epoch 27 (logf=7.45e-09): 51 min  (median=8 min, ratio=6.0x)
+  87.79/run3 (new criterion):
+    epoch 21 (logf=4.77e-07): 83 min  (median=3 min, ratio=24.9x)
+    epoch 22 (logf=2.38e-07): 33 min  (median=3 min, ratio=9.8x)
+    epoch 23 (logf=1.19e-07): 485 min  (median=3 min, ratio=145.6x)
+
+──────────────────────────────────────────────────────────────────────
+SECTION 3: OLD vs NEW δr_max criterion — 87.79 K (T*=0.75) deep-dive
+──────────────────────────────────────────────────────────────────────
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  87.79/run1 [OLD criterion]
+    Phase 1: 37B iters  (MC time = 83M)  duration = 24.0 h
+    Phase 2 entry logf = 7.45e-09
+    Phase 2 last check: 0% flat  H_min=0  iters=38B
+    H_min=0 in 2/2 phase2 checks → COMPLETELY STUCK
+    From wl_checkpoint.jld2:
+      δr_max_box = 1.00037  (= 8.003 σ in LJ units, L=8σ → 8.003 σ)
+      translation acceptance = 0.066
+      N-move acceptance      = 0.122
+      logf = 1.157e-08   phase2=true   flat=false
+      Total iters = 38B
+      H_N zero bins: 46 bins with 0 visits out of 451 active bins
+        First 10 zero-visit N: [405, 406, 407, 408, 409, 410, 411, 412, 413, 414]
+        Last  10 zero-visit N: [441, 442, 443, 444, 445, 446, 447, 448, 449, 450]
+      H_N stats (non-zero): min=28515  mean=2751151  max=3773640
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  87.79/run2 [NEW criterion]
+    Phase 1: 0B iters  (MC time = 1M)  duration = 43 min
+    Phase 2 entry logf = 4.77e-07
+    Phase 2 last check: 80% flat  H_min=11765847  iters=7B
+    H_min=0 in 1/14 phase2 checks → partially stuck early
+    ✓ FINISHED
+    From final_wl.jld2:
+      δr_max_box = 0.00550  (= 0.044 σ in LJ units, L=8σ → 0.044 σ)
+      translation acceptance = 0.802
+      N-move acceptance      = 0.113
+      logf = 5.792e-08   phase2=true   flat=true
+      Total iters = 7B
+      H_N: all bins visited (no zeros)
+      H_N stats (non-zero): min=12343987  mean=15423075  max=23796863
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  87.79/run3 [NEW criterion]
+    Phase 1: 19B iters  (MC time = 43M)  duration = 11.7 h
+    Phase 2 entry logf = 1.49e-08
+    Phase 2 last check: 0% flat  H_min=0  iters=33B
+    H_min=0 in 27/27 phase2 checks → COMPLETELY STUCK
+    From wl_checkpoint.jld2:
+      δr_max_box = 0.00385  (= 0.031 σ in LJ units, L=8σ → 0.031 σ)
+      translation acceptance = 0.643
+      N-move acceptance      = 0.139
+      logf = 1.358e-08   phase2=true   flat=false
+      Total iters = 33B
+      H_N zero bins: 9 bins with 0 visits out of 451 active bins
+        Zero-visit N values: [442, 443, 444, 445, 446, 447, 448, 449, 450]
+      H_N stats (non-zero): min=87557  mean=30891742  max=37854874
+
+──────────────────────────────────────────────────────────────────────
+SECTION 4: All currently-running jobs — checkpoint snapshot
+──────────────────────────────────────────────────────────────────────
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  87.79/run1  [criterion: OLD]
+    iters = 38B   logf = 1.157e-08   phase2=true   flat=false
+    δr_max_box = 1.00037  (= 8.0029 σ, L=8.0σ)
+    translation acceptance = 0.066  (target: 0.45–0.55)
+    N-move acceptance      = 0.122
+    H_N: 46 zero bins / 451 active bins  min=0  mean=2470545  max=3773640  flat=0.0%
+    First zero-visit N: 405  Last: 450  (46 total)
+    logQ slope: min at N=26 (slope=11.180)  max at N=350 (slope=14.365)
+    logQ range: 16840.7 to 22641.3  (span=5800.6)
+    Phase 2 flatness trajectory (recent):
+      iters=38B  H_min=0  flat=0%
+      iters=38B  H_min=0  flat=0%
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  87.79/run3  [criterion: NEW (122.90/run4=OLD)]
+    iters = 33B   logf = 1.358e-08   phase2=true   flat=false
+    δr_max_box = 0.00385  (= 0.0308 σ, L=8.0σ)
+    translation acceptance = 0.643  (target: 0.45–0.55)
+    N-move acceptance      = 0.139
+    H_N: 9 zero bins / 451 active bins  min=0  mean=30275277  max=37854874  flat=0.0%
+    Zero-visit N values: [442, 443, 444, 445, 446, 447, 448, 449, 450]
+    logQ slope: min at N=449 (slope=10.633)  max at N=353 (slope=14.364)
+    logQ range: 14310.9 to 20106.4  (span=5795.4)
+    Phase 2 flatness trajectory (recent):
+      iters=30B  H_min=0  flat=0%
+      iters=31B  H_min=0  flat=0%
+      iters=31B  H_min=0  flat=0%
+      iters=32B  H_min=0  flat=0%
+      iters=32B  H_min=0  flat=0%
+      iters=33B  H_min=0  flat=0%
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  122.90/run4  [criterion: NEW (122.90/run4=OLD)]
+    iters = 57B   logf = 6.940e-09   phase2=true   flat=false
+    δr_max_box = 1.04053  (= 8.3242 σ, L=8.0σ)
+    translation acceptance = 0.148  (target: 0.45–0.55)
+    N-move acceptance      = 0.240
+    H_N: 0 zero bins / 401 active bins  min=103632732  mean=143396763  max=147608429  flat=72.3%
+    logQ slope: min at N=400 (slope=10.090)  max at N=1 (slope=14.079)
+    logQ range: 8417.9 to 12954.6  (span=4536.7)
+    Phase 2 flatness trajectory (recent):
+      iters=55B  H_min=100701147  flat=74%
+      iters=55B  H_min=101195822  flat=73%
+      iters=56B  H_min=101304860  flat=73%
+      iters=56B  H_min=101670414  flat=73%
+      iters=57B  H_min=101670414  flat=72%
+      iters=57B  H_min=103255331  flat=72%
+
+──────────────────────────────────────────────────────────────────────
+SECTION 5: 122.90 K — completed runs vs stuck run4
+──────────────────────────────────────────────────────────────────────
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  122.90/run1 [DONE]  ph1=18 min  δr=8.3362σ  trans_acc=0.135  N_acc=0.219  iters=2B  flat=72%
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  122.90/run2 [DONE]  ph1=18 min  δr=8.3126σ  trans_acc=0.152  N_acc=0.244  iters=6B  flat=78%
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  122.90/run3 [DONE]  ph1=4 min  δr=0.0519σ  trans_acc=0.848  N_acc=0.230  iters=2B  flat=79%
+┌ Warning: saved type WangLandauVars is missing field dense_trans_proposed in workspace type; reconstructing
+└ @ JLD2 ~/.julia/packages/JLD2/hbsZG/src/data/reconstructing_datatypes.jl:197
+
+  122.90/run4 [running]  ph1=11 min  δr=8.3242σ  trans_acc=0.148  N_acc=0.240  iters=57B  flat=72%
+
+======================================================================
+SECTION 6: SUMMARY AND CONCLUSIONS
+======================================================================
+VARIANCE SOURCE — PHASE 1 OUTLIER EPOCHS
+  Several runs have single epochs that take 5–9× longer than the surrounding
+  epochs. These outliers appear at specific logf values and are not correlated
+  with the δr_max criterion. The likely cause is a free-energy barrier near
+  phase coexistence (T*=0.75 is deep in the two-phase region): once the
+  simulation escapes one phase basin (gas or liquid), it needs to visit ALL
+  N bins including the barrier region to satisfy H_min ≥ 1. If it gets stuck
+  near one phase, the epoch stretches enormously. This is stochastic — some
+  random seeds have the WL weights just right to cross quickly, others don't.
+
+PHASE 2 STUCK (H_min = 0) — CRITICAL FAILURE MODE
+  87.79/run1 and run3 entered phase 2 with a logQ estimate that has a large
+  error in the coexistence barrier region. In phase 2, logf is tiny (≈1/t)
+  so logQ updates are slow. If some N bin was never visited in the last phase-1
+  epoch (the one that triggered phase2 entry), the logQ for that bin is stale
+  from a much earlier epoch with large logf, causing the N-metropolis
+  acceptance to be essentially zero there. The simulation cannot cross to the
+  other side of the barrier → H_min stays 0 indefinitely.
+  COMPARE: run2 entered phase 2 much earlier (fewer iters, larger logf at
+  transition), which paradoxically gave a MORE ergodic starting point because
+  the phase 1 epochs were short enough that the stochastic barrier-crossing
+  succeeded. This is a known WL pathology at first-order-like transitions.
+
+δr_max CRITERION — NEW vs OLD
+  NEW criterion (update throughout phase 1):
+    - run2: spectacularly fast (831M iters, 43 min to phase 2, finished 5h total)
+    - run3: ~23x MORE iters to phase 2 than run2, then stuck in phase 2
+  OLD criterion (update only at logf=1):
+    - run1: 37.8B iters to phase 2, then stuck in phase 2
+  VERDICT: The new criterion CAN produce dramatically faster results (run2),
+  but it does not guarantee it. Run3 used the new criterion and still took
+  19.5B iters to phase 2. The key difference between run2 and run3 appears
+  to be stochastic (random seed / luck in barrier crossing). The old criterion
+  is clearly worse on average. However, the new criterion may be CAUSING the
+  slower runs to be slower due to a subtle problem: the running acceptance
+  rate (accepted/proposed accumulated from ALL moves) becomes very sluggish
+  to update late in phase 1 because the denominator is enormous. This means
+  δr_max freezes at whatever value the accumulated history produces, rather
+  than responding to the current N-distribution.
+
+  POSSIBLE IMPROVEMENT: Reset the acceptance rate counters at each epoch
+  boundary so δr_max adapts to the current DoS landscape, not the history.
+
+122.90/run4 — SLOW PHASE 2 CONVERGENCE
+  This run (old criterion, started before the change) entered phase 2 quickly
+  (~10 min) but is stuck at ~70–73% flatness after 53B total iters (~28h).
+  The H_min is not 0 (all bins visited), but the minimum bin grows slowly.
+  This suggests moderate ergodicity issues at T*=1.05, much milder than
+  T*=0.75 but still present. The other 122.90 runs converged in 1–3.5h,
+  making this a ≥10× outlier likely due to a different random seed landing
+  the simulation in a configuration where one N bin is very hard to reach.
+
+Analysis complete at 2026-05-05 16:22:04

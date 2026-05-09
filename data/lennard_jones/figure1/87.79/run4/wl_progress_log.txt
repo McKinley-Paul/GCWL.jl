@@ -1,0 +1,35 @@
+Starting run_simulation!(), time is 2026-05-06 12:22:51
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-06 12:23:01
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-06 12:23:07
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-06 12:23:14
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-06 12:23:24
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-06 12:23:39
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-06 12:23:52
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-06 12:23:55
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-06 12:24:41
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-06 12:25:13
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-06 12:25:23
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-06 12:26:25
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-06 12:27:25
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-06 12:29:41
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-06 12:30:12
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-06 12:34:44
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-06 12:36:39
+New WL phase 1 epoch!, now at 7.62939453125e-6 and the time is 2026-05-06 12:40:35
+New WL phase 1 epoch!, now at 3.814697265625e-6 and the time is 2026-05-06 12:48:57
+New WL phase 1 epoch!, now at 1.9073486328125e-6 and the time is 2026-05-06 12:53:53
+New WL phase 1 epoch!, now at 9.5367431640625e-7 and the time is 2026-05-06 13:13:06
+New WL phase 1 epoch!, now at 4.76837158203125e-7 and the time is 2026-05-06 14:33:15
+New WL phase 1 epoch!, now at 2.384185791015625e-7 and the time is 2026-05-06 15:12:25
+New WL phase 1 epoch!, now at 1.1920928955078125e-7 and the time is 2026-05-06 15:25:48
+New WL phase 1 epoch!, now at 5.960464477539063e-8 and the time is 2026-05-06 16:08:56
+Now entering phase 2! It took 6095716000 monte carlo moves (wl.iters) to get to phase 2! 2026-05-06 16:08:56
+That is a monte carlo time of: 13516000
+Phase 2 flatness check: H(N) min/mean = 5.0 %, total iters: 6500000000 min: 45005 2026-05-06 16:25:06
+Phase 2 flatness check: H(N) min/mean = 2.0 %, total iters: 7000000000 min: 45005 2026-05-06 16:40:05
+Phase 2 flatness check: H(N) min/mean = 1.0 %, total iters: 7500000000 min: 45005 2026-05-06 16:55:23
+Phase 2 flatness check: H(N) min/mean = 74.0 %, total iters: 8000000000 min: 3109601 2026-05-06 17:19:52
+Phase 2 flatness check: H(N) min/mean = 75.0 %, total iters: 8500000000 min: 4012316 2026-05-06 17:36:47
+Flatness criterion reached in phase 2 after 8518000000 total iterations 2026-05-06 17:37:56
+H(N) min/mean = 81.0 %
+H(N) max = 7281154

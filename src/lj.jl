@@ -1,4 +1,5 @@
 # this module contains system specific stuff to the argon lennard jones system
+# demonstrates how  to define your own custom pair potential as well
 using Random
 #  ✅  == checked in \test 
 

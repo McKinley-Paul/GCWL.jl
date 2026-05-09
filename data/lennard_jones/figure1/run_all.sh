@@ -56,11 +56,18 @@ run_job() {
     log "FINISHED  $label — $(format_duration "$duration")"
 }
 
-# Collect all run directories, sorted by temperature then run number
+# Collect run directories in ascending temperature order (explicit list avoids
+# alphabetical sort putting 105.35 before 87.79)
+TEMPS=(87.79 93.64 99.49 105.35 111.20 117.05 122.90 128.76 134.61 140.46)
+RUNS=(1 2 3 4)
+
 run_dirs=()
-while IFS= read -r d; do
-    run_dirs+=("$d")
-done < <(find "$SCRIPT_DIR" -name "main.jl" | sed 's|/main\.jl$||' | sort)
+for T in "${TEMPS[@]}"; do
+    for R in "${RUNS[@]}"; do
+        d="$SCRIPT_DIR/$T/run$R"
+        [ -f "$d/main.jl" ] && run_dirs+=("$d")
+    done
+done
 
 total=${#run_dirs[@]}
 

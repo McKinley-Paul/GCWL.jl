@@ -12,6 +12,17 @@ function euclidean_distance(ri::MVector{3,Float64},rj::MVector{3,Float64})::Floa
     return(rij)
 end # euclidean distance
 
+function euclidean_distance_squared(ri::MVector{3,Float64},rj::MVector{3,Float64})::Float64
+    # computes the euclidean distance between ri and rj. chatgpt says doing this manually in this way is the fastest b/c it avoids allocations 
+    # outputs r = √(Δx^2 +Δy^2 Δz^2 )
+    Δx = ri[1]-rj[1]
+    Δy = ri[2]-rj[2]
+    Δz = ri[3]-rj[3]
+    rij_2  = Δx*Δx + Δy*Δy+ Δz*Δz
+    return(rij_2)
+end # euclidean distance
+
+
 function min_config_distance(r::Vector{MVector{3,Float64}})::Tuple{Float64,Int64,Int64}
     # checks each pairwise distance in r and returns the minimum distance and the indices of the particles that that distance is between
     # so the user can identify if there is overlap or not. Needs to be called after renormalization to box units
@@ -73,14 +84,12 @@ function metropolis(ΔE::Float64,T_σ::Float64,rng::MersenneTwister=MersenneTwis
     # in the case of a translational move, the acceptance criteria reduces to the standard metropolis one. Assumes ΔE and T_σ have LJ units (both have energy units)
     exponent = -1*ΔE/T_σ 
 
-    if exponent < -75 # energy difference is too great, just reject without evaluating
-        return(false)
-    elseif exponent > 0 # downhill, accept without evaluating due to min(1,e^exponent) and e^exponent > 1 if exponent > 0 
+    if exponent > 0 # downhill, accept without evaluating due to min(1,e^exponent) and e^exponent > 1 if exponent > 0
         return(true)
-    else 
+    else
         ζ = rand(rng) # random number between zero and 1
         accept = (exp(exponent) > ζ)   #boolean
         return(accept)
-    end 
+    end
 
 end # metropolis

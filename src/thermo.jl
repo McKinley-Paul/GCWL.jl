@@ -375,6 +375,80 @@ end # ideal_gas_logQ_loggamma
 function compute_packing_frac(N::Int64, V::Float64,σ::Float64)::Float64
     # σ is diameter
     v_sphere =  (π * σ^3)/6
-    η = v_sphere* N /V 
+    η = v_sphere* N /V
     return(η)
+end
+
+# ─── Grand-canonical thermodynamic analysis (Desgranges & Delhommelle 2012) ───
+
+function logsumexp(v::AbstractVector{<:Real})
+    m = maximum(v)
+    return m + log(sum(x -> exp(x - m), v))
+end
+
+# logΞ(μ,V,T) = log Σ_N Q(N,V,T) exp(βμN), where β=1/(ε T_σ), μ_star=μ/ε
+function compute_logΞ(logQ_N::AbstractVector{<:Real}, μ_star::Real, T_σ::Real; N_min::Int=0)
+    N_max = length(logQ_N) - 1
+    logw = [logQ_N[N+1] + N * μ_star / T_σ for N in N_min:N_max]
+    return logsumexp(logw)
+end
+
+# p(N) = Q(N,V,T) exp(βμN) / Ξ; returns vector of length (N_max - N_min + 1)
+function compute_pN(logQ_N::AbstractVector{<:Real}, μ_star::Real, T_σ::Real; N_min::Int=0)
+    N_max = length(logQ_N) - 1
+    logw = [logQ_N[N+1] + N * μ_star / T_σ for N in N_min:N_max]
+    logΞ = logsumexp(logw)
+    return exp.(logw .- logΞ)
+end
+
+# <N>(μ,V,T) = Σ_N N p(N)
+function compute_mean_N(logQ_N::AbstractVector{<:Real}, μ_star::Real, T_σ::Real; N_min::Int=0)
+    N_max = length(logQ_N) - 1
+    pN = compute_pN(logQ_N, μ_star, T_σ; N_min=N_min)
+    return sum(Float64(N) * pN[i] for (i, N) in enumerate(N_min:N_max))
+end
+
+# P = k_B T ln(Ξ) / V in LJ reduced units (P* in units of ε/σ³)
+function compute_pressure_σ(logΞ::Real, V_σ::Real, T_σ::Real)
+    return T_σ * logΞ / V_σ
+end
+
+# Find the 1-based index into pN of the valley between vapor and liquid peaks.
+# Searches in the interior (20%–80% of the array) to avoid edge effects.
+function find_Nb_idx(pN::AbstractVector{<:Real})
+    n = length(pN)
+    lo = max(2, n ÷ 5)
+    hi = min(n - 1, 4n ÷ 5)
+    return lo + argmin(pN[lo:hi]) - 1
+end
+
+# Find μ_coex (in LJ reduced units) via the equal-peak-area criterion (bisection).
+# area_diff(μ) = 2 * Σ_{N≤N_b} p(N) - 1; positive = vapor-dominated, negative = liquid-dominated.
+function find_μ_coex(logQ_N::AbstractVector{<:Real}, T_σ::Real;
+                     N_min::Int=0, μ_lo::Real=-20.0, μ_hi::Real=-5.0,
+                     tol::Real=1e-6, max_iter::Int=100)
+    function area_diff(μ_star)
+        pN = compute_pN(logQ_N, μ_star, T_σ; N_min=N_min)
+        idx_b = find_Nb_idx(pN)
+        return 2*sum(pN[1:idx_b]) - 1.0
+    end
+    f_lo = area_diff(μ_lo)
+    f_hi = area_diff(μ_hi)
+    f_lo * f_hi > 0 && error("find_μ_coex: no sign change in [$(μ_lo), $(μ_hi)]; f_lo=$(f_lo), f_hi=$(f_hi)")
+    for _ in 1:max_iter
+        μ_mid = (μ_lo + μ_hi) / 2
+        abs(μ_hi - μ_lo) < tol && return μ_mid
+        f_mid = area_diff(μ_mid)
+        if f_lo * f_mid < 0
+            μ_hi = μ_mid; f_hi = f_mid
+        else
+            μ_lo = μ_mid; f_lo = f_mid
+        end
+    end
+    return (μ_lo + μ_hi) / 2
+end
+
+# ln z_sat = -3 ln(Λ_σ) + μ_coex_star / T_σ  (activity at coexistence, Desgranges Eq. after Table I)
+function compute_lnzsat(μ_coex_star::Real, T_σ::Real, Λ_σ::Real)
+    return -3*log(Λ_σ) + μ_coex_star / T_σ
 end

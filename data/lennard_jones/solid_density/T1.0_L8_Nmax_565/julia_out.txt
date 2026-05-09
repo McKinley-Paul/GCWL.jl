@@ -588,3 +588,4 @@ Positions of full particles in box units:
  HAD TO RESTART BECAUSE CHANGED THE δr_max UPDATE SCHEME several days into this run 
 Minimum distance in box units (L_box=1) between particles in the initial configuration is: 0.111 between particles 64 and 418
 This is compared to length of σ in box units which is: 0.125
+ HAD TO RESTART BECAUSE CHANGED THE δr_max UPDATE SCHEME several days into this run 

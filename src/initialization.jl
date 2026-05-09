@@ -11,6 +11,7 @@ abstract type PairPotential end # Pair potential is an abstract type used to def
 # struct LennardJones <: PairPotential end
 # gc_wl.pair_energy(::LennardJones, r2_σ::Float64) = E_12_LJ(r2_σ)
 # if parameters are needed in the potential definition, do not use anonymous definition shown here for the pair energy
+# pair potentials must accept squared distances as inputs !!!!!! due to how potential_1() works
 
 
 
@@ -95,8 +96,9 @@ mutable struct WangLandauVars
     iters::Int64 # total number of monte carlo moves thus far
     δr_max_box::Float64
     phase2::Bool # set to true once phase 2 is entered for Pereyra's 1/t algorithm (monte carlo time)
-    flat::Bool # set to true when the condition for flatness is met 
-    
+    flat::Bool # set to true when the condition for flatness is met
+    dense_trans_proposed::Int64 # translation moves proposed when μ.N == N_max; used to tune δr_max based on dense-phase acceptance only
+    dense_trans_accepted::Int64
 end
 
 function init_WangLandauVars(sim::SimulationParams,δr_max_box::Float64 = typemax(Float64))::WangLandauVars
@@ -111,7 +113,7 @@ function init_WangLandauVars(sim::SimulationParams,δr_max_box::Float64 = typema
     H_N = zeros(Int64,sim.N_max+1)
     logQ_N=zeros(Float64,sim.N_max+1) # has N_max+1 for N, N=0 goes in column 1, N_max goes in column (N_max + 1)
         
-    wl = WangLandauVars(logf,H_N,logQ_N,0,0,0,0,0,δr_max_box,false,false)
+    wl = WangLandauVars(logf,H_N,logQ_N,0,0,0,0,0,δr_max_box,false,false,0,0)
     return(wl)
 end
 
@@ -223,7 +225,7 @@ function check_inputs(s::SimulationParams,μ::microstate,wl::WangLandauVars)
         println("SimulationParams.dynamic_δr_max_box is set to false, therefore wl.δr_max_box will not be updated during the run and
         will be set to ", wl.δr_max_box, " for the entire course of the wang landau simulation")
     end
-    if (s.dynamic_δr_max_box == false) && (wl.δr_max_box = (0.15/s.L_σ))
+    if (s.dynamic_δr_max_box == false) && (wl.δr_max_box == (0.15/s.L_σ))
         println("wl.δr_max_box: ", wl.δr_max_box)
         throw("You have SimulationParams.dynamic_δr_max_box set to false yet wl.δr_max_box is the
                  the default value of 0.15/ L_sigma")
@@ -288,6 +290,10 @@ function print_wl(wl::WangLandauVars,verbose=true)
     @printf("translation_moves_proposed = %f\n", wl.translation_moves_proposed)
     @printf("translation_moves_accepted = %f\n", wl.translation_moves_accepted)
     @printf("translation acceptance ratio = %.4f\n", ( wl.translation_moves_accepted/wl.translation_moves_proposed) )
+    if wl.dense_trans_proposed > 0
+        @printf("dense (N=N_max) translation acceptance = %.4f  (%d proposed)\n",
+                wl.dense_trans_accepted/wl.dense_trans_proposed, wl.dense_trans_proposed)
+    end
     @printf("Total monte carlo moves so far = %.1f\n", wl.iters )
 
     if verbose 
