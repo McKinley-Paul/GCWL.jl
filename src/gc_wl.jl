@@ -24,7 +24,8 @@ export argon_deBroglie, E_12_LJ, N_metropolis, PairPotential, LennardJones, pair
 # thermo stuff:
 export correct_logQ!,compute_logZ, compute_bn_from_logZ,compute_bns_rescaled, compute_Bn_from_bn, ideal_gas_logQNVT, ideal_gas_logQ_loggamma, compute_packing_frac
 # grand-canonical thermodynamic analysis (Desgranges 2012):
-export logsumexp, compute_logΞ, compute_pN, compute_mean_N, compute_pressure_σ, find_Nb_idx, find_μ_coex, compute_lnzsat
+export logsumexp, compute_logΞ, compute_pN, compute_mean_N, compute_pressure_σ, find_Nb_idx, find_μ_coex, compute_lnzsat,
+       compute_phase_densities, ljdens_to_gcm3, compute_Psat_bar
 
 
 function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVars,c::SimCache)
@@ -267,7 +268,7 @@ function  N_metropolis(μ::microstate,
         end
 
         ΔE = E_proposed - E_old
-        exponent = -1*ΔE/sim.T_σ 
+        exponent = -1*ΔE/sim.T_σ
         prob_ratio = partition_ratio*V_Λ_prefactor*factorial_prefactor*exp(exponent)
         if prob_ratio > 1
             return(true)

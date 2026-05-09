@@ -452,3 +452,40 @@ end
 function compute_lnzsat(μ_coex_star::Real, T_σ::Real, Λ_σ::Real)
     return -3*log(Λ_σ) + μ_coex_star / T_σ
 end
+
+# Liquid and vapor densities at coexistence (Desgranges Eqs. 22–23).
+# Returns (ρ_liq_σ, ρ_vap_σ) in LJ reduced units (particles / σ³).
+# Nb splits at the argmin of p(N) in the interior (find_Nb_idx).
+# Liquid: N > Nb; vapor: N ≤ Nb.
+function compute_phase_densities(logQ_N::AbstractVector{<:Real}, μ_star::Real, T_σ::Real, V_σ::Real;
+                                  N_min::Int=0)
+    pN    = compute_pN(logQ_N, μ_star, T_σ; N_min=N_min)
+    idx_b = find_Nb_idx(pN)
+    N_vals = N_min : N_min + length(pN) - 1
+
+    A_vap   = sum(pN[1:idx_b])
+    ρ_vap_σ = A_vap > 0 ? sum(Float64(N_vals[i]) * pN[i] for i in 1:idx_b) / (A_vap * V_σ) : 0.0
+
+    A_liq   = sum(pN[idx_b+1:end])
+    ρ_liq_σ = A_liq > 0 ? sum(Float64(N_vals[i]) * pN[i] for i in idx_b+1:length(pN)) / (A_liq * V_σ) : 0.0
+
+    return ρ_liq_σ, ρ_vap_σ
+end
+
+# Convert LJ reduced density (particles / σ³) to g / cm³.
+# σ_Å: LJ σ in Ångströms; M_g_per_mol: molar mass in g/mol.
+function ljdens_to_gcm3(ρ_σ::Real; σ_Å::Real=3.4, M_g_per_mol::Real=39.948)
+    σ_cm = σ_Å * 1e-8
+    return ρ_σ * M_g_per_mol / (6.02214076e23 * σ_cm^3)
+end
+
+# Saturation pressure in bar from P* = T_σ * logΞ / V_σ (LJ reduced units ε/σ³ → bar).
+# ε_kB: LJ ε / k_B in K; σ_Å: σ in Å.
+function compute_Psat_bar(logΞ::Real, T_σ::Real, V_σ::Real;
+                           ε_kB::Real=117.05, σ_Å::Real=3.4)
+    P_star = T_σ * logΞ / V_σ
+    k_B_SI = 1.380649e-23
+    σ_m    = σ_Å * 1e-10
+    ε_SI   = ε_kB * k_B_SI
+    return P_star * ε_SI / σ_m^3 / 1e5  # Pa → bar
+end
