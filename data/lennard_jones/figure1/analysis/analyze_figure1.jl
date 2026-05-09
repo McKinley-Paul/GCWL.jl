@@ -96,57 +96,128 @@ for T_str in TEMPERATURES
 end
 
 # ─── Equal-area scan: find μ_coex and ln z_sat ────────────────────────────────
+# Uncertainties computed the same way as Desgranges 2012: run the equal-peak-area
+# bisection on each independent run separately, then take std over the N_runs values.
+# The mean from the averaged logQ is kept separately for figure generation.
 
-println("\nSearching for μ_coex via equal-peak-area bisection...")
+println("\nSearching for μ_coex via equal-peak-area bisection (per-run and averaged)...")
 flush(stdout)
 
-gcwl_μstar  = Float64[]   # reduced units
-gcwl_μkJkg  = Float64[]   # kJ/kg
+# Per-run values (one Float64 per successful run) — used for mean and std
+gcwl_μkJkg_runs  = Vector{Vector{Float64}}()
+gcwl_lnzsat_runs = Vector{Vector{Float64}}()
+
+# Statistics from per-run values (Desgranges methodology)
+gcwl_μkJkg_mean  = Float64[]
+gcwl_μkJkg_std   = Float64[]
+gcwl_lnzsat_mean = Float64[]
+gcwl_lnzsat_std  = Float64[]
+
+# From averaged logQ — used only for figure generation (more precise single estimate)
+gcwl_μstar  = Float64[]
+gcwl_μkJkg  = Float64[]
 gcwl_lnzsat = Float64[]
 
 for (i, T_str) in enumerate(TEMPERATURES)
-    logQ = all_logQ[T_str]
-    sim  = all_sim[T_str]
-    T_σ  = sim.T_σ
-    Λ_σ  = sim.Λ_σ
+    sim   = all_sim[T_str]
+    T_σ   = sim.T_σ
+    Λ_σ   = sim.Λ_σ
     N_min = sim.N_min
 
-    try
-        μ_star = find_μ_coex(logQ, T_σ; N_min=N_min, μ_lo=-20.0, μ_hi=-5.0, tol=1e-7)
-        lnz    = compute_lnzsat(μ_star, T_σ, Λ_σ)
-        push!(gcwl_μstar,  μ_star)
-        push!(gcwl_μkJkg,  μ_star * LJ_TO_KJKG)
-        push!(gcwl_lnzsat, lnz)
-        @printf("  T=%-6s K: μ*=%-9.4f  μ=%-8.2f kJ/kg  ln z_sat=%-7.3f\n",
-                T_str, μ_star, μ_star * LJ_TO_KJKG, lnz)
-    catch e
-        push!(gcwl_μstar,  NaN)
-        push!(gcwl_μkJkg,  NaN)
-        push!(gcwl_lnzsat, NaN)
-        @printf("  T=%-6s K: ERROR — %s\n", T_str, e)
+    # ── Per-run bisection ──────────────────────────────────────────────────────
+    run_μkJkg  = Float64[]
+    run_lnzsat = Float64[]
+    for run in 1:4
+        wl_run, _ = load_run(T_str, run)
+        wl_run === nothing && continue
+        logQ_run = collect(Float64, wl_run.logQ_N)
+        try
+            μ_star_run = find_μ_coex(logQ_run, T_σ; N_min=N_min,
+                                     μ_lo=-20.0, μ_hi=-5.0, tol=1e-7)
+            push!(run_μkJkg,  μ_star_run * LJ_TO_KJKG)
+            push!(run_lnzsat, compute_lnzsat(μ_star_run, T_σ, Λ_σ))
+        catch e
+            @warn "T=$T_str run$run bisection failed: $e"
+        end
     end
+    push!(gcwl_μkJkg_runs,  run_μkJkg)
+    push!(gcwl_lnzsat_runs, run_lnzsat)
+
+    n_ok = length(run_lnzsat)
+    if n_ok >= 1
+        push!(gcwl_μkJkg_mean,  mean(run_μkJkg))
+        push!(gcwl_lnzsat_mean, mean(run_lnzsat))
+        push!(gcwl_μkJkg_std,   n_ok >= 2 ? std(run_μkJkg)  : NaN)
+        push!(gcwl_lnzsat_std,  n_ok >= 2 ? std(run_lnzsat) : NaN)
+    else
+        push!(gcwl_μkJkg_mean, NaN); push!(gcwl_lnzsat_mean, NaN)
+        push!(gcwl_μkJkg_std,  NaN); push!(gcwl_lnzsat_std,  NaN)
+    end
+
+    # ── From averaged logQ (for figures) ──────────────────────────────────────
+    try
+        μ_star_avg = find_μ_coex(all_logQ[T_str], T_σ; N_min=N_min,
+                                  μ_lo=-20.0, μ_hi=-5.0, tol=1e-7)
+        push!(gcwl_μstar,  μ_star_avg)
+        push!(gcwl_μkJkg,  μ_star_avg * LJ_TO_KJKG)
+        push!(gcwl_lnzsat, compute_lnzsat(μ_star_avg, T_σ, Λ_σ))
+    catch
+        push!(gcwl_μstar, NaN); push!(gcwl_μkJkg, NaN); push!(gcwl_lnzsat, NaN)
+    end
+
+    σ_lnz_str = isnan(gcwl_lnzsat_std[end]) ? "N/A" :
+                @sprintf("%.4f", gcwl_lnzsat_std[end])
+    σ_μ_str   = isnan(gcwl_μkJkg_std[end]) ? "N/A" :
+                @sprintf("%.3f", gcwl_μkJkg_std[end])
+    @printf("  T=%-6s K (%d/%d runs): μ=%.2f±%s kJ/kg  ln z=%.3f±%s\n",
+            T_str, n_ok, 4,
+            gcwl_μkJkg_mean[end], σ_μ_str,
+            gcwl_lnzsat_mean[end], σ_lnz_str)
 end
 
 # ─── Print comparison table ───────────────────────────────────────────────────
 
-println("\n" * "="^85)
+println("\n" * "="^110)
 println("TABLE 1 COMPARISON: ln(z_sat) at vapour-liquid coexistence")
-println("="^85)
-@printf("%-8s  %-14s  %-10s  %-14s  %-10s  %-10s  %s\n",
-        "T (K)", "μ_coex GCWL", "ln z GCWL", "μ_coex SEGC", "SEGC", "TMMC", "Δ(GCWL-TMMC)")
-@printf("%-8s  %-14s  %-10s  %-14s  %-10s  %-10s  %s\n",
-        "", "(kJ/kg)", "", "(kJ/kg)", "", "", "")
-println("-"^85)
+println("Uncertainties = sample std over 4 independent GC-WL runs (Desgranges 2012 methodology)")
+println("="^110)
+@printf("%-8s  %-22s  %-20s  %-14s  %-8s  %-8s  %-13s  %s\n",
+        "T (K)", "μ_coex GCWL (kJ/kg)", "ln z_sat GCWL", "μ_SEGC (kJ/kg)", "SEGC", "TMMC", "Δ(GCWL-TMMC)", "Δ(SEGC-TMMC)")
+@printf("%-8s  %-22s  %-20s  %-14s  %-8s  %-8s  %-13s  %s\n",
+        "", "mean ± std  [n]", "mean ± std  [n]", "", "", "", "", "")
+println("-"^110)
 for i in eachindex(TEMPERATURES)
     T_K = TEMP_K[i]
-    Δ = isnan(gcwl_lnzsat[i]) ? NaN : gcwl_lnzsat[i] - REF_TMMC_LNZSAT[i]
-    @printf("%-8.2f  %-14.2f  %-10.3f  %-14.2f  %-10.3f  %-10.3f  %+.3f\n",
-            T_K, gcwl_μkJkg[i], gcwl_lnzsat[i],
-            REF_SEGC_MUCX[i], REF_SEGC_LNZSAT[i], REF_TMMC_LNZSAT[i], Δ)
+    n_ok = length(gcwl_lnzsat_runs[i])
+
+    μ_str = if isnan(gcwl_μkJkg_mean[i])
+        "N/A"
+    elseif isnan(gcwl_μkJkg_std[i])
+        @sprintf("%.2f  [%d]", gcwl_μkJkg_mean[i], n_ok)
+    else
+        @sprintf("%.2f ± %.2f  [%d]", gcwl_μkJkg_mean[i], gcwl_μkJkg_std[i], n_ok)
+    end
+
+    lnz_str = if isnan(gcwl_lnzsat_mean[i])
+        "N/A"
+    elseif isnan(gcwl_lnzsat_std[i])
+        @sprintf("%.3f  [%d]", gcwl_lnzsat_mean[i], n_ok)
+    else
+        @sprintf("%.3f ± %.4f  [%d]", gcwl_lnzsat_mean[i], gcwl_lnzsat_std[i], n_ok)
+    end
+
+    Δ_gcwl = isnan(gcwl_lnzsat_mean[i]) ? "N/A" :
+             @sprintf("%+.3f", gcwl_lnzsat_mean[i] - REF_TMMC_LNZSAT[i])
+    Δ_segc = REF_SEGC_LNZSAT[i] - REF_TMMC_LNZSAT[i]
+
+    @printf("%-8.2f  %-22s  %-20s  %-14.2f  %-8.3f  %-8.3f  %-13s  %+.3f\n",
+            T_K, μ_str, lnz_str,
+            REF_SEGC_MUCX[i], REF_SEGC_LNZSAT[i], REF_TMMC_LNZSAT[i],
+            Δ_gcwl, Δ_segc)
 end
-println("="^85)
-println("SEGC-WL and TMMC references from Desgranges & Delhommelle, J. Chem. Phys. 136, 184107 (2012), Table I.")
-println("Note: TMMC entry at T=128.76 K is -3.384 (paper has -4.384, assumed typo).")
+println("="^110)
+println("SEGC-WL and TMMC: Desgranges & Delhommelle, J. Chem. Phys. 136, 184107 (2012), Table I.")
+println("Note: TMMC entry at T=128.76 K is −3.384 (paper prints −4.384, assumed typo).")
 flush(stdout)
 
 # ─── FIGURE 2: Chemical potential μ vs <N> ────────────────────────────────────
