@@ -59,6 +59,7 @@ function load_run(T_str, run_idx)
     isfile(wl_path) || return nothing, nothing
     wl  = load(wl_path, "wl")
     sim = load(joinpath(dir, "sim.jld2"), "sim")
+    wl.logQ_N .-= wl.logQ_N[sim.N_min + 1]
     return wl, sim
 end
 
@@ -68,7 +69,10 @@ function load_averaged_data(T_str)
     for run in 1:4
         wl, sim = load_run(T_str, run)
         wl === nothing && continue
-        push!(arrays, collect(Float64, wl.logQ_N))
+        logQ_lrc = apply_lrc_to_logQ(collect(Float64, wl.logQ_N),
+                                     sim.T_σ, sim.V_σ, sim.r_cut_σ;
+                                     N_min=sim.N_min)
+        push!(arrays, logQ_lrc)
         sim_ref === nothing && (sim_ref = sim)
     end
     isempty(arrays) && error("No data for T=$T_str")

@@ -30,7 +30,9 @@ const LJPRES_TO_BAR = (ε_kB_Ar * k_B) / σ_Ar^3 / 1.0e5    # bar per LJ reduced
 
 # ─── Data layout ──────────────────────────────────────────────────────────────
 
-const BASE = joinpath(@__DIR__, "..")   # figure1/
+const BASE = joinpath(@__DIR__, "..")   # 3sigma_cut/
+
+println("base directory: ", BASE)
 
 const TEMPERATURES = ["87.79", "93.64", "99.49", "105.35", "111.20",
                       "117.05", "122.90", "128.76", "134.61", "140.46"]
@@ -49,9 +51,7 @@ const REF_TMMC_LNZSAT  = [-5.683, -5.196, -4.779, -4.419, -4.107,
 
 function load_run(T_str::String, run_idx::Int)
     dir = joinpath(BASE, T_str, "run$run_idx")
-    wl_path = isfile(joinpath(dir, "final_wl.jld2")) ?
-              joinpath(dir, "final_wl.jld2") :
-              joinpath(dir, "wl_checkpoint.jld2")
+    wl_path = joinpath(dir, "final_wl.jld2")
     isfile(wl_path) || return nothing, nothing
     wl  = load(wl_path, "wl")
     sim = load(joinpath(dir, "sim.jld2"), "sim")
@@ -59,16 +59,20 @@ function load_run(T_str::String, run_idx::Int)
 end
 
 # Average logQ_N across all 4 runs for a temperature; returns (logQ_mean, logQ_std, sim, n_runs)
+# LRC is applied to each run individually before averaging (r_cut = 3σ).
 function load_averaged_data(T_str::String)
     arrays = Vector{Float64}[]
     sim_ref = nothing
     for run in 1:4
         wl, sim = load_run(T_str, run)
         wl === nothing && continue
-        push!(arrays, collect(Float64, wl.logQ_N))
+        logQ_lrc = apply_lrc_to_logQ(collect(Float64, wl.logQ_N),
+                                      sim.T_σ, sim.V_σ, sim.r_cut_σ;
+                                      N_min=sim.N_min)
+        push!(arrays, logQ_lrc)
         sim_ref === nothing && (sim_ref = sim)
     end
-    isempty(arrays) && error("No data for T=$T_str")
+    isempty(arrays) && return nothing, nothing, nothing, 0
     mat = reduce(hcat, arrays)                          # (N_max+1) × n_runs
     logQ_mean = vec(mean(mat, dims=2))
     logQ_std  = size(mat, 2) > 1 ? vec(std(mat, dims=2)) : zeros(size(mat, 1))
@@ -87,6 +91,10 @@ all_nruns = Dict{String, Int}()
 
 for T_str in TEMPERATURES
     logQ_mean, logQ_std, sim, n = load_averaged_data(T_str)
+    if logQ_mean === nothing
+        @printf("  T=%-6s K  no data yet — skipping\n", T_str)
+        continue
+    end
     all_logQ[T_str]  = logQ_mean
     all_std[T_str]   = logQ_std
     all_sim[T_str]   = sim
@@ -119,6 +127,14 @@ gcwl_μkJkg  = Float64[]
 gcwl_lnzsat = Float64[]
 
 for (i, T_str) in enumerate(TEMPERATURES)
+    if !haskey(all_sim, T_str)
+        push!(gcwl_μkJkg_runs,  Float64[])
+        push!(gcwl_lnzsat_runs, Float64[])
+        push!(gcwl_μkJkg_mean, NaN); push!(gcwl_lnzsat_mean, NaN)
+        push!(gcwl_μkJkg_std,  NaN); push!(gcwl_lnzsat_std,  NaN)
+        push!(gcwl_μstar, NaN); push!(gcwl_μkJkg, NaN); push!(gcwl_lnzsat, NaN)
+        continue
+    end
     sim   = all_sim[T_str]
     T_σ   = sim.T_σ
     Λ_σ   = sim.Λ_σ
@@ -128,9 +144,11 @@ for (i, T_str) in enumerate(TEMPERATURES)
     run_μkJkg  = Float64[]
     run_lnzsat = Float64[]
     for run in 1:4
-        wl_run, _ = load_run(T_str, run)
+        wl_run, sim_run = load_run(T_str, run)
         wl_run === nothing && continue
-        logQ_run = collect(Float64, wl_run.logQ_N)
+        logQ_run = apply_lrc_to_logQ(collect(Float64, wl_run.logQ_N),
+                                      sim_run.T_σ, sim_run.V_σ, sim_run.r_cut_σ;
+                                      N_min=sim_run.N_min)
         try
             μ_star_run = find_μ_coex(logQ_run, T_σ; N_min=N_min,
                                      μ_lo=-20.0, μ_hi=-5.0, tol=1e-7)
@@ -246,6 +264,7 @@ plt2 = plot(
 )
 
 for (T_str, col, sty) in zip(fig2_temps, fig2_colors, fig2_styles)
+    haskey(all_logQ, T_str) || continue
     logQ = all_logQ[T_str]
     sim  = all_sim[T_str]
     T_σ  = sim.T_σ
@@ -286,64 +305,62 @@ println("  Saved: $fig2_path")
 println("Generating Figure 4 (p(N) at T=140.46 K)...")
 flush(stdout)
 
-T_str = "140.46"
-logQ  = all_logQ[T_str]
-sim   = all_sim[T_str]
-T_σ   = sim.T_σ
-N_min = sim.N_min
-N_max = sim.N_max
-N_vals = N_min:N_max
+let T_str = "140.46"
+if !haskey(all_logQ, T_str)
+    println("  Skipping Figure 4: no data for T=$T_str yet")
+else
+    logQ  = all_logQ[T_str]
+    sim4  = all_sim[T_str]
+    T_σ   = sim4.T_σ
+    N_min = sim4.N_min
+    N_max = sim4.N_max
+    N_vals = N_min:N_max
+    idx140 = findfirst(==("140.46"), TEMPERATURES)
 
-# Three μ values from the paper (kJ/kg) → reduced units
-μ_liquid_star = -316.62 / LJ_TO_KJKG   # bulk liquid
-μ_vapor_star  = -361.68 / LJ_TO_KJKG   # bulk vapor
-μ_coex_paper  = -323.27 / LJ_TO_KJKG   # liquid-vapor coexistence (paper)
-μ_coex_gcwl   = gcwl_μstar[findfirst(==("140.46"), TEMPERATURES)]   # our value
+    # Three μ values from the paper (kJ/kg) → reduced units
+    μ_liquid_star = -316.62 / LJ_TO_KJKG
+    μ_vapor_star  = -361.68 / LJ_TO_KJKG
+    μ_coex_paper  = -323.27 / LJ_TO_KJKG
+    μ_coex_gcwl   = gcwl_μstar[idx140]
 
-pN_liquid = compute_pN(logQ, μ_liquid_star, T_σ; N_min=N_min)
-pN_vapor  = compute_pN(logQ, μ_vapor_star,  T_σ; N_min=N_min)
-pN_coex_paper = compute_pN(logQ, μ_coex_paper, T_σ; N_min=N_min)
-pN_coex_gcwl  = isnan(μ_coex_gcwl) ? nothing :
-                compute_pN(logQ, μ_coex_gcwl, T_σ; N_min=N_min)
+    pN_liquid     = compute_pN(logQ, μ_liquid_star, T_σ; N_min=N_min)
+    pN_vapor      = compute_pN(logQ, μ_vapor_star,  T_σ; N_min=N_min)
+    pN_coex_paper = compute_pN(logQ, μ_coex_paper,  T_σ; N_min=N_min)
+    pN_coex_gcwl  = isnan(μ_coex_gcwl) ? nothing :
+                    compute_pN(logQ, μ_coex_gcwl, T_σ; N_min=N_min)
 
-# Panel (a): bulk liquid
-plt4a = plot(N_vals, pN_liquid,
-             xlabel="N", ylabel="p(N)",
-             title="(a) μ = −316.62 kJ/kg  (bulk liquid)",
-             label="GC-WL", color=:navy, linewidth=1.5,
-             framestyle=:box, legend=:topleft)
+    plt4a = plot(N_vals, pN_liquid,
+                 xlabel="N", ylabel="p(N)",
+                 title="(a) μ = −316.62 kJ/kg  (bulk liquid)",
+                 label="GC-WL", color=:navy, linewidth=1.5,
+                 framestyle=:box, legend=:topleft)
 
-# Panel (b): bulk vapor
-plt4b = plot(N_vals, pN_vapor,
-             xlabel="N", ylabel="p(N)",
-             title="(b) μ = −361.68 kJ/kg  (bulk vapor)",
-             label="GC-WL", color=:crimson, linewidth=1.5,
-             framestyle=:box, legend=:topright)
+    plt4b = plot(N_vals, pN_vapor,
+                 xlabel="N", ylabel="p(N)",
+                 title="(b) μ = −361.68 kJ/kg  (bulk vapor)",
+                 label="GC-WL", color=:crimson, linewidth=1.5,
+                 framestyle=:box, legend=:topright)
 
-# Panel (c): coexistence — paper value and our GC-WL value
-plt4c = plot(N_vals, pN_coex_paper,
-             xlabel="N", ylabel="p(N)",
-             title="(c) Coexistence (T = 140.46 K)",
-             label="μ = −323.27 kJ/kg (SEGC-WL)", color=:darkgreen, linewidth=1.5,
-             framestyle=:box, legend=:top)
-if pN_coex_gcwl !== nothing
-    plot!(plt4c, N_vals, pN_coex_gcwl,
-          label=@sprintf("μ = %.2f kJ/kg (GC-WL)", gcwl_μkJkg[findfirst(==("140.46"), TEMPERATURES)]),
-          color=:orange, linestyle=:dash, linewidth=1.5)
+    plt4c = plot(N_vals, pN_coex_paper,
+                 xlabel="N", ylabel="p(N)",
+                 title="(c) Coexistence (T = 140.46 K)",
+                 label="μ = −323.27 kJ/kg (SEGC-WL)", color=:darkgreen, linewidth=1.5,
+                 framestyle=:box, legend=:top)
+    if pN_coex_gcwl !== nothing
+        plot!(plt4c, N_vals, pN_coex_gcwl,
+              label=@sprintf("μ = %.2f kJ/kg (GC-WL)", gcwl_μkJkg[idx140]),
+              color=:orange, linestyle=:dash, linewidth=1.5)
+        idx_b = find_Nb_idx(pN_coex_gcwl)
+        vline!(plt4c, [N_min + idx_b - 1], color=:gray, linestyle=:dot, linewidth=1,
+               label="N_b=$(N_min + idx_b - 1)")
+    end
+
+    plt4 = plot(plt4a, plt4b, plt4c, layout=(3,1), size=(700, 900))
+    fig4_path = joinpath(@__DIR__, "figure4_pN.pdf")
+    savefig(plt4, fig4_path)
+    println("  Saved: $fig4_path")
 end
-
-# Find and mark the valley N_b for the coexistence panel
-if pN_coex_gcwl !== nothing
-    idx_b = find_Nb_idx(pN_coex_gcwl)
-    N_b   = N_min + idx_b - 1
-    vline!(plt4c, [N_b], color=:gray, linestyle=:dot, linewidth=1, label="N_b=$(N_b)")
 end
-
-plt4 = plot(plt4a, plt4b, plt4c, layout=(3,1), size=(700, 900))
-
-fig4_path = joinpath(@__DIR__, "figure4_pN.pdf")
-savefig(plt4, fig4_path)
-println("  Saved: $fig4_path")
 
 # ─── BONUS: p(N) at coexistence for all temperatures ─────────────────────────
 
@@ -402,6 +419,7 @@ plt_mu_all = plot(
 )
 
 for (i, T_str) in enumerate(TEMPERATURES)
+    haskey(all_logQ, T_str) || continue
     logQ  = all_logQ[T_str]
     sim   = all_sim[T_str]
     T_σ   = sim.T_σ

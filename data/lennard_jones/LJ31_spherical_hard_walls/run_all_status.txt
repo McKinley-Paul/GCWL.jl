@@ -1,3 +1,8 @@
 [2026-05-08 14:15:39] === Starting 10 jobs (1 at a time) ===
 [2026-05-08 14:15:39] === Status log: /Users/mckinleypaul/Documents/montecarlo/gc_wl/data/lennard_jones/LJ31_spherical_hard_walls/run_all_status.txt ===
 [2026-05-08 14:15:39] STARTED   T_0.010
+[2026-05-09 19:22:03] CANCELLED T_0.010 — killed by user at 2026-05-09 19:22:03 EDT. Total wall time: 29h 6m 20s (started 2026-05-08 14:15:43). Last WL logf: 7.450580596923828e-9 (phase 1 still running). PID 15039 killed.
+[2026-05-09 19:22:53] FINISHED  T_0.010 — 29h 07m 14s
+[2026-05-09 19:22:53] STARTED   T_0.015
+[2026-05-09 19:22:03] CANCELLED run_all.sh — PIDs 15028 (bash run_all.sh) and 15029 (caffeinate) killed. Script had already advanced to T_0.015.
+[2026-05-09 19:22:03] CANCELLED T_0.015 — killed immediately after starting (~35s of run time). PID 51169 killed.

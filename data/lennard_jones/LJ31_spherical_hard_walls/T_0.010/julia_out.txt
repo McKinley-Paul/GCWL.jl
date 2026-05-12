@@ -50,3 +50,12 @@ Positions of full particles in box units:
  [0.0, 0.0, 0.0]
  [0.0, 0.0, 0.0]
  [0.0, 0.0, 0.0]
+
+[15039] signal 15: Terminated: 15
+in expression starting at /Users/mckinleypaul/Documents/montecarlo/gc_wl/data/lennard_jones/LJ31_spherical_hard_walls/T_0.010/main.jl:25
+__psynch_cvwait at /usr/lib/system/libsystem_kernel.dylib (unknown line)
+unknown function (ip: 0x0) at (unknown file)
+unknown function (ip: 0x1164c4228) at (unknown file)
+unknown function (ip: 0x0) at (unknown file)
+Allocations: 1382896019 (Pool: 1382895853; Big: 166); GC: 309
+  Activating project at `~/Documents/montecarlo/gc_wl`

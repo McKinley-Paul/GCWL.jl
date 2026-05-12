@@ -7,6 +7,7 @@ include("initialization.jl")
 include("utils.jl")
 include("lj.jl")
 include("thermo.jl")
+include("cluster_expansions.jl")
 include("hard_wall_bcs.jl")
 # ✅  = unit tests for function exist in /tests/
 # this module contains the meat of the package including run_simulation and the various High Level Wang Landau Monte Carlo functions. 
@@ -22,10 +23,12 @@ export euclidean_distance, min_config_distance, euclidean_distance_squared_pbc, 
 # lj exports:
 export argon_deBroglie, E_12_LJ, N_metropolis, PairPotential, LennardJones, pair_energy
 # thermo stuff:
-export correct_logQ!,compute_logZ, compute_bn_from_logZ,compute_bns_rescaled, compute_Bn_from_bn, ideal_gas_logQNVT, ideal_gas_logQ_loggamma, compute_packing_frac
+export correct_logQ!,compute_logZ,  ideal_gas_logQNVT, ideal_gas_logQ_loggamma, compute_packing_frac
+#cluster_expansion_stuff:
+export compute_bn_from_logZ,compute_bns_rescaled, compute_Bn_from_bn
 # grand-canonical thermodynamic analysis (Desgranges 2012):
 export logsumexp, compute_logΞ, compute_pN, compute_mean_N, compute_pressure_σ, find_Nb_idx, find_μ_coex, compute_lnzsat,
-       compute_phase_densities, ljdens_to_gcm3, compute_Psat_bar
+       compute_phase_densities, ljdens_to_gcm3, compute_Psat_bar, apply_lrc_to_logQ
 
 
 function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVars,c::SimCache)

@@ -11,11 +11,11 @@ println("Temperature in Kelvin is ", 117.05*T_σ, " K")
 L_σ = 8.0 # V=512
 println("Λ_σ = $Λ_σ")
 sim = SimulationParams(
-    N_max=300,
+    N_max=450,
     N_min=0,
     T_σ=T_σ, Λ_σ=Λ_σ,
     L_σ = L_σ,
-    r_cut_σ= ceil(sqrt(3)*L_σ) , # effectively no cutoff: max PBC distance is L_σ*√3
+    r_cut_σ= 3.0,
     save_directory_path=@__DIR__,
     maxiter=100_000_000_000_000)
 

@@ -50,8 +50,7 @@ const EXP_PSAT = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 function load_run(T_str, run_idx)
     dir = joinpath(BASE, T_str, "run$run_idx")
-    wl_path = isfile(joinpath(dir,"final_wl.jld2")) ?
-              joinpath(dir,"final_wl.jld2") : joinpath(dir,"wl_checkpoint.jld2")
+    wl_path = joinpath(dir, "final_wl.jld2")
     isfile(wl_path) || return nothing, nothing
     wl  = load(wl_path, "wl")
     sim = load(joinpath(dir, "sim.jld2"), "sim")
@@ -64,10 +63,13 @@ function load_averaged_data(T_str)
     for run in 1:4
         wl, sim = load_run(T_str, run)
         wl === nothing && continue
-        push!(arrays, collect(Float64, wl.logQ_N))
+        logQ_lrc = apply_lrc_to_logQ(collect(Float64, wl.logQ_N),
+                                     sim.T_σ, sim.V_σ, sim.r_cut_σ;
+                                     N_min=sim.N_min)
+        push!(arrays, logQ_lrc)
         sim_ref === nothing && (sim_ref = sim)
     end
-    isempty(arrays) && error("No data for T=$T_str")
+    isempty(arrays) && return nothing, nothing, 0
     return vec(mean(reduce(hcat, arrays), dims=2)), sim_ref, length(arrays)
 end
 
@@ -77,6 +79,10 @@ all_logQ = Dict{String,Vector{Float64}}()
 all_sim  = Dict{String,Any}()
 for T_str in TEMPERATURES
     logQ, sim, n = load_averaged_data(T_str)
+    if logQ === nothing
+        @printf("  T=%-6s K  no data yet — skipping\n", T_str)
+        continue
+    end
     all_logQ[T_str] = logQ
     all_sim[T_str]  = sim
     @printf("  T=%-6s K  N_max=%-3d  T*=%.2f  Λ_σ=%.4f  runs=%d\n",
@@ -93,6 +99,7 @@ flush(stdout)
 results = Dict{String, NamedTuple}()
 
 for T_str in TEMPERATURES
+    haskey(all_logQ, T_str) || continue
     logQ_avg = all_logQ[T_str]
     sim      = all_sim[T_str]
     T_σ = sim.T_σ; Λ_σ = sim.Λ_σ; N_min = sim.N_min; V_σ = sim.V_σ
@@ -104,16 +111,25 @@ for T_str in TEMPERATURES
     run_P   = Float64[]
 
     for run in 1:4
-        wl, _ = load_run(T_str, run)
+        wl, sim_run = load_run(T_str, run)
         wl === nothing && continue
-        logQ_run = collect(Float64, wl.logQ_N)
+        logQ_run = apply_lrc_to_logQ(collect(Float64, wl.logQ_N),
+                                     sim_run.T_σ, sim_run.V_σ, sim_run.r_cut_σ;
+                                     N_min=sim_run.N_min)
         μ = try
             find_μ_coex(logQ_run, T_σ; N_min=N_min, tol=1e-7)
         catch
             continue
         end
         ρl_σ, ρv_σ = compute_phase_densities(logQ_run, μ, T_σ, V_σ; N_min=N_min)
-        logΞ = compute_logΞ(logQ_run, μ, T_σ; N_min=N_min)
+        # Robust logΞ: at coexistence A_vap = A_liq = 0.5, so Ξ = 2 × Ξ_vap.
+        # Sum only over the vapor half (N ≤ N_b, small N, always well-converged by WL).
+        # This avoids contamination from poorly-converged high-N tails.
+        pN_run  = compute_pN(logQ_run, μ, T_σ; N_min=N_min)
+        N_b_idx = find_Nb_idx(pN_run)
+        N_b     = N_min + N_b_idx - 1
+        logw_vap = [logQ_run[N+1] + N * μ / T_σ for N in N_min:N_b]
+        logΞ = log(2.0) + logsumexp(logw_vap)
         push!(run_μ,  μ)
         push!(run_ρl, ljdens_to_gcm3(ρl_σ; σ_Å=σ_Ar_Å, M_g_per_mol=39.948))
         push!(run_ρv, ljdens_to_gcm3(ρv_σ; σ_Å=σ_Ar_Å, M_g_per_mol=39.948))

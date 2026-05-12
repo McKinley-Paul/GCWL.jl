@@ -26,3 +26,4 @@ New WL phase 1 epoch!, now at 5.960464477539063e-8 and the time is 2026-05-08 15
 New WL phase 1 epoch!, now at 2.9802322387695312e-8 and the time is 2026-05-08 18:13:48
 New WL phase 1 epoch!, now at 1.4901161193847656e-8 and the time is 2026-05-08 23:00:36
 New WL phase 1 epoch!, now at 7.450580596923828e-9 and the time is 2026-05-09 16:52:26
+[2026-05-09 19:22:03] SIMULATION CANCELLED by user. Total wall time: 29h 6m 20s (started 2026-05-08 14:15:43). Last WL logf: 7.450580596923828e-9 (phase 1). PID 15039 killed.

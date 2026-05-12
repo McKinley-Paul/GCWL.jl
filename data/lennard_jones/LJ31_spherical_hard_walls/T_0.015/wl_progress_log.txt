@@ -1,0 +1,17 @@
+Starting run_simulation!(), time is 2026-05-09 19:22:58
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-05-09 19:22:58
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-05-09 19:22:58
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-05-09 19:22:58
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-05-09 19:22:58
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-05-09 19:22:58
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-05-09 19:22:58
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-05-09 19:22:59
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-05-09 19:22:59
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-05-09 19:22:59
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-05-09 19:23:00
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-05-09 19:23:02
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-05-09 19:23:04
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-05-09 19:23:08
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-05-09 19:23:12
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-05-09 19:23:26
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-05-09 19:23:34
