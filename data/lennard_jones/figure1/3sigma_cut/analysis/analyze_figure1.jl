@@ -438,3 +438,5 @@ savefig(plt_mu_all, fig_mu_all_path)
 println("  Saved: $fig_mu_all_path")
 
 println("\nAnalysis complete.")
+
+println(all_logQ["140.46"])

@@ -72,3 +72,12 @@ Phase 2 flatness check: H(N) min/mean = 72.0 %, total iters: 24000000000 min: 37
 Phase 2 flatness check: H(N) min/mean = 71.0 %, total iters: 24500000000 min: 37772231 2026-05-11 19:45:35
 Phase 2 flatness check: H(N) min/mean = 71.0 %, total iters: 25000000000 min: 38466734 2026-05-11 19:59:15
 Phase 2 flatness check: H(N) min/mean = 73.0 %, total iters: 25500000000 min: 40133773 2026-05-11 20:13:10
+Phase 2 flatness check: H(N) min/mean = 72.0 %, total iters: 26000000000 min: 40516546 2026-05-11 20:25:35
+Phase 2 flatness check: H(N) min/mean = 72.0 %, total iters: 26500000000 min: 41128968 2026-05-11 20:38:46
+Phase 2 flatness check: H(N) min/mean = 72.0 %, total iters: 27000000000 min: 41877178 2026-05-11 20:49:56
+Phase 2 flatness check: H(N) min/mean = 77.0 %, total iters: 27500000000 min: 46070470 2026-05-11 21:04:57
+Phase 2 flatness check: H(N) min/mean = 77.0 %, total iters: 28000000000 min: 46531829 2026-05-11 21:16:48
+Phase 2 flatness check: H(N) min/mean = 77.0 %, total iters: 28500000000 min: 47415018 2026-05-11 21:31:12
+Flatness criterion reached in phase 2 after 28718000000 total iterations 2026-05-11 21:39:58
+H(N) min/mean = 80.0 %
+H(N) max = 65844721

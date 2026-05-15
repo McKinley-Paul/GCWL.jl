@@ -9,6 +9,7 @@ include("lj.jl")
 include("thermo.jl")
 include("cluster_expansions.jl")
 include("hard_wall_bcs.jl")
+include("yang_lee_zeros.jl")
 # ✅  = unit tests for function exist in /tests/
 # this module contains the meat of the package including run_simulation and the various High Level Wang Landau Monte Carlo functions. 
 
@@ -29,6 +30,10 @@ export compute_bn_from_logZ,compute_bns_rescaled, compute_Bn_from_bn
 # grand-canonical thermodynamic analysis (Desgranges 2012):
 export logsumexp, compute_logΞ, compute_pN, compute_mean_N, compute_pressure_σ, find_Nb_idx, find_μ_coex, compute_lnzsat,
        compute_phase_densities, ljdens_to_gcm3, compute_Psat_bar, apply_lrc_to_logQ
+# yang_lee_zeros.jl functions:
+export compute_z_ref, yang_lee_zeros, verify_yang_lee_zeros, leading_zero,
+       mean_N_from_roots, var_N_from_roots, density_from_roots, compressibility_from_roots,
+       fss_power_law, fss_first_order
 
 
 function run_simulation!(sim::SimulationParams, μ::microstate,wl::WangLandauVars,c::SimCache)

@@ -1,2 +1,4 @@
 Started:  2026-05-09 19:26:35
 1778539842
+  Activating project at `~/Documents/montecarlo/gc_wl`
+Runtime: 18602 seconds
