@@ -1,0 +1,6 @@
+# Python packages for make_figures_mpl.ipynb (versions used for the paper, Python 3.8)
+numpy==1.24.4
+h5py==3.11.0
+matplotlib==3.7.5
+SciencePlots==2.2.2
+jupyter

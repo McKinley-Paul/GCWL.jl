@@ -1,0 +1,28 @@
+Starting run_simulation!(), time is 2026-08-28 16:28:22
+New WL phase 1 epoch!, now at 0.5 and the time is 2026-08-28 16:29:31
+New WL phase 1 epoch!, now at 0.25 and the time is 2026-08-28 16:29:47
+New WL phase 1 epoch!, now at 0.125 and the time is 2026-08-28 16:29:59
+New WL phase 1 epoch!, now at 0.0625 and the time is 2026-08-28 16:30:13
+New WL phase 1 epoch!, now at 0.03125 and the time is 2026-08-28 16:30:25
+New WL phase 1 epoch!, now at 0.015625 and the time is 2026-08-28 16:30:35
+New WL phase 1 epoch!, now at 0.0078125 and the time is 2026-08-28 16:30:46
+New WL phase 1 epoch!, now at 0.00390625 and the time is 2026-08-28 16:30:56
+New WL phase 1 epoch!, now at 0.001953125 and the time is 2026-08-28 16:31:01
+New WL phase 1 epoch!, now at 0.0009765625 and the time is 2026-08-28 16:31:15
+New WL phase 1 epoch!, now at 0.00048828125 and the time is 2026-08-28 16:31:17
+New WL phase 1 epoch!, now at 0.000244140625 and the time is 2026-08-28 16:31:36
+New WL phase 1 epoch!, now at 0.0001220703125 and the time is 2026-08-28 16:31:41
+New WL phase 1 epoch!, now at 6.103515625e-5 and the time is 2026-08-28 16:31:49
+New WL phase 1 epoch!, now at 3.0517578125e-5 and the time is 2026-08-28 16:31:56
+New WL phase 1 epoch!, now at 1.52587890625e-5 and the time is 2026-08-28 16:32:33
+New WL phase 1 epoch!, now at 7.62939453125e-6 and the time is 2026-08-28 16:33:11
+New WL phase 1 epoch!, now at 3.814697265625e-6 and the time is 2026-08-28 16:33:29
+New WL phase 1 epoch!, now at 1.9073486328125e-6 and the time is 2026-08-28 16:34:11
+New WL phase 1 epoch!, now at 9.5367431640625e-7 and the time is 2026-08-28 16:34:33
+Now entering phase 2! It took 449805000 monte carlo moves (wl.iters) to get to phase 2! 2026-08-28 16:34:33
+That is a monte carlo time of: 955000
+Phase 2 flatness check: H(N) min/mean = 46.0 %, total iters: 500000000 min: 48653 2026-08-28 16:35:16
+Phase 2 flatness check: H(N) min/mean = 55.0 %, total iters: 1000000000 min: 638131 2026-08-28 16:41:06
+Flatness criterion reached in phase 2 after 1411000000 total iterations 2026-08-28 16:46:27
+H(N) min/mean = 80.0 %
+H(N) max = 3625993

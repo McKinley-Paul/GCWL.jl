@@ -1,0 +1,23 @@
+# checkpoints and outputs written by runs, tests and examples
+wl_checkpoint.jld2
+microstate_checkpoint.jld2
+final_microstate.jld2
+julia_out.txt
+slurm-*.out
+restarts.txt
+timing_log.txt
+DONE
+jobs.txt
+test/*.jld2
+test/wl_progress_log.txt
+examples/output/
+# Plots.jl previews written by figures/make_figures.ipynb
+figures/julia/
+# written by data/lennard_jones/yang_lee_all_temps.jl
+data/lennard_jones/figures/
+data/lennard_jones/output/*.csv
+.ipynb_checkpoints/
+.venv/
+.DS_Store
+figures/*.png
+benchmarks/*/results.md

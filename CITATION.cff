@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software or its data, please cite it as below."
+title: "GCWL.jl: Grand canonical Wang-Landau sampling and Yang-Lee zeros"
+authors:
+  - family-names: Paul
+    given-names: McKinley K.
+    affiliation: "School of Chemistry and Biochemistry, Georgia Institute of Technology"
+version: 1.0.0
+date-released: 2026-11-19
+license: MIT
+repository-code: "https://github.com/McKinley-Paul/GCWL.jl"
+keywords:
+  - Wang-Landau sampling
+  - grand canonical ensemble
+  - partition function
+  - Yang-Lee zeros
+  - Lennard-Jones fluid
+  - square-well fluid
+  - Monte Carlo
